@@ -33,24 +33,51 @@ function initInfoDomPanel ( renderer ) {
 
 
 	// 操作组 -----------------------------------
+	// 下载功能
 	var btn_download = document.createElement('DIV');
 	btn_download.setAttribute('class','btn btn-download');
 	btn_download.innerHTML = '下载';
 	btn_download.addEventListener('click', function(e){
+	    // 基本数据
+	    var _id = new Date().getTime();
 		var imageData = canvas_painter.toDataURL("image/png").replace("image/png", "image/octet-stream"); 
-		// Convert image to 'octet-stream' (Just a download, really)
 
+		// 下载
 	    var save_link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
 	    save_link.href = imageData;
-	    save_link.download = 'frank.png'; 
-	   
+	    save_link.download = _id + '.png'; 
 	    var event = document.createEvent('MouseEvents');
 	    event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
 	    save_link.dispatchEvent(event);
 
+	    // 上传
+	    var arr     = imageData.split(','),
+            mime    = arr[0].match(/:(.*?);/)[1],
+            bstr    = atob(arr[1]),
+            n       = bstr.length,
+            u8arr   = new Uint8Array(n);
+        while(n--){
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        var obj     = new Blob([u8arr],{type:mime});
+        var fd      = new FormData();
+        fd.append('file', obj, _id + '.png');
+
+        $.ajax({
+        	url: "/upload_image",
+            type: "POST",
+            processData : false,
+            contentType : false,
+            data : fd,
+            success : function(data) {
+                console.log(data);
+            }
+        });
+
 	}, false );
 
 
+	// 刷新功能
 	var btn_refresh = document.createElement('DIV');
 	btn_refresh.setAttribute('class','btn btn-download');
 	btn_refresh.innerHTML = '刷新';

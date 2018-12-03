@@ -8,5 +8,12 @@
 			"id": 1,
 			"colors": [ "8E00FF", "FF0087", "FFBD6E", "FF3333", "FF7939", "FF00E1" ]
 		}
+	],
+
+	"Color_red" : [
+		{
+			"id": 0,
+			"colors": [ "FFF1F4", "FF560D", "FF4463", "FF865E", "FF0D93", "FF2828" ]
+		}
 	]
 }

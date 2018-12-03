@@ -3,7 +3,8 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	
+	<script src="https://cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+
 	<script src="../build/three.js"></script>
 
     <script src="../js/loaders/ColladaLoader.js"></script>
@@ -152,7 +153,7 @@
 		// get Colors and init
 		fetch( './data/Color.json' ).then( res => {
 			return res.json().then( json => {
-				colors = json['Color_fantasy'][0].colors;
+				colors = json['Color_red'][0].colors;
 				for( var i in colors ) {
 					globalColors.push( new THREE.Color( '#'+colors[i] ) );
 				}
@@ -202,14 +203,14 @@
 
 			// scene
 			scene = new THREE.Scene();
-			scene.background = new THREE.Color( 0xffffff );
+			scene.background = new THREE.Color( globalColors[0] );
 			// scene.fog = new THREE.Fog( 0x000000, 900, 1200 );
 
 			// helper
 			var axesHelper = new THREE.AxesHelper( 25 );
-			scene.add( axesHelper );
+			// scene.add( axesHelper );
 			var gridHelper = new THREE.GridHelper( 100, 10 );
-			scene.add( gridHelper );
+			// scene.add( gridHelper );
 
 			// Renderer 
 			renderer = new THREE.WebGLRenderer( { antialias: true, preserveDrawingBuffer: true } );
@@ -276,11 +277,11 @@
 			shader_sprite = new THREE.Sprite( spriteMaterial );
 			shader_sprite.scale.set( 200, 200, 1 );
 			shader_sprite.position.set( -canvasW/2 + 100, -canvasH/2 + 100, 340 );
-			scene.add( shader_sprite );
+			// scene.add( shader_sprite );
 
 
-			var testgeo = new THREE.BoxBufferGeometry( 30, 30, 30 );
-			var testmat = new THREE.MeshNormalMaterial();
+			// var testgeo = new THREE.BoxBufferGeometry( 30, 30, 30 );
+			// var testmat = new THREE.MeshNormalMaterial();
 			// scene.add( new THREE.Mesh( testgeo, testmat ) );
 
 
@@ -316,7 +317,7 @@
 
 						var offsets = [];
 
-						var grid = new Grid( 8, 1, 8, 320, 240, 240 ); //
+						var grid = new Grid( 8, 1, 8, 140, 140, 140 ); //
 
 						for( var i=0; i<grid.totalNum; ++i ) {
 
@@ -329,6 +330,7 @@
 						instanced_geo.addAttribute( 'offset', offsetsAttribute );
 
 						var mesh = new THREE.Mesh( instanced_geo, rawshaderMat );
+						mesh.scale.set( 2, 2, 2 )
 						scene.add( mesh );
 					}
 
@@ -339,13 +341,15 @@
 		function buildPostEFX() {
 			var renderPass = new THREE.RenderPass( scene, camera );
 			var effectFilmPass = new THREE.FilmPass( 6, 0.9, 648, false );
+			var effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
+			effectFXAA.uniforms[ 'resolution' ].value.set( 1 / canvasW, 1 / canvasH );
 
 			// define which pass is the final pass
-			effectFilmPass.renderToScreen = true;
+			effectFXAA.renderToScreen = true;
 
 			composer = new THREE.EffectComposer( renderer );
 			composer.addPass( renderPass );
-			composer.addPass( effectFilmPass );
+			composer.addPass( effectFXAA );
 		}
 
 		function buildControls() {
