@@ -1,0 +1,239 @@
+/*this css file is specially for painter_02.ejs*/
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	font-family: 'Helvetica Neue','Helvetica',sans-serif;
+}
+
+body, html {
+	width: 100%;
+	height: 100%;
+	background-color: #000;
+}
+
+button {
+	outline: none;
+	border: none;
+}
+
+a {
+	text-decoration: none;
+}
+
+
+header.header {
+	width: 100%;
+	height: 80px;
+	background: #000;
+}
+header .topbar {
+	width: 100%;
+	height: 2px;
+	background: #f30;
+}
+header .logo {
+	display: inline-block;
+	vertical-align: middle;
+	margin-top: 10px;
+	width: 60px;
+	height: 60px;
+	background-image: url(../images/logo.png);
+	background-size: cover;
+	border-radius: 100%;
+}
+header .logo-text {
+	display: inline-block;
+	vertical-align: middle;
+	margin-left: 20px;
+	margin-top: 10px;
+	height: 60px;
+	color: #fff;
+	font-size: 26px;
+	line-height: 60px;
+	font-weight: 700;
+	font-style: italic;
+}
+
+.wrapper {
+	position: relative;
+	margin: 0 auto;
+	width: 1200px;
+}
+
+.canvas-wrapper {
+	position: relative;
+	width: 100%;
+	padding: 30px;
+	background: #000;
+}
+.canvas-frame {
+	position: relative;
+	margin: 0 auto;
+	width: 1080px;
+	height: 300px;
+}
+.banner-main-title {
+	position: absolute;
+	top: 80px;
+	left: 40px;	
+	font-size: 72px;
+	color: #fff;
+}
+.banner-sub-title {
+	position: absolute;
+	top: 180px;
+	left: 40px;
+	font-size: 36px;
+	color: #fff;
+	opacity: 0.5;
+}
+
+#canvas3d {
+	display: block;
+	position: relative;
+	margin: 0 auto;
+	width: 1080px;
+	height: 300px;
+	border: 1px solid #234;
+}
+#canvas2d {    
+	border: 1px solid #aaa;
+}
+.canvas2d-wrapper {
+	position: relative;
+}
+
+
+.op-float {
+	position: absolute;
+	top: 0;
+	right: 0;
+	padding-top: 20px;
+	width: 400px;
+	border: 1px solid #fff;
+}
+
+.op-float#origin_data {
+	left: 0;
+}
+
+.op-fix-left {
+	position: fixed;
+	top: 0;
+	left: 10px;
+	width: 400px;
+}
+
+.op-fix-right {
+	position: fixed;
+	top: 0;
+	right: 0;
+	width: 400px;
+}
+
+.op-model {
+	position: relative;
+	display: inline-block;
+	vertical-align: top;
+	padding: 10px 30px;
+	top: 0;
+	border-right: 1px dotted #ddd;
+}
+.op-model:last-child {
+	border: none;
+}
+.op-model h4 {
+	position: relative;
+	border-bottom: 1px dotted #777;
+	color: #fff;
+	font-size: 24px;
+	/*font-weight: 400;*/
+	z-index: 99;
+}
+.op-model h5 {
+	margin-top: 20px;
+	color: #fff;
+}
+.op-model h6 {
+	margin-top: -3px;
+	color: #ddd;
+	font-size: 16px;
+	font-weight: 400;
+	font-style: italic;
+	margin-bottom: 20px;
+	z-index: 0;
+}
+
+.op-input-text {
+	margin: 5px 0px;
+}
+
+.op-model label {
+	display: inline-block;
+	width: 80px;
+}
+.op-model input {
+
+}
+
+.op-input-button {
+	width: 100%;
+	background: #A843FF;
+	border-radius: 6px;
+	font-size: 14px;
+	color: #fff;
+	font-weight: 100;
+	text-align: center;
+	line-height: 32px;
+	letter-spacing: 2px;
+	cursor: pointer;
+}
+.op-input-button:hover {
+	opacity: 0.8;
+}
+.op-input-button-feedback {
+	display: none;
+	margin-top: 10px;
+	color: #0c9;
+	font-size: 16px;
+	text-align: center;
+	font-style: italic;
+}
+
+.op-slider {
+	margin: 20px 0;
+}
+.op-slider.hidden {
+	display: none;
+}
+.op-slider-title {
+	color: #fff;	
+	font-size: 10px;
+}
+#operation_panel .button {
+	outline: none;
+	border: none;
+	color: #fff;
+}
+#op_save {
+	background-color: #09f;
+}
+
+#op_toggle_vertex_color {
+	width: 80px;
+	height: 24px;
+	background: #f90;
+}
+
+.op-color-string {
+	color: #fff;
+}
+
+.op-color-item {
+	display: inline-block;
+	vertical-align: top;
+	width: 40px;
+	height: 30px;
+	border: 1px solid #000;
+}

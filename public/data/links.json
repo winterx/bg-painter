@@ -1,0 +1,168 @@
+{
+    "list": [
+        {
+            "cata": "websites",
+            "info": "Design Websites",
+            "sites": [
+                {
+                    "name": "Abduzeedo",
+                    "link": "http://abduzeedo.com/",
+                    "level": 5
+                },
+                {
+                    "name": "Awwwards",
+                    "link": "https://www.awwwards.com/",
+                    "level": 5
+                },
+                {
+                    "name": "Smashing magazine",
+                    "link": "https://www.smashingmagazine.com/",
+                    "level": 5
+                },
+                {
+                    "name": "Csswizardry",
+                    "link": "https://csswizardry.com/",
+                    "level": 3
+                }
+            ]
+        },
+        {
+            "cata": "digital",
+            "info": "Digital Designers",
+            "sites": [
+                {
+                    "name": "Dennis Schafer",
+                    "link": "http://www.dennisschafer.com/",
+                    "info": "Sci-Fi, Data visualization",
+                    "level": 5
+                },
+                {
+                    "name": "Du Haihang",
+                    "link": "http://www.duhaihang.com/",
+                    "info": "",
+                    "level": 5
+                },
+                {
+                    "name": "Alexandre le Guillou",
+                    "link": "http://www.boplbopl.com/",
+                    "info": "Digital Designer",
+                    "level": 5
+                },
+                {
+                    "name": "Edan Kwan",
+                    "link": "http://edankwan.com/",
+                    "info": "Digital Designer",
+                    "level": 4
+                },
+                {
+                    "name": "Jongmin Kim",
+                    "link": "http://cmiscm.com/",
+                    "info": "Digital Designer",
+                    "level": 5
+                },
+                {
+                    "name": "Hakim El Hattab",
+                    "link": "http://www.hakim.se/",
+                    "info": "Digital Designer",
+                    "level": 4
+                },
+                {
+                    "name": "Kenji Saito",
+                    "link": "http://kenji-special.tv/",
+                    "info": "Code Designer",
+                    "level": 3,
+                    "vpn": true
+                }
+            ]
+        },
+        {
+            "cata": "designers",
+            "info": "UX Designers",
+            "sites": [
+                {
+                    "name": "Lucas Bebber",
+                    "link": "http://lbebber.github.io/public/",
+                    "info": "Code Designer",
+                    "level": 3
+                },
+                {
+                    "name": "Daniel Puhe",
+                    "link": "http://www.spielzeugz.de/",
+                    "info": "Code Designer",
+                    "level": 3
+                },
+                {
+                    "name": "Liang Guopeng",
+                    "link": "http://guopengliang.com/",
+                    "info": "Interaction Designer",
+                    "level": 4
+                },
+                {
+                    "name": "John Schlemmer",
+                    "link": "http://schlem.me/",
+                    "info": "Motion Designer",
+                    "level": 4
+                },
+                {
+                    "name": "Sebastien Gabriel",
+                    "link": "http://sebastien-gabriel.com/",
+                    "info": "UX designer"
+                }
+            ]
+        },
+        {
+            "cata": "graphic",
+            "info": "Graphic Designers",
+            "sites": [
+                {
+                    "name": "Alex Tass",
+                    "link": "http://alextass.com/",
+                    "info": "Logo design",
+                    "level": 4
+                }
+            ]
+        },
+        {
+            "cata": "designfirms",
+            "info": "Design Firms",
+            "sites": [
+                {
+                    "name": "test",
+                    "link": "120",
+                    "info": "120",
+                    "level": "9"
+                },
+                {
+                    "name": "firms 12",
+                    "link": "12019",
+                    "info": "09120",
+                    "level": "0"
+                },
+                {
+                    "name": "asdf",
+                    "link": "121",
+                    "info": "3131",
+                    "level": "1"
+                }
+            ]
+        },
+        {
+            "cata": "tools",
+            "info": "Design Tools",
+            "sites": [
+                {
+                    "name": "SS",
+                    "link": "11",
+                    "info": "12",
+                    "level": "123"
+                },
+                {
+                    "name": "ygab",
+                    "link": "sdfa",
+                    "info": "asdfasf",
+                    "level": "12"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+
+    <script type='text/javascript' src='js/gui/jquery-1.5.1.min.js'></script>
+    <script type='text/javascript' src='js/gui/jquery-ui-1.8.13.custom.min.js'></script>
+    <script type="text/javascript" src='js/gui/colorpicker.js'></script>
+    <script type="text/javascript" src='js/gui/controls.js'></script>
+
+    <script type='text/javascript' src='js/math/gl-matrix-min.js'></script>
+
+    <script type='text/javascript' src='js/webgl/Camera.js'></script>
+    <script type='text/javascript' src='js/webgl/CameraInteractor.js'></script>
+    <script type='text/javascript' src='js/webgl/Program.js'></script>
+    <script type='text/javascript' src='js/webgl/Scene.js'></script>
+    <script type='text/javascript' src='js/webgl/SceneTransforms.js'></script>
+    <script type='text/javascript' src='js/webgl/Lights.js'></script>
+    <script type='text/javascript' src='js/webgl/WebGLApp.js'></script>
+
+    <script type="text/javascript" src="data/Colors.js"></script>
+    <script type="text/javascript" src="data/LibModels.js"></script>
+
+    <script type="text/javascript" src="js/objects/Object3D.js"></script>
+    <script type="text/javascript" src="js/objects/Bgplane.js"></script>
+    <script type="text/javascript" src="js/objects/Circle.js"></script>
+    <script type="text/javascript" src="js/objects/Cone.js"></script>
+    <script type="text/javascript" src="js/objects/Cube.js"></script>
+    <script type="text/javascript" src="js/objects/CubeStroke.js"></script>
+    <script type="text/javascript" src="js/objects/Sphere.js"></script>
+    <script type="text/javascript" src="js/objects/Squad.js"></script>
+    <script type="text/javascript" src="js/objects/Triangle.js"></script>
+    <script type="text/javascript" src="js/objects/Rectangle.js"></script>
+    <script type="text/javascript" src="js/objects/WaveStroke.js"></script>
+
+    <script type="text/javascript" src="js/pp_general/Pattern.js"></script>
+    <script type="text/javascript" src="js/pp_general/Grid.js"></script>
+    <script type="text/javascript" src="js/pp_general/Placement.js"></script>
+    <script type="text/javascript" src="js/pp_general/util.js"></script>
+
+    <!-- CSS Styles //-->
+    <link href='css/smoothness/jquery-ui-1.8.13.custom.css' type='text/css' rel='stylesheet' />
+    <link rel="stylesheet" type="text/css" href="css/colorpicker.css">
+    <link rel="stylesheet" type="text/css" href="css/common_02.css">
+    <title>Pattern Painter</title>
+
+
+</head>
+
+<body onload="runWebGLApp(1)">
+    <header class="header">
+        <div class="wrapper">
+            <a href="http://localhost:3000/">
+                <div class="logo"></div>
+            </a>
+            <div class="logo-text"><span style="font-weight: 200; font-style: italic;">Pattern</span>Painter</div>
+        </div>
+    </header>
+    <div class="canvas-wrapper">
+        <div class="canvas-frame">
+            <canvas id="canvas3d"></canvas>
+            <div class="banner-main-title"><%= init_mainTitle %></div>
+            <div class="banner-sub-title"><%= init_subTitle %></div>
+        </div>
+    </div>
+
+    <div class="op-fix-left" id="origin_data">
+
+        <div class="op-model">
+            <h4>基本数据</h4>
+            <input type="text" name="" value="<%= init_style %>" id="init_style">
+            <input type="text" name="" value="<%= init_width %>" id="init_width">
+            <input type="text" name="" value="<%= init_height %>" id="init_height">
+            <input type="text" name="" value="<%= init_mainTitle %>" id="init_mainTitle">  
+            <input type="text" name="" value="<%= init_subTitle %>" id="init_subTitle">  
+            <h5>切换摄像机类型</h5>
+            <div class="op-input-button" id="ui_changeCameraTypeOrtho">ortho</div>
+            <div class="op-input-button" id="ui_changeCameraTypePersp">perspective</div>
+
+            <h5>light 00</h5>
+            <div class="op-slider">
+                <div class="op-slider-title">Light Intensity : <span id="light00-a"></span></div>
+                <div id="slider-light00-a"></div>
+            </div>
+            <div class="op-slider">
+                <div class="op-slider-title">Light Direction X : <span id="light00-x"></span></div>
+                <div id="slider-light00-x"></div>
+            </div>
+            <div class="op-slider">
+                <div class="op-slider-title">Light Direction Y : <span id="light00-y"></span></div>
+                <div id="slider-light00-y"></div>
+            </div>
+            <div class="op-slider">
+                <div class="op-slider-title">Light Direction Z : <span id="light00-z"></span></div>
+                <div id="slider-light00-z"></div>
+            </div>
+
+            <h5>light 01</h5>
+            <div class="op-slider">
+                <div class="op-slider-title">Light Direction X : <span id="light01-x"></span></div>
+                <div id="slider-light01-x"></div>
+            </div>
+            <div class="op-slider">
+                <div class="op-slider-title">Light Direction Y : <span id="light01-y"></span></div>
+                <div id="slider-light01-y"></div>
+            </div>
+            <div class="op-slider">
+                <div class="op-slider-title">Light Direction Z : <span id="light01-z"></span></div>
+                <div id="slider-light01-z"></div>
+            </div>
+
+            <h5>light 02</h5>
+            <div class="op-slider">
+                <div class="op-slider-title">Light Direction X : <span id="light02-x"></span></div>
+                <div id="slider-light02-x"></div>
+            </div>
+            <div class="op-slider">
+                <div class="op-slider-title">Light Direction Y : <span id="light02-y"></span></div>
+                <div id="slider-light02-y"></div>
+            </div>
+            <div class="op-slider">
+                <div class="op-slider-title">Light Direction Z : <span id="light02-z"></span></div>
+                <div id="slider-light02-z"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="op-fix-right">
+        <!-- 2d canvas small map -->
+        <div class="canvas2d-wrapper">
+            <canvas id="canvas2d"></canvas>
+        </div>
+
+        <div class="op-model">
+            <h4>colors</h4>
+            <div class="op-color-string"></div>
+            <div class="">
+                <div class="op-color-item" id="color_00"></div>
+                <div class="op-color-item" id="color_01"></div>
+                <div class="op-color-item" id="color_02"></div>
+                <div class="op-color-item" id="color_03"></div>
+            </div>
+            <div class="op-input-button" id="op_repaint_color">repaint</div>
+        </div>
+
+        <div class="op-model" style="width:100%">
+            <h4>Camera</h4>
+            <div class="op-slider">
+                <div class="op-slider-title">Distance<span id="camera-distance"></span></div>
+                <div id="slider-camera-distance"></div>
+            </div>
+            <div class="op-slider">
+                <div class="op-slider-title">Azimuth<span id="camera-azimuth"></span></div>
+                <div id="slider-camera-azimuth"></div>
+            </div>
+            <div class="op-slider">
+                <div class="op-slider-title">Elevation<span id="camera-elevation"></span></div>
+                <div id="slider-camera-elevation"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="x-shader/x-vertex" id="shader-vs">
+        // geometry
+        attribute vec3 aVertexPosition;
+        attribute vec3 aVertexNormal;
+        attribute vec4 aVertexColor;
+        attribute vec2 aVertexTextureCoords;
+
+        uniform vec4 uMaterialDiffuse;
+        uniform vec4 uMaterialAmbient;
+
+        // matrices
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+        uniform mat4 uNMatrix;
+
+        // lights
+        const int numLights = 3;
+        uniform vec3 uLightPosition[ numLights ];
+        uniform vec3 uLightDirection[ numLights ];
+
+        // textures
+        uniform bool uUseTextures;
+
+        // varyings
+        varying vec3 vLightNormal[ numLights ];
+        varying vec3 vLightRay[ numLights ];
+        varying vec3 vVertexNormal;
+        varying vec4 vVertexColor;
+        varying vec2 vTextureCoord;
+
+        // fog effect
+        uniform vec4 uEye;
+        varying float vDist;
+
+        void main(void) {
+            // 材质纹理
+            if( uUseTextures ) {
+                vTextureCoord = aVertexTextureCoords;
+            }
+
+            // 顶点颜色 传给片段着色器
+            vVertexColor = aVertexColor;
+            vVertexNormal = aVertexNormal;
+
+            // 计算法线 传给片段着色器
+            // vLightNormal = vec3( uNMatrix * vec4( aVertexNormal, 1.0 ));
+
+            // 计算光线 传给片段着色器
+            // transformed vertex position and normal
+            vec4 vertex = uMVMatrix * vec4( aVertexPosition, 1.0 );
+            vec3 vertexNormal = vec3(uNMatrix*vec4(aVertexNormal,1.0));
+            // calculate normals and light rays
+            for( int i=0; i<numLights; i++ ) {
+                vec4 light_position = uMVMatrix * vec4( uLightPosition[i], 1.0 );
+                vec3 light_direction = vec3( uNMatrix * vec4( uLightDirection[i], 1.0 ));
+                vLightNormal[i] = vertexNormal  - light_direction;
+                vLightRay[i]    = vertex.xyz    - light_position.xyz;
+            }
+
+            // final vertex position
+            gl_Position = uPMatrix * uMVMatrix * vec4( aVertexPosition, 1.0 );
+            gl_PointSize = 2.1;
+
+            vDist = distance( vertex, uEye );
+            // vDist = gl_Position.w;
+        }
+    </script>
+
+    <script type="x-shader/x-fragment" id="shader-fs">
+        #ifdef GL_ES
+        precision highp float;
+        #endif 
+
+        // geometry
+        uniform vec4 uMaterialDiffuse;
+        uniform vec4 uMaterialAmbient;
+
+        // matrices
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+        uniform mat4 uNMatrix;
+
+        // style
+        uniform int uStyle;
+        uniform float uColorVertexWeight; 
+        // uniform float uColorDiffuseWeight;
+        // uniform float uColorLightWeight;
+        uniform float uAlpha;
+
+        // lights
+        const int numLights = 3;
+        uniform float uCutOff;
+        uniform vec4 uLightAmbient;
+        uniform vec3 uLightDirection[ numLights ];
+        uniform vec4 uLightDiffuse[ numLights ];
+
+        // picking 
+        uniform bool uOffscreen;
+
+        uniform bool uWireframe;
+
+        // textures
+        uniform bool uUseTextures;
+        uniform sampler2D uSampler;
+
+        // varyings
+        varying vec3 vLightNormal[ numLights ];
+        varying vec3 vLightRay[ numLights ];
+        varying vec3 vVertexNormal;
+        varying vec4 vVertexColor;
+        varying vec2 vTextureCoord;
+
+        // fog effect
+        uniform vec4 uFogColor;
+        uniform vec2 uFogDist;
+        varying float vDist;
+
+
+        void main(void) {
+            // picking mode 
+            if( uOffscreen ) { 
+                gl_FragColor = uMaterialDiffuse;
+                return;
+            }
+            // wireframe
+            if( uWireframe ) {
+                gl_FragColor = vec4( vec3(uMaterialDiffuse), uAlpha );
+                return;
+            }
+
+            float lambertTerm       = 0.0;
+            float lambertTerm_2     = 0.0;
+            float lambertTermPow    = 0.0;
+            float fogFactor         = 0.0;
+             vec4 finalColor        = vec4( 0.0, 0.0, 0.0, 1.0 );
+             vec4 Id                = vec4( 0.0, 0.0, 0.0, 1.0 );
+             vec4 diffuse           = vec4( 0.0, 0.0, 0.0, 0.0 );
+             vec4 light             = vec4( 0.0, 0.0, 0.0, 0.0 );
+
+            // fog effect
+            fogFactor = clamp( (uFogDist.y - vDist) / (uFogDist.y- uFogDist.x), 0.0, 1.0 );
+            // float fogFactor = 0.1;
+
+            // sci-fi style
+            if( uStyle == 0 ) { 
+                fogFactor = clamp( (uFogDist.y - vDist) / (uFogDist.y- uFogDist.x), 0.0, 1.0 );
+
+                finalColor = vVertexColor*fogFactor + uFogColor*fogFactor;
+            }
+            // fantacy style
+            else if( uStyle == 1 ) { 
+                for( int i=0; i<numLights; i++ ){
+                    lambertTerm_2   = clamp( dot( normalize( vVertexNormal ), -normalize( uLightDirection[i] ) ), 0.0, 1.0 );
+                    lambertTerm     = clamp( dot( normalize( vLightNormal[i] ), -normalize( vLightRay[i] ) ), 0.0, 1.0 );
+                    lambertTermPow  = pow(lambertTerm_2, 2.0 );
+                    Id += 0.4 * ( uMaterialDiffuse*(1.0-lambertTerm_2) + uLightDiffuse[i]*lambertTerm_2 );
+
+                    finalColor = vec4( vec3(Id*(1.0-uColorVertexWeight) + vVertexColor*(uColorVertexWeight)), uAlpha );
+                }
+            }
+            // landscape style
+            else if( uStyle == 2 ) { 
+                for( int i=0; i<numLights; i++ ){
+                    lambertTerm_2   = clamp( dot( normalize( vVertexNormal ), -normalize( uLightDirection[i] ) ), 0.0, 1.0 );
+                    lambertTerm     = clamp( dot( normalize( vLightNormal[i] ), -normalize( vLightRay[i] ) ), 0.0, 1.0 );
+                    lambertTermPow  = pow( lambertTerm, 3.0 );
+                    diffuse = uMaterialDiffuse*(1.0-lambertTermPow);
+                    light += uLightDiffuse[i]*lambertTermPow;                    
+                }    
+                Id = diffuse*0.5 + light*1.5;
+                finalColor = mix( uFogColor, Id, fogFactor );            
+            }
+
+            gl_FragColor = finalColor;
+            // gl_FragColor = vec4( vec3(finalColor*(1.0-uColorVertexWeight) + vVertexColor*(uColorVertexWeight)), uAlpha );
+        }
+    </script>
+
+    <script type="text/javascript">
+
+        var place = new Placement( 1080, 320, 40, 40, 40, 40 );
+        place.init();
+        place.select();
+
+        var place2 = new Placement( 1080, 120, 1080, 120, 120, 120 );
+        place2.init();
+        place2.select();
+
+        var c_width = 0;
+        var c_height = 0;
+        var amount = 4;
+        var regular = 1;
+        var volume = 1;
+        var gl = null;
+        var prg = null;
+        var camera          = null,
+            transforms      = null;
+        var bShowingUploaded = false;
+        var timercount = 0;
+        var fogDist;
+        var fogDistScifi        = new Float32Array([ 0.0, 1000.0]);
+        var fogDistLandscape    = new Float32Array([ 0.0, 2000.0]);
+
+        var ctx = canvas2d.getContext('2d');
+
+        function configure() {
+            gl.clearColor(Pattern.colors[3][0], Pattern.colors[3][1], Pattern.colors[3][2], Pattern.colors[3][3]);
+            // Enabling depth testing
+            gl.clearDepth(1.0);
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthFunc(gl.LESS);
+            // Enabling alpha blending
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+            // Creates and sets up the camera location
+            camera = new Camera(CAMERA_ORBITING_TYPE);
+            camera.goHome([0, 0, 640]);
+            camera.setFocus([0.0, 0.0, 0.0]);
+            // camera.setAzimuth(45);
+            // camera.setElevation(-45);
+            camera.setAzimuth(0);
+            camera.setElevation(0);
+            camera.hookRenderer = render;
+
+            // Scene Transforms
+            transforms = new SceneTransforms(camera);
+
+            // init transforms
+            transforms.init();
+
+            // init Lights
+            var light01 = new Light('light01');
+            light01.setPosition([ 400, 100, 400 ]);
+            light01.setDiffuse( Pattern.colors[0] );
+            light01.setProperty('direction',[ -400, 100, -100 ]);
+            Lights.add(light01);
+
+            var light02 = new Light('light02');
+            light02.setPosition([ 00, -100, 400 ]);
+            light02.setDiffuse( Pattern.colors[1] );
+            light02.setProperty('direction',[ 400, -100, -100 ]);
+            Lights.add(light02);
+
+            var light03 = new Light('light03');
+            light03.setPosition([ -400, -100, 400 ]);
+            light03.setDiffuse( Pattern.colors[2] );
+            light03.setProperty('direction',[ 0, 100, -100 ]);
+            Lights.add(light03);
+
+            var attributeList = [
+                "aVertexPosition",
+                "aVertexNormal",
+                "aVertexColor",
+                "aVertexTextureCoords"
+            ];
+
+            var uniformList = [
+                "uPMatrix",
+                "uMVMatrix",
+                "uNMatrix",
+
+                "uMaterialDiffuse",
+                "uMaterialAmbient",
+                "uMaterialSpecular",
+
+                "uStyle",
+
+                "uLightAmbient",
+                "uLightDiffuse",
+                "uLightDirection",
+                "uLightPosition",
+
+                "uColorVertexWeight",
+                "uAlpha",
+
+                "uOffscreen",
+                "uSampler",
+                "uUseTextures", 
+
+                "uEye",
+                "uFogDist",
+                "uFogColor",
+
+                "uWireframe"
+            ];
+
+            Program.load(attributeList, uniformList);
+
+            // 风格选择器：uStyle
+            gl.uniform1i(Program.uStyle, Pattern.style); 
+            gl.uniform4fv(Program.uLightAmbient ,  [1.0,1.0,1.0,1.0]);
+            gl.uniform3fv(Program.uLightPosition,    Lights.getArray('position'));
+            gl.uniform3fv(Program.uLightDirection,   Lights.getArray('direction'));
+            // gl.uniform3fv(Program.uLightDirection,   Lights.getArray('direction'));
+            gl.uniform4fv(Program.uLightDiffuse,     Lights.getArray('diffuse'));
+            gl.uniform1f(Program.uCutOff, 0.00001);
+            gl.uniform1f(Program.uAlpha, 1.0 );
+
+            // fog effect
+            gl.uniform4fv(Program.uFogColor, Pattern.colors[3]);
+            switch( Pattern.style ) {
+                case 0: 
+                    fogDist = fogDistScifi;
+                    break;
+                case 1:
+                    fogDist = [0.0,0.0];
+                    break;
+                case 2:
+                    fogDist = fogDistLandscape;
+                    break;
+            }
+            gl.uniform2fv(Program.uFogDist, fogDist);
+            gl.uniform4fv(Program.uEye, [ 0, 0, 640, 1.0 ]);
+
+            // gl.uniform3fv(Program.uLightPosition, [500, 200, -500]);
+            // gl.uniform4fv(Program.uLightDiffuse, Pattern.colors[4]); // color 4: light
+        }
+
+        function load() {
+            // 背景层1： 四边形
+            // var bgplane = new Bgplane({
+            //     width: Pattern.c_width,
+            //     height: Pattern.c_height,
+            //     position: [ 0, 0, 0 ],
+            //     colors: Pattern.colors,
+            //     diffuse: Pattern.colors[3],
+            //     colorVertexWeight: 1.0,
+            //     alpha : 0.0
+            // });
+            // Scene.addObject(bgplane);
+
+            // lights
+            for( var i = 0; i<Pattern.lights.length; ++i ) {
+                
+            }
+
+            // basic objects
+            for (var i = 0; i < Pattern.primary_objects.length; ++i) {
+                var param = {
+                    colors: Pattern.colors,
+                    diffuse: Pattern.colors[i%4],
+                    width: Pattern.primary_objects[i].width,
+                    height: Pattern.primary_objects[i].height,
+                    depth: Pattern.primary_objects[i].depth,
+                    position: Pattern.primary_objects[i].position,
+                    rotation: Pattern.primary_objects[i].rotation,
+                    scale: Pattern.primary_objects[i].scale,
+                    colorVertexWeight: Pattern.primary_objects[i].colorVertexWeight,
+                    drawType: Pattern.primary_objects[i].drawType,
+                    alpha: Pattern.primary_objects[i].alpha,
+                    wireframe: Pattern.primary_objects[i].wireframe
+                }
+                switch ( Pattern.primary_objects[i].name ) {
+                    case 'Bgplane': 
+                        var obj = new Bgplane(param);
+                        break;
+                    case 'Sphere':
+                        var obj = new Sphere(param);
+                        break;
+
+                    // basic
+                    case 'Cube':
+                        var obj = new Cube(param);
+                        break;
+                    case 'Cone':
+                        var obj = new Cone(param);
+                        break;
+
+                    // sci-fi
+                    case 'CubeStroke':
+                        var obj = new CubeStroke(param);
+                        break;
+                    case 'Squad':
+                        // param.placement = place.placement;
+                        param.grid = Pattern.grid;
+                        var obj = new Squad(param);
+                        break;
+
+                    // 
+
+                    default:
+                        var obj = new Cube(param);
+                        break;
+                }
+                Scene.addObject(obj)
+            }
+
+            // place objects
+            // for( var i = 0; i < place2.placement.length; ++i ) {
+            //     var param = {
+            //         width: 3,
+            //         height: 3,
+            //         depth: 3,
+            //         position: [ place2.placement[i].x, place2.placement[i].y, 10 ],
+            //         rotation: [0,0,0],
+            //         scale: [1,1,1],
+            //         colors: Pattern.colors,
+            //         diffuse: Pattern.colors[2]
+            //     }
+            //     Scene.addObject( new Sphere(param) );
+            // }
+
+            // var test = new CubeStroke({
+            //     width : 100,
+            //     height : 100,
+            //     depth : 100,
+            //     position : [ -200, 0, 0 ],
+            //     rotation : [ 1,1,1 ],
+            //     scale : [ 1, 1, 1 ],
+            //     colors : Pattern.colors,
+            //     diffuse : Pattern.colors[4],
+            //     colorVertexWeight: 1.0,
+            //     alpha : 1.0
+            // }); 
+            // Scene.addObject(test);
+
+            // var geo_test = new Sphere({
+            //     width : 100,
+            //     height : 100,
+            //     depth : 100,
+            //     position : [ 200, 0, 0 ],
+            //     rotation : [ Math.random(),Math.random(),Math.random() ],
+            //     scale : [ 1, 1, 1 ],
+            //     colors : Pattern.colors,
+            //     diffuse : Pattern.colors[3],
+            //     colorVertexWeight: 1.0,
+            //     alpha : 1.0,
+            //     drawType : 'POINTS'
+            // }); 
+            // Scene.addObject(geo_test);
+
+
+
+            // var dot_squad = new Squad({
+            //     placement : place.placement,
+            //     colors : Pattern.colors
+            // });
+            // Scene.addObject(dot_squad);
+
+            // var wave = new WaveStroke({
+            //     width : 100,
+            //     height : 100,
+            //     depth : 100,
+            //     position : [ -200, 0, 0 ],
+            //     rotation : [ 0,0,0 ],
+            //     scale : [ 1, 1, 1 ],
+            //     colors : Pattern.colors,
+            //     diffuse : Pattern.colors[4],
+            //     colorVertexWeight: 1.0,
+            //     alpha : 1.0                
+            // });
+            // Scene.addObject(wave);
+
+
+
+            // var test = new Cube({
+            //     width : 100,
+            //     height : 100,
+            //     depth : 100,
+            //     position : [ -200, 0, 0 ],
+            //     rotation : [ 1,1,1 ],
+            //     scale : [ 0.96, 0.96, 0.96 ],
+            //     colors : Pattern.colors,
+            //     diffuse : Pattern.colors[4],
+            //     colorVertexWeight: 0.0,
+            //     alpha : 0.1
+            // }); 
+            // Scene.addObject(test);
+
+
+            // var test = new Cube({
+            //     width : 120,
+            //     height : 120,
+            //     depth : 120,
+            //     position : [ 200, 0, 0 ],
+            //     rotation : [ 1, 1, 1 ],
+            //     scale : [ 1, 1, 1 ],
+            //     colors : Pattern.colors,
+            //     diffuse : Pattern.colors[3],
+            //     colorVertexWeight: 0.0
+            // }); 
+            // Scene.addObject(test)
+
+            // lib objects
+            // for( var i=0; i<1; ++i ) {
+            //     var param = {
+            //         width: 100,
+            //         height: 100,
+            //         depth: 100,
+            //         scale: [10, 10, 10],
+            //         colors: Pattern.colors,
+            //         diffuse: Pattern.colors[i % 4]             
+            //     }
+            //     Scene.loadObjectJson('multi');
+            // }
+        }
+
+        var count = 0;
+
+        // setInterval(function(){
+        //     count ++;
+        //     Lights.list[0].setPosition([ count*10, 100, 400 ]);
+        //     gl.uniform3fv( Program.uLightPosition, Lights.getArray('position'));
+        // }, 400 );
+
+        function render() {
+            count++;
+            // Lights.list[1].position[0] = count*10;
+            // gl.uniform3fv( Program.uLightPosition, Lights.getArray('position'));
+            draw();
+        }
+
+        function draw() {
+
+            timercount++;
+
+            gl.viewport(0, 0, c_width, c_height);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            if( Pattern.ProjectType == ORTHO ) {
+                transforms.updateOrtho();
+            }else{
+                transforms.updatePerspective();
+            }
+
+            try {
+
+                var offscreen = Program.getUniform(Program.uOffscreen);
+
+                for (var i = 0, max = Scene.objects.length; i < max; ++i) {
+                    var object = Scene.objects[i];
+
+                    if( object.alpha !== undefined ) {
+                        gl.uniform1f(Program.uAlpha, object.alpha);
+                    } 
+
+                    // transform respective objects
+                    transforms.calculateModelView();
+                    transforms.push();
+                    if (object.position) {
+                        mat4.translate(transforms.mvMatrix, object.position);
+                    }
+                    if (object.rotation) {
+                        mat4.rotate(transforms.mvMatrix, object.rotation[0], [1, 0, 0]);
+                        mat4.rotate(transforms.mvMatrix, object.rotation[1], [0, 1, 0]);
+                        mat4.rotate(transforms.mvMatrix, object.rotation[2], [0, 0, 1]);
+                    }
+                    if (object.scale) {
+                        mat4.scale(transforms.mvMatrix, object.scale);
+                    }
+                    transforms.setMatrixUniforms();
+                    transforms.pop();
+
+                    // setting uniforms
+                    gl.uniform4fv(Program.uMaterialDiffuse, object.diffuse);
+                    gl.uniform4fv(Program.uMaterialAmbient, object.ambient);
+                    gl.uniform1i(Program.uWireframe, object.wireframe);
+                    gl.uniform1i(Program.uUseTextures, false);
+
+                    // setting attributes
+                    gl.enableVertexAttribArray(Program.aVertexPosition);
+                    gl.disableVertexAttribArray(Program.aVertexNormal);
+                    gl.disableVertexAttribArray(Program.aVertexColor);
+                    gl.disableVertexAttribArray( Program.aVertexTextureCoords );
+
+
+                    // vertices
+                    gl.bindBuffer(gl.ARRAY_BUFFER, object.vbo);
+                    gl.vertexAttribPointer(Program.aVertexPosition, 3, gl.FLOAT, false, 0, 0);
+                    gl.enableVertexAttribArray(Program.aVertexPosition);
+
+                    gl.uniform1f(Program.uColorVertexWeight, object.colorVertexWeight);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, object.cbo);
+                    gl.vertexAttribPointer(Program.aVertexColor, 4, gl.FLOAT, false, 0, 0);
+                    gl.enableVertexAttribArray(Program.aVertexColor);
+
+                    // normals
+                    gl.bindBuffer(gl.ARRAY_BUFFER, object.nbo);
+                    gl.vertexAttribPointer(Program.aVertexNormal, 3, gl.FLOAT, false, 0, 0);
+                    gl.enableVertexAttribArray(Program.aVertexNormal);
+
+                    // indices to draw
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, object.ibo);
+                    switch( object.drawType ) {
+                        case 'TRIANGLES_FAN':
+                            gl.drawElements(gl.TRIANGLE_FAN, object.indices.length, gl.UNSIGNED_SHORT, 0);
+                            break;
+                        case 'LINES':
+                            gl.drawElements(gl.LINES, object.indices.length, gl.UNSIGNED_SHORT, 0);
+                            break;
+                        case 'LINE_STRIP':
+                            gl.drawElements(gl.LINE_STRIP, object.indices.length, gl.UNSIGNED_SHORT, 0);
+                            break;
+                        case 'POINTS':
+                            gl.drawElements(gl.POINTS, object.indices.length, gl.UNSIGNED_SHORT, 0);
+                            break;
+                        case 'TRIANGLES':
+                            gl.drawElements(gl.TRIANGLES, object.indices.length, gl.UNSIGNED_SHORT, 0);
+                            break;
+                        default:
+                            gl.drawElements(gl.TRIANGLES, object.indices.length, gl.UNSIGNED_SHORT, 0);
+                            break;
+                    }
+
+                    // unbind
+                    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+                }
+            } catch (err) {
+                alert(err);
+            }
+        }
+
+
+        // APP
+        var app = null;
+
+        function runWebGLApp(bResetPattern) {
+            if(bResetPattern){
+                // c_width = $('#init_width').val();
+                // c_height = $('#init_height').val();
+                c_width = 900;
+                c_height = 500;
+                // regular = $('#init_regular').val();
+                // volume = $('#init_volume').val();
+                regular = 5;    
+                volume = 40;
+
+                var style = $('#init_style').val();
+                // var style = '2';
+                Pattern.style = parseInt(style);
+
+                switch( Pattern.style ) {
+                    case 0:
+                        Pattern.initColor(Color_scifi);   
+                        break;
+                    case 1:
+                        Pattern.initColor(Color_fantasy);   
+                        break;
+                    case 2:
+                        Pattern.initColor(Color_landscape);
+                        break;
+                    default: 
+                        break;
+                }
+
+
+                Pattern.generateData(c_width, c_height, amount, regular, volume);
+            }
+
+            app = new WebGLApp("canvas3d");
+
+            app.configureGLHook = configure;
+            app.loadSceneHook = load;
+            app.drawSceneHook = render;
+
+            app.run();
+
+            setCanvasDimension(c_width, c_height);
+            setInteractor('canvas3d');
+            setUIControls();
+        }
+        // REPAINT
+        // repaint with new data
+        $('#op_repaint_pattern').click(function() {
+            Scene.objects = [];
+            app = null;
+            runWebGLApp(1);
+        });
+        // repaint with new color
+        $('#op_repaint_color').click(function() {
+            Scene.objects = [];
+            app = null;
+            runWebGLApp(0);
+        });
+
+
+
+        // SAVE
+        $('#op_save').click(function() {
+
+            if( !bShowingUploaded ) {
+                bShowingUploaded = true;
+                $('.op-input-button-feedback').show();
+            }
+
+            var canvas3d = document.getElementById('canvas3d');
+            var imageData = canvas3d.toDataURL("image/png");
+            // var filename = 'Pattern_' + (new Date()).getTime() + '.' + 'png';
+            // var save_link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
+            // save_link.href = imageData;
+            // save_link.download = filename;
+
+            // var event = document.createEvent('MouseEvents');
+            // event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+            // save_link.dispatchEvent(event);
+
+            var _id = new Date().getTime();
+
+            var arr     = imageData.split(','),
+                mime    = arr[0].match(/:(.*?);/)[1],
+                bstr    = atob(arr[1]),
+                n       = bstr.length,
+                u8arr   = new Uint8Array(n);
+            while(n--){
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            var obj     = new Blob([u8arr],{type:mime});
+            var fd      = new FormData();
+            fd.append('file', obj, _id + '.png');
+
+            $.ajax({
+                url: "/upload_image",
+                type: "POST",
+                processData : false,
+                contentType : false,
+                data : fd,
+                success : function(data) {
+                    console.log(data);
+                }
+            });
+
+            Pattern._id = _id;
+            var pattern = JSON.stringify(Pattern);
+            $.post('/upload_json', { data: pattern }, function(data,status){
+            });
+        });
+
+
+        function setCanvasDimension(width, height) {
+            // canvas 3d 
+            $('#canvas3d').attr('width', width);
+            $('#canvas3d').attr('height', height);
+            $('#canvas3d').css('width', width + 'px');
+            $('#canvas3d').css('height', height + 'px');
+            // canvas 2d
+            setSmallMapView(width, height);
+        }
+        function setInteractor(canvas){
+            // Scene Picker
+            // picker = new Picker(document.getElementById('canvas3d'));
+            // picker.processHitsCallback  = processHits;
+            // picker.addHitCallback       = addHit;
+            // picker.removeHitCallback    = removeHit;
+            // picker.hitPropertyCallback  = hitProperty;
+            // picker.moveCallback         = movePickedObjects;     
+            //Creates and sets up the mouse and keyboard interactor
+            interactor = new CameraInteractor(camera, document.getElementById('canvas3d'));
+            // interactor.setPicker(picker);       
+        }
+
+        function setSmallMapView(width, height) {
+            var map_width = 300;
+            var map_height = 300 * Pattern.c_height / Pattern.c_width;
+            canvas2d.width = map_width;
+            canvas2d.height = map_height;
+            canvas2d.style.width = map_width + 'px';
+            canvas2d.style.height = map_height + 'px';
+
+            
+
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, map_width, map_height);
+
+            ctx.font = '5px Arial';
+            ctx.translate(map_width / 2, map_height / 2);
+            ctx.scale(map_width / Pattern.c_width, map_width / Pattern.c_width);
+
+            // place
+            ctx.fillStyle = 'rgba(255,0,0,0.4)';
+            for( var i=0; i<place.matrix.length; ++i ) {
+                ctx.fillRect( place.matrix[i].x, place.matrix[i].y, 8, 8 );
+            }
+
+            // objects
+            for (var i = 1; i < Scene.objects.length; ++i) {
+                var obj = Scene.objects[i];
+                ctx.fillStyle = '#' + deciToHex(obj.diffuse);
+                // ctx.strokeStyle = '#' + deciToHex(obj.diffuse);
+                ctx.strokeStyle = '#ffffff';
+                ctx.save();
+                if ( Scene.objects[i] instanceof Cube || Scene.objects[i] instanceof CubeStroke ) {
+                    ctx.translate(obj.position[0], -obj.position[1]);
+                    ctx.scale(obj.scale[0], obj.scale[1]);
+                    ctx.font = '100px Arial';
+                    // ctx.fillText(i, -30, 30);
+                    ctx.lineWidth = 9;
+                    ctx.strokeRect(-obj.width / 2, -obj.width / 2, obj.width, obj.width);
+                }else if ( Scene.objects[i] instanceof Sphere ) {
+                    ctx.translate(obj.position[0], -obj.position[1]);
+                    ctx.scale(obj.scale[0], obj.scale[1]);
+                    ctx.beginPath();
+                    ctx.arc(0, 0, obj.width / 2, 0, Math.PI * 2);
+                    ctx.font = '100px Arial';
+                    // ctx.fillText(i, -30, 30);
+                    ctx.lineWidth = 9;
+                    ctx.stroke();
+                    ctx.closePath();
+                }
+                ctx.restore();
+            }
+
+            // lights
+            for( var i=0; i < Lights.list.length; ++i ) {
+                var light = Lights.list[i];
+                ctx.fillStyle = '#' + deciToHex(light.diffuse);
+                ctx.strokeStyle = '#' + deciToHex(light.diffuse);
+                ctx.save();
+                ctx.translate(light.position[0], -light.position[1]);
+                ctx.beginPath();
+                ctx.arc(0, 0, 50, 0, Math.PI*2);
+                ctx.fill();
+                ctx.closePath();
+
+                ctx.beginPath();
+                ctx.moveTo(0,0);
+                ctx.lineTo( light.direction[0], -light.direction[1] );
+                ctx.lineWidth = 4;
+                ctx.stroke();
+                ctx.closePath();
+
+                ctx.restore();
+            }
+
+        }
+    </script>
+</body>
+
+</html>

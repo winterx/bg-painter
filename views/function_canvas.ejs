@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+	    <script src="js/three/three.js"></script>
+		<script src="js/three/loaders/GLTFLoader.js"></script>
+		<script src="js/three/loaders/OBJLoader.js"></script>
+		<script src="js/three/loaders/DDSLoader.js"></script>
+		<script src="js/three/loaders/MTLLoader.js"></script>
+		<script src="js/three/loaders/ColladaLoader.js"></script>
+		<script src="js/three/controls/OrbitControls.js"></script>
+		<title>fuction trial</title>
+		<style type="text/css">
+			* {
+				margin: 0;
+				padding: 0;
+			}
+			body {
+				background-color: #fff;
+			}
+			canvas { 
+				width: 1080px;
+				height: 300px;
+			}
+
+			#drawingcanvas {
+				position: absolute;
+				background-color: #0000ff;
+				top: 0px;
+				right: 0px;
+				width: 128px;
+				height: 128px;
+				z-index: 3000;
+				cursor: crosshair;
+			}
+
+			#canvas_three {
+				display: block;
+				position: relative;
+				margin: 0 auto;
+				width: 1080px;
+				height: 300px;
+			}
+
+			#button {
+				position: absolute;
+				bottom: 0;
+				left: 0;
+				width: 200px;
+				height: 30px;
+				background-color: #f90;
+			}
+		</style>
+
+	</head>
+<body>
+	<canvas id="drawingcanvas" width="2048" height="1024" ></canvas>
+	<div id="button" onclick="saveImage()"></div>
+	<script type="text/javascript">
+
+		// 2d canvas
+		var drawingCanvas = document.getElementById( 'drawingcanvas' );
+		var ctx = drawingCanvas.getContext( '2d' );
+		ctx.fillStyle = '#ffffff';
+		ctx.font = 'bold 160px Arial';
+		ctx.fillText( '小积分 大优惠', 60, 320 );
+		ctx.font = '80px Arial';
+		ctx.fillText( '掌上生活积分会员月', 60, 470 );
+
+		// three 
+		var scene = new THREE.Scene();
+		var camera = new THREE.OrthographicCamera( 1080 / - 2, 1080 / 2, 300 / 2, 300 / - 2, 0.1, 10000 );
+		camera.position.z = 1000;
+
+		// controls
+		controls = new THREE.OrbitControls( camera );
+		controls.target.set( 0, -0.2, -0.2 );
+		controls.update();
+
+		var renderer = new THREE.WebGLRenderer();
+		renderer.setSize( 1080, 300 );
+		renderer.setClearColor(0x1B72E6);
+		renderer.domElement.setAttribute('id','canvas_three');
+		document.body.appendChild( renderer.domElement );
+
+
+		// lights
+		var ambientLight = new THREE.AmbientLight( 0xeeeeff );
+		scene.add( ambientLight );
+		var dLight = new THREE.DirectionalLight( 0x661100, 4.5 );
+		dLight.position.set( 400, 400, 400 );
+		scene.add( dLight );
+
+		// spheres
+		var material_sphere = new THREE.MeshLambertMaterial({ color: 0x1B72E6 });
+		for( var i=0; i<8; ++i ) {
+			var sphere = new THREE.Mesh( new THREE.SphereGeometry( 65, 32, 32 ), material_sphere );
+			var s = Math.random()*3;
+			sphere.scale.set( s, s, s );
+			sphere.position.z = Math.random() * 200 - 600;
+			sphere.position.x = Math.random() * 1080 - 540;
+			sphere.position.y = Math.random() * 300 - 150;
+
+			scene.add(sphere);			
+		}
+
+		// model
+		// GLTF
+		// var loader = new THREE.GLTFLoader();
+		// loader.load( 'models/gltf/moneybag/scene.gltf', function ( gltf ) {
+		// 	scene.add( gltf.scene );
+		// } );
+
+		// JSON
+		// var loader = new THREE.JSONLoader();
+		// 	loader.load( 'models/json/monster/monster.js', function ( geometry, materials ) {
+
+		// 		var material = materials[ 0 ];
+		// 		material.morphTargets = true;
+		// 		material.color.setHex( 0xffaaaa );
+
+		// 		for ( var i = 0; i < 1; i ++ ) {
+
+		// 			var mesh = new THREE.Mesh( geometry, materials );
+
+		// 			mesh.position.set( 0, 0, 0 );
+
+		// 			var s = 0.1;
+
+		// 			mesh.scale.set( s, s, s );
+
+		// 			mesh.rotation.y = THREE.Math.randFloat( -0.25, 0.25 );
+
+		// 			mesh.matrixAutoUpdate = false;
+		// 			mesh.updateMatrix();
+
+		// 			scene.add( mesh );
+		// 		}
+
+		// 	} );
+
+		// OBJ
+		// THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader() );
+		// var mtlLoader = new THREE.MTLLoader();
+		// mtlLoader.setPath( 'models/obj/male02/' );
+		// mtlLoader.load( 'male02_dds.mtl', function( materials ) {
+
+		// 	materials.preload();
+
+		// 	var objLoader = new THREE.OBJLoader();
+		// 	objLoader.setMaterials( materials );
+		// 	objLoader.setPath( 'models/obj/male02/' );
+		// 	objLoader.load( 'male02.obj', function ( object ) {
+		// 		object.position.y = -130;
+		// 		object.position.x = 195;
+		// 		object.scale.set( 1.4, 1.4, 1.4 );
+		// 		scene.add( object );
+		// 	});
+		// });
+
+		// Collada
+		var elf;
+		var loadingManager = new THREE.LoadingManager( function() {
+			scene.add( elf );
+		} );
+		var loader = new THREE.ColladaLoader(loadingManager);
+		loader.load( 'models/collada/elf/elf.dae', function ( collada ) {
+			elf = collada.scene;
+
+			elf.traverse( function ( child ) {
+
+					if ( child instanceof THREE.Mesh ) {
+
+						// model does not have normals
+						// child.material = new THREE.MeshLambertMaterial({color:0x112299});
+
+					}
+
+				} );
+
+			elf.position.x = 320;
+			elf.position.y = -400;
+			// elf.rotation.x = 0.2;
+			elf.scale.set( 80.0, 80.0, 80.0 );
+			scene.add( elf );
+		} );
+
+		// 话术文字层
+		var material_canvas = new THREE.MeshBasicMaterial( { color: 0xffffff } );
+		material_canvas.map = new THREE.Texture( drawingCanvas );
+		material_canvas.map.needsUpdate = true;
+		material_canvas.transparent = true;
+		var textLayer = new THREE.Mesh( new THREE.PlaneGeometry(1080,540,4), material_canvas );
+		textLayer.position.x = -0;
+		textLayer.position.y = -100;
+		textLayer.position.z = 0;
+		scene.add( textLayer );
+
+
+		var material_png = new THREE.MeshBasicMaterial();
+		material_png.map = new THREE.TextureLoader().load('images/texture4.png');
+		material_png.transparent = true;
+		material_png.map.depthTest = false;
+
+		function animate() {
+			requestAnimationFrame( animate );
+			renderer.render( scene, camera );
+		}
+		animate();
+
+
+		function saveImage() {	
+			var img = canvas_three.toDataURL('image/png');
+			document.write('<img src="'+img+'"/>');
+		}
+	</script>
+</body>
+</html>
