@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	
+	<script src="../build/three.js"></script>
+
+	<script src="../js/shaders/CopyShader.js"></script>
+	<script src="../js/shaders/BokehShader.js"></script>
+	<script src="../js/shaders/FXAAShader.js"></script>
+	<script src="../js/shaders/SMAAShader.js"></script>
+	<script src="../js/shaders/TiltShiftShader.js"></script>
+	<script src="../js/shaders/FilmShader.js"></script>
+	<script src="../js/shaders/ConvolutionShader.js"></script>
+	<script src="../js/shaders/LuminosityHighPassShader.js"></script>
+
+	<script src="../js/postprocessing/EffectComposer.js"></script>
+	<script src="../js/postprocessing/RenderPass.js"></script>
+	<script src="../js/postprocessing/ShaderPass.js"></script>
+	<script src="../js/postprocessing/MaskPass.js"></script>
+	<script src="../js/postprocessing/BokehPass.js"></script>
+	<script src="../js/postprocessing/SMAAPass.js"></script>
+	<script src="../js/postprocessing/FilmPass.js"></script>
+	<script src="../js/postprocessing/UnrealBloomPass.js"></script>
+
+	<script src="../js/controls/OrbitControls.js"></script>
+	<script src="../js/Detector.js"></script>
+	<script src="../js/libs/stats.min.js"></script>
+	<script src='../js/libs/dat.gui.min.js'></script>
+
+	<script src="./scripts/Util.js"></script>
+
+	<title>Scaffold</title>
+
+	<link rel="stylesheet" type="text/css" href="./style/common.css">
+</head>
+<body>
+	<div id="container"></div>
+	<script>
+		// Common Template :: 
+		// -----------------------------------------------------------------------------------
+			
+		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+		var camera, scene, renderer, composer, stats, controls, globalColors=[];
+		var frame = 0;
+
+		var canvasW = window.innerWidth;
+		var canvasH = canvasW > 1400 ? 600 : 480;
+		var canvasD = 500;
+		var GLOBAL_SIZE_FACTOR = canvasW/1400;
+		var GLOBAL_SIZE_BOUNDING = canvasW/2;
+
+
+		// Paint Data :: defines the pattern of every paint
+		// -----------------------------------------------------------------------------------
+		var PaintData = { 
+			// Objects
+
+			// PostEFX
+			isPostEfxOn: true,
+			tiltFocus: 0.5,
+			tiltAmount: 0.006,
+			tiltBrightness: 0.65,
+		}
+
+
+
+		// get Colors and init
+		fetch( './data/Color.json' ).then( res => {
+			return res.json().then( json => {
+				colors = json['Color_fantasy'][0].colors;
+				for( var i in colors ) {
+					globalColors.push( new THREE.Color( '#'+colors[i] ) );					
+				}
+			});
+		}).then( () => {
+			initPaint();
+			animate();
+		});
+
+
+
+
+
+		function initPaint() {
+			initRenderer(); // Scene | Camera | Renderer
+			initInfoDomPanel( renderer ); // Div 
+			buildObjects(); // Meshes | Sprites | Lights | Shaders
+			buildPostEFX(); // Post processings
+			buildControls(); // Dat.gui
+		};
+
+
+		function refreshPaint() {
+			// 删除Scene中的所有物体
+			while (scene.children.length) {
+			    scene.remove(scene.children[0]);
+			}
+
+			buildObjects();
+		}
+
+		function initRenderer() {
+			// Camera 
+			camera = new THREE.OrthographicCamera( canvasW / - 2, canvasW / 2, canvasH / 2, canvasH / - 2, 1, 4000 );
+			// camera = new THREE.PerspectiveCamera( 50, canvasW / canvasH, 1, 10 );
+			camera.position.z = 800;
+
+			// scene
+			scene = new THREE.Scene();
+			scene.background = new THREE.Color( 0x000000 );
+			scene.fog = new THREE.Fog( 0x000000, 900, 1200 );
+
+			// helper
+			var axesHelper = new THREE.AxesHelper( 25 );
+			scene.add( axesHelper );
+			var gridHelper = new THREE.GridHelper( 100, 10 );
+			scene.add( gridHelper );
+
+			// Renderer 
+			renderer = new THREE.WebGLRenderer( { antialias: true, preserveDrawingBuffer: true } );
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( canvasW, canvasH );
+			// renderer.gammaInput = true
+			// renderer.gammaOutput = true;
+
+			// control and monitor
+			controls = new THREE.OrbitControls( camera, renderer.domElement );
+			gui = new dat.GUI();
+			stats = new Stats();
+
+			// dom 
+			container.appendChild( stats.dom );
+			container.appendChild( renderer.domElement );
+
+			// window
+			window.addEventListener( 'resize', onWindowResize, false );
+		}
+
+		function buildObjects() {
+			
+		}
+
+		function buildPostEFX() {
+			var renderPass = new THREE.RenderPass( scene, camera );
+			var effectFilmPass = new THREE.FilmPass( 6, 0.9, 648, false );
+
+			// define which pass is the final pass
+			effectFilmPass.renderToScreen = true;
+
+			composer = new THREE.EffectComposer( renderer );
+			composer.addPass( renderPass );
+			composer.addPass( effectFilmPass );
+		}
+
+		function buildControls() {
+			//init GUI				
+			gui.add( PaintData, 'isPostEfxOn' ).onChange( function (value) {
+				PaintData.isPostEfxOn = value;
+			})
+			gui.open();
+
+			onParamsChange();			
+		}
+
+		function onParamsChange () {
+			camera.updateProjectionMatrix();
+		}
+
+		function onWindowResize() {
+
+			camera.aspect = canvasW / canvasH;
+			camera.updateProjectionMatrix();
+
+			renderer.setSize( canvasW, canvasH );
+
+		}
+
+		function animate() {
+
+			requestAnimationFrame( animate );
+
+			render();
+			stats.update();
+
+		}
+
+		function render() {
+			// time 
+			frame++;
+
+			if( PaintData.isPostEfxOn ) {
+				composer.render( 0.1 );
+			}else{
+				renderer.render( scene, camera );
+			}
+		}
+	</script>
+</body>
+</html>

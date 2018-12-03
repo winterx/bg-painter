@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Scifidots_01</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+	<script src="../build/three.js"></script>
+
+	<script src="../js/shaders/CopyShader.js"></script>
+	<script src="../js/shaders/BokehShader.js"></script>
+	<script src="../js/shaders/FXAAShader.js"></script>
+	<script src="../js/shaders/SMAAShader.js"></script>
+	<script src="../js/shaders/TiltShiftShader.js"></script>
+	<script src="../js/shaders/FilmShader.js"></script>
+	<script src="../js/shaders/ConvolutionShader.js"></script>
+	<script src="../js/shaders/LuminosityHighPassShader.js"></script>
+
+	<script src="../js/postprocessing/EffectComposer.js"></script>
+	<script src="../js/postprocessing/RenderPass.js"></script>
+	<script src="../js/postprocessing/ShaderPass.js"></script>
+	<script src="../js/postprocessing/MaskPass.js"></script>
+	<script src="../js/postprocessing/BokehPass.js"></script>
+	<script src="../js/postprocessing/SMAAPass.js"></script>
+	<script src="../js/postprocessing/FilmPass.js"></script>
+	<script src="../js/postprocessing/UnrealBloomPass.js"></script>
+
+	<script src="../js/controls/OrbitControls.js"></script>
+	<script src="../js/Detector.js"></script>
+	<script src="../js/libs/stats.min.js"></script>
+	<script src='../js/libs/dat.gui.min.js'></script>
+
+	<script src="scripts/Util.js"></script>
+
+	<link rel="stylesheet" type="text/css" href="./style/common.css">
+</head>
+
+<body>
+	<div id="container"></div>
+	
+	<script>
+		// Template Common :: 
+		// -----------------------------------------------------------------------------------
+
+		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+		var camera, scene, renderer, composer, stats, gui, controls, globalColors=[];
+		var frame = 0;
+
+		var w = window.innerWidth;
+		var h = w > 1400 ? 600 : 480;
+
+		// get Colors and init
+		fetch( './data/Color.json' ).then( res => {
+			return res.json().then( json => {
+				colors = json['Color_fantasy'][0].colors;
+				for( var i in colors ) {
+					var color = new THREE.Color( '#' + colors[i] );
+					globalColors.push(color);
+				}
+			});
+		}).then( () => {
+			initPaint();
+			animate();
+		});
+
+		function initPaint() {
+			initRenderer(); // Scene | Camera | Renderer
+			initInfoDomPanel( renderer ); // Div 
+			buildObjects(); // Meshes | Sprites | Lights | Shaders
+			buildPostEFX(); // Post processings
+			buildControls(); // Dat.gui
+		};
+
+		var PaintData = {
+			// Objects
+
+			// PostEFX
+			isPostEfxOn: true,
+			tiltFocus: 0.5,
+			tiltAmount: 0.006,
+			tiltBrightness: 0.65,
+		}
+
+		var postprocessing = {};
+
+
+		// Paint Specific :: 
+		// -----------------------------------------------------------------------------------
+
+		function refreshPaint() {
+			// 删除Scene中的所有物体
+			while (scene.children.length) {
+			    scene.remove(scene.children[0]);
+			}
+
+			buildObjects();
+		}
+
+		function initRenderer() {
+			// camera
+			camera = new THREE.PerspectiveCamera( 70, w / h, 1, 5000 );
+			camera.position.z = 200;
+
+			// scene
+			scene = new THREE.Scene();
+
+			// renderer
+			renderer = new THREE.WebGLRenderer( { antialias: true, preserveDrawingBuffer: true } );
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( w, h );
+			renderer.autoClear = false;
+
+			// control and monitor
+			controls = new THREE.OrbitControls( camera, renderer.domElement );
+			gui = new dat.GUI();
+			stats = new Stats();
+
+			// dom 
+			container.appendChild( stats.dom );
+			container.appendChild( renderer.domElement );
+
+			// window
+			window.addEventListener( 'resize', onWindowResize, false );
+		}
+
+		function buildObjects() {
+
+			var loader = new THREE.TextureLoader();
+
+			var line_mat = new THREE.LineDashedMaterial( { 
+				color : 0x00aaff,
+				opacity: 0.3,
+				transparent: true,
+				blending: THREE['AdditiveBlending']
+			} );
+
+
+			var sphereGroup = new THREE.Group;
+
+			var spriteMaterial = new THREE.SpriteMaterial( { 
+				map: loader.load('../textures/lensflare_cyan.png'),
+				color: 0xffffff,
+				opacity: 0.7,
+				transparent: true,
+				blending: THREE['AdditiveBlending']
+			} );
+
+
+			for( var i=0; i<500; ++i ) {
+				
+				var sphere = new THREE.Sprite( spriteMaterial );
+
+				sphere.position.set( Math.random()*600-300, Math.random()*400-200, Math.random()*200-100  );
+
+				sphereGroup.add( sphere );
+
+			}
+
+			for( var i=0; i<200; ++i ) {
+
+				var source = sphereGroup.children[i];
+
+				var sourcePosition = source.position;
+
+				for( var j=0; j<100; ++j ) {
+
+					var destPosition = sphereGroup.children[j].position;
+
+					if( sourcePosition.distanceTo( destPosition ) < 100 && i != j ) {
+
+						var scale = Math.random() * 22.0 - 6.0;
+
+						source.scale.set( scale, scale, 0 );
+
+						var line_geo = new THREE.BufferGeometry().setFromPoints([ sourcePosition, destPosition ]);
+						var line = new THREE.Line( line_geo, line_mat );
+						scene.add( line );
+
+					}
+
+				}
+
+			}
+
+			scene.add( sphereGroup );		
+		}
+
+		function buildPostEFX() {
+
+			var renderPass = new THREE.RenderPass( scene, camera );
+			var effectFilmPass = new THREE.FilmPass( 6, 0.9, 648, false );
+			var effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
+			effectFXAA.uniforms[ 'resolution' ].value.set( 1 / w, 1 / h );
+			var tiltShiftPass = new THREE.ShaderPass( THREE.VerticalTiltShiftShader );
+			var effect_bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( w, h ), 2.8, 0.67, 0.23 ); 
+
+			// which pass is the final pass
+			effectFXAA.renderToScreen = true;
+
+			var composer = new THREE.EffectComposer( renderer );
+			composer.addPass( renderPass );
+			composer.addPass( effectFilmPass );
+			composer.addPass( tiltShiftPass );
+			composer.addPass( effectFXAA );
+			// composer.addPass( effect_bloomPass );
+		
+			postprocessing.composer = composer;
+			postprocessing.tilt = tiltShiftPass;
+		}
+
+		function buildControls() {
+			//init GUI				
+			gui.add( PaintData, 'isPostEfxOn' ).onChange( function (value) {
+				PaintData.isPostEfxOn = value;
+			})
+			gui.add( PaintData, "tiltFocus", 0, 1, 0.5 ).onChange( onParamsChange ).step(0.05);
+			gui.add( PaintData, "tiltAmount", 0, 0.02, 0.005 ).onChange( onParamsChange ).step(0.001);
+			gui.add( PaintData, "tiltBrightness", 0, 2, 0.5 ).onChange( onParamsChange );
+			gui.open();
+
+			onParamsChange();			
+		}
+
+		function onParamsChange () {
+			postprocessing.tilt.uniforms.focusPos.value = PaintData.tiltFocus;
+			postprocessing.tilt.uniforms.amount.value = PaintData.tiltAmount;
+			postprocessing.tilt.uniforms.brightness.value = PaintData.tiltBrightness;
+
+			camera.updateProjectionMatrix();
+
+		}
+
+
+		function onWindowResize() {
+			camera.aspect = w / h;
+			camera.updateProjectionMatrix();
+
+			renderer.setSize( w, h );
+			postprocessing.composer.setSize( w, h );
+		}
+
+		function animate() {
+
+			requestAnimationFrame( animate, renderer.domElement );
+
+			stats.begin();
+			render();
+			stats.end();
+
+		}
+
+		function render() {
+
+			frame++;
+
+			var factor = frame*Math.PI/180;
+
+
+			// for( var i=0; i<sphereGroup.children.length; ++i ) {
+
+			// 		var factor = ( frame + i*2 )*Math.PI/180;
+
+			// 		// sphereGroup.children[i].scale.set( Math.sin(factor)*2, Math.sin(factor)*2, Math.sin(factor)*1 );
+
+
+			// }
+
+
+			if( PaintData.isPostEfxOn ) {
+				postprocessing.composer.render( 0.1 );
+			}else{
+				renderer.render( scene, camera );
+			}
+
+
+		}
+
+	</script>
+
+
+</body>
+</html>

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Color Gradients</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+		<script src="../build/three.js"></script>
+		<script src="../js/Detector.js"></script>
+		<script src="../js/libs/stats.min.js"></script>
+		<script src="../js/controls/OrbitControls.js"></script>
+
+		<script src="../js/_custom/ColorGradient_Influence.js"></script>
+		<script src="./scripts/jscolor.js"></script>
+
+		<link rel="stylesheet" type="text/css" href="./style/common.css">
+
+		<style>
+			#canvas2d_wrapper {
+				position: absolute;
+				top: 0; left: 0;
+				width: 400px;
+				height: 200px;
+			}
+			#drawingcanvas {
+				/*display: none;*/
+				width: 100%;
+			}
+
+
+			#btn_resetColors {
+				position: relative;
+				top: 0;
+				right: 0;
+				width: 200px;
+				height: 30px;
+				background-color: #f30;
+				color: #000;
+			}
+			#btn_resetPattern {
+				position: relative;
+				top: 0;
+				right: 0;
+				width: 200px;
+				height: 30px;
+				background-color: #f90;
+				color: #000;
+			}
+		</style>
+	</head>
+<body>
+
+	<div id="container"></div>
+
+	<div id="palette">
+		<input class="jscolor" id="color_0" onchange="update( id, this.jscolor )" value="cc66ff">
+		<input class="jscolor" id="color_1" onchange="update( id, this.jscolor )" value="0099ff">
+		<input class="jscolor" id="color_2" onchange="update( id, this.jscolor )" value="0099ff">
+		<input class="jscolor" id="color_3" onchange="update( id, this.jscolor )" value="0099ff">
+		<input class="jscolor" id="color_4" onchange="update( id, this.jscolor )" value="0099ff">
+		<input class="jscolor" id="color_5" onchange="update( id, this.jscolor )" value="0099ff">
+
+		<div id="btn_resetColors" onclick="testRefreshColor()">Reset Colors</div>
+		<div id="btn_resetPattern" onclick="testRefreshPattern()">Reset Pattern</div>
+	</div>
+
+	<div id="frame_control">
+		<div class="timeline">
+			<input type="button" name="" id="frame_control_switch">
+			<!-- <div class="slider" id="frame_control_slider"></div> -->
+			<input type="range" name="" id="frame_control_slider">
+			<script type="text/javascript">
+				var isFrameControlling = false;
+
+				frame_control_slider.min = 0;
+				frame_control_slider.max = 100;
+
+				frame_control_switch.addEventListener('click',function(){
+					if( isFrameControlling ) {
+						isFrameControlling = false;
+					}else{
+						isFrameControlling = true;
+					}
+				},false);
+				
+			</script>
+		</div>
+	</div>
+
+	<div id="canvas2d_wrapper"><canvas id="drawingcanvas" width="1024" height="512" ></canvas></div>
+
+	<script id="vertexShader" type="x-shader/x-vertex">
+		varying vec2 vUv;
+
+		void main() {
+
+			vUv = uv;
+
+			// vUv += vec2( 0.1, 0.1 );
+
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+		}
+	</script>
+
+	<script id="fragment_shader_screen" type="x-shader/x-fragment">
+		precision highp float;
+
+		uniform sampler2D tDiffuse;
+		uniform float uTime;
+
+		varying vec2 vUv;
+
+		const float speed = 15.0;
+		const float magnitude = 0.15;
+
+		void main() {
+
+			vec2 wavyCoord;
+
+			wavyCoord.s = vUv.s + (sin(uTime+vUv.t*speed) * magnitude);
+			wavyCoord.t = vUv.t + (cos(uTime+vUv.s*speed) * magnitude);
+
+			vec4 frameColor = texture2D(tDiffuse, wavyCoord);
+
+			gl_FragColor = frameColor;
+
+
+			// vec4 frameColor = texture2D(tDiffuse, vUv);
+		 //    float luminance = frameColor.r * 0.3 + frameColor.g * 0.59 + frameColor.b * 0.11;
+		 //    gl_FragColor = vec4(luminance, luminance, sin(uTime), frameColor.a);
+		}
+	</script>
+
+	<script type="text/javascript">
+
+		function update( id, jscolor ) {
+
+			var color = jscolor.toHEXString().slice(1,7);
+
+			var index = id.split('').pop();
+
+			BaseCanvas2d.colorscheme_1[ index ] = color;
+
+		}
+
+		function testRefreshPattern() {
+			BaseCanvas2d.reset2dPattern();
+			BaseCanvas2d.drawCanvas2d();
+		}
+
+		function testRefreshColor() {
+			BaseCanvas2d.drawCanvas2d();
+		}
+
+		// 获取一个canvas的 drawing context
+		var drawingCanvas = document.getElementById( 'drawingcanvas' );
+
+		var BaseCanvas2d = {
+
+			colorscheme_0: [],
+			colorscheme_1: [],
+
+			pattern: [],
+
+			ctx: null,
+
+			loadColorScheme: function( url ) {
+
+				this.reset2dPattern(); // 首先重排一下2d canvas的样式
+
+				fetch( './data/Color.json' ).then( res => {
+					return res.json().then( json => {
+						var data = json;
+						this.colorscheme_0 = data['Color_fantasy'][0].colors;
+						this.colorscheme_1 = data['Color_fantasy'][1].colors;
+					});
+				}).then( () => {
+					this.drawCanvas2d();
+				});
+
+			},
+
+			reset2dPattern: function( url ) {
+				var cWidth = 1024;
+				var cHeight = 512;
+
+				for( var i=0; i<2; ++i ) {
+					for( var j=0; j<2; ++j ) {
+						// 随机设定喷圈位置
+						var x = Math.random()*cWidth;
+						var y = Math.random()*cHeight;
+						
+						// 随机设定喷圈尺寸
+						var radius_inner = Math.random() * 50 + 50;
+						var radius_outer = Math.random() * 300 + 200;
+
+						// 随机设定喷圈颜色索引
+						var indices = [ 0, 1, 2, 3, 4, 5 ];
+						var color_index_0 = this.pick(indices);
+						var color_index_1 = this.pick(indices);
+						var color_index_2 = this.pick(indices);
+
+						// 产生pattern子集
+						this.pattern.push({
+							x: x,
+							y: y,
+							radius_inner: radius_inner,
+							radius_outer: radius_outer,
+							color_indices: [ color_index_0, color_index_1, color_index_2 ]
+						})
+					}
+				}
+			},
+
+			drawCanvas2d: function() {
+				// 先绘制出背景底色
+				this.ctx = drawingCanvas.getContext( '2d' );
+				var grd = this.ctx.createLinearGradient( 0, 0, 0, 512 );
+				grd.addColorStop( 0.0, '#' + this.colorscheme_0[0] + 'ff' );
+				grd.addColorStop( 0.3, '#' + this.colorscheme_0[1] + 'ff' );
+				grd.addColorStop( 0.7, '#' + this.colorscheme_0[2] + 'ff' );
+				grd.addColorStop( 1.0, '#' + this.colorscheme_0[3] + 'ff' );
+				this.ctx.fillStyle = grd;
+				this.ctx.fillRect( 0, 0, 1024, 512 );
+
+				// 然后绘制主体圆圈颜色
+				for( var i=0; i<this.pattern.length; ++i ) {
+					var spray = this.pattern[i];
+					var grd = this.ctx.createRadialGradient( spray.x, spray.y, spray.radius_inner, spray.x, spray.y, spray.radius_outer);
+					var c1 = this.colorscheme_1[ spray.color_indices[0] ];
+					var c2 = this.colorscheme_1[ spray.color_indices[1] ];
+					var c3 = this.colorscheme_1[ spray.color_indices[2] ];
+					grd.addColorStop( 0.0, '#' + c1 );
+					grd.addColorStop( 0.2, '#' + c2 );
+					grd.addColorStop( 1.0, '#' + c3 + '00' );
+
+					this.ctx.fillStyle = grd;
+					this.ctx.fillRect( 0, 0, 1024, 512 );
+				}
+			},
+
+			pick: function( array ) {
+
+				var rand = Math.floor( Math.random()*array.length );
+
+				var result = array[rand];
+
+				array.splice( rand, 1 );
+
+				return result;
+
+			}
+
+		};
+
+		BaseCanvas2d.loadColorScheme();		
+
+		function addCanvasDraw() {
+
+			var x = Math.random() * 1024;
+			var y = Math.random() * 512;
+			var radius_inner = Math.random() * 50 + 50;
+			var radius_outer = Math.random() * 100 + 400;
+
+			var grd = ctx.createRadialGradient( x, y, radius_inner, x, y, radius_outer);
+
+			var r1 = Math.floor( Math.random()*4 );
+			var r2 = Math.floor( Math.random()*4 );
+			var r3 = Math.floor( Math.random()*4 );
+
+			grd.addColorStop( 0.0, '#' + colors[r1] );
+			// grd.addColorStop( 0.3, '#' + colors[r2] );
+			// grd.addColorStop( 0.6, '#' + colors[r3] );
+			grd.addColorStop( 1.0, '#' + colors[r3] + '00' );
+
+			ctx.fillStyle = grd;
+			ctx.fillRect( 0, 0, 1024, 512 );
+		}
+
+	</script>
+
+	<script type="text/javascript">
+		var cameraRTT, camera, sceneRTT, sceneScreen, scene, renderer, zmesh1, zmesh2;
+
+		var frame = 0;
+
+		var windowHalfX = window.innerWidth / 2;
+		var windowHalfY = window.innerHeight / 2;
+
+		var rtTexture, material, quad;
+
+		init();
+		animate();
+
+		function init() {
+			// Renderer
+			renderer = new THREE.WebGLRenderer({ antialias: true });
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			renderer.autoClear = false;
+			container.appendChild( renderer.domElement );
+
+			
+
+
+			// ---- Step 1 : rtTexture rendered
+			// ----
+			// camera rendering texture
+			cameraRTT = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, -10000, 10000 );
+			cameraRTT.position.z = 400;
+
+			// scene rendered to texture
+			sceneRTT = new THREE.Scene();
+
+			// render target texture
+			rtTexture = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBFormat } );
+
+			// things on the texture
+			canvasMaterial = new THREE.MeshBasicMaterial( {
+				map: new THREE.Texture( drawingcanvas ),
+			} ); 
+			var canvas = new THREE.Mesh( new THREE.PlaneBufferGeometry(window.innerWidth,window.innerHeight), canvasMaterial );
+
+			sceneRTT.add( canvas );
+
+
+
+			// ---- Step 2 : paint 
+			// ----
+			// camera
+			camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 0, 10000 );
+			camera.position.z = 2400;
+
+			// Scene
+			scene = new THREE.Scene();
+			scene.background = new THREE.Color(0x0099ff);
+
+			// 
+			quad_geo = new THREE.PlaneGeometry( window.innerWidth, window.innerHeight, 99, 59 );
+			quad_mat = new THREE.ShaderMaterial( {
+
+				uniforms: { 
+					tDiffuse: { value: rtTexture.texture },
+					uTime: { value: 0.0 }
+				},
+				vertexShader: document.getElementById( 'vertexShader' ).textContent,
+				fragmentShader: document.getElementById( 'fragment_shader_screen' ).textContent,
+
+				depthWrite: false,
+				// side: THREE.DoubleSide,
+				// wireframe: true
+
+			} );
+			scene.add( new THREE.Mesh( quad_geo, quad_mat ) );
+
+
+
+			// ---- Step 3 : Morphing the quad by Influence
+			// ----
+			ifl_01 = new Influence( 240, -200, 0, 900 );
+			ifl_01.surround( quad_geo );
+		 	ifl_01.moveTo( 260, 160, 400 );
+
+		 	ifl_02 = new Influence( -240, 200, 0, 900 );
+			ifl_02.surround( quad_geo );
+		 	ifl_02.moveTo( -260, -160, 400 );
+
+
+		 	// var width = window.innerWidth;
+		 	// var height = window.innerHeight;
+
+		 	// for( var i=0; i<2; i++ ) {
+		 	// 	for( var j=0; j<2; j++ ) {
+			 // 		var direction = Math.random() > 0.5 ? 1 : -1;
+
+			 // 		var anchorX = Math.random() * width/2 * Math.pow( -1, i );
+			 // 		var anchorY = Math.random() * height/2 * Math.pow( -1, j );
+			 // 		var anchorRadius = Math.random() * 300 + 450;
+
+			 // 		var moveToX = anchorX + direction * ( Math.random() * 300 + 150 );
+			 // 		var moveToY = anchorY + direction * ( Math.random() * 200 + 100 );
+
+			 // 		var ifl = new Influence( anchorX, anchorY, 0, anchorRadius );
+
+			 // 		ifl.surround( quad_geo );
+
+			 // 		ifl.moveTo( moveToX, moveToY, 400 );
+
+		 	// 	}
+		 	// }
+
+
+
+			// Controls
+			var controls = new THREE.OrbitControls( camera, renderer.domElement );
+			// Stats Info
+			stats = new Stats();
+			container.appendChild( stats.dom );
+		}
+
+
+		function animate() {
+
+			requestAnimationFrame( animate );
+
+			stats.update();
+			render();
+
+		}
+
+		function render() {
+
+			if( !isFrameControlling ) {
+				frame++;
+				frame_control_slider.value = frame*100/314;
+
+				if( frame == 314 ) frame = 0;
+			}
+			
+			var uTime = frame/50;
+
+			quad_mat.uniforms.uTime.value = uTime;
+			quad_mat.needsUpdate = true;
+
+			quad_geo.verticesNeedUpdate = true;
+
+			canvasMaterial.map.needsUpdate = true;
+
+			// render 
+			renderer.clear();
+
+			renderer.render( sceneRTT, cameraRTT, rtTexture, true );
+
+			renderer.render( scene, camera );
+
+		}
+	</script>
+
+</body>
+</html>

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<title>Grid Objects</title>
+	<style type="text/css">
+		
+			body {
+				color: #eee;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+
+				background-color: #000;
+				margin: 0px;
+				padding: 0px;
+				overflow: hidden;
+			}
+
+			#canvas2d_wrapper {
+				position: absolute;
+				top: 0; left: 0;
+				width: 400px;
+				height: 200px;
+				background-color: #fff;
+				z-index: 999;
+			}
+			#canvas2d_wrapper canvas {
+				width: 30%;
+			}
+	</style>
+</head>
+
+	<body>
+		<div id="container"></div>
+		<script src="../js/Colors.js"></script>
+		<script src="../build/three.js"></script>
+		<script src="../js/Detector.js"></script>
+		<script src="../js/libs/stats.min.js"></script>
+		<script src="../js/controls/OrbitControls.js"></script>
+
+		<script src="../js/_custom/Grid.js"></script>
+
+		<div id="canvas2d_wrapper">
+			<canvas class="texture-canvas" id="drawingcanvas_01" width="512" height="512" ></canvas>
+			<canvas class="texture-canvas" id="drawingcanvas_02" width="512" height="512" ></canvas>
+			<canvas class="texture-canvas" id="drawingcanvas_03" width="512" height="512" ></canvas>
+			<!-- <button id="addDraw" onclick="addCanvasDraw()"></button> -->
+		</div>
+
+		<script type="text/javascript">
+
+			var canvasgroup = document.getElementsByClassName('texture-canvas');
+
+			// 
+			var colors = Colors[ Math.floor( Math.random() * Colors.length ) ];
+
+			// 获取一个canvas的 drawing context
+			var ctx_01 = drawingcanvas_01.getContext( '2d' );
+			var ctx_02 = drawingcanvas_02.getContext( '2d' );
+			var ctx_03 = drawingcanvas_03.getContext( '2d' );
+
+			ctx_01.fillStyle = '#' + colors[1];
+			ctx_01.fillRect( 0, 0, 1024, 512 );
+
+			ctx_02.fillStyle = '#' + colors[2];
+			ctx_02.fillRect( 0, 0, 1024, 512 );
+
+			ctx_03.fillStyle = '#' + colors[3];
+			ctx_03.fillRect( 0, 0, 1024, 512 );
+
+
+			// for( var i=0; i<20; ++i ) {
+
+			// 	var x = Math.random() * 1024;
+			// 	var y = Math.random() * 512;
+			// 	var radius_inner = Math.random() * 50 + 50;
+			// 	var radius_outer = Math.random() * 100 + 400;
+
+			// 	var grd = ctx.createLinearGradient( 0, 0, 1024, 512 );
+
+			// 	var r1 = Math.floor( Math.random()*4 );
+			// 	var r2 = Math.floor( Math.random()*4 );
+			// 	var r3 = Math.floor( Math.random()*4 );
+
+			// 	grd.addColorStop( 0.0, '#' + colors[0] );
+			// 	grd.addColorStop( 0.2, '#' + colors[1] );
+			// 	grd.addColorStop( 0.4, '#' + colors[2] );
+			// 	grd.addColorStop( 0.5, '#' + colors[3] );
+			// 	grd.addColorStop( 0.6, '#' + colors[2] );
+			// 	grd.addColorStop( 0.8, '#' + colors[1] );
+			// 	grd.addColorStop( 1.0, '#' + colors[0] );
+
+
+			// 	ctx.fillStyle = grd;
+			// 	ctx.fillRect( 0, 0, 1024, 512 );
+
+			// }
+
+			function ctxdraw ( ctx ) {
+
+				// bg
+
+				ctx.fillStyle = '#' + colors[r1];
+				ctx.fillRect( 0, 0, 512, 512 );
+
+				// gradient
+
+				var grd = ctx.createLinearGradient( 0, 0, 0, 512 );
+
+				var r1 = Math.floor( Math.random()*3 ) + 1;
+				var r2 = Math.floor( Math.random()*3 ) + 1;
+
+				grd.addColorStop( 0.0, '#' + colors[r1] + 'ff' );
+				// grd.addColorStop( 0.5, '#' + colors[r2] );
+				grd.addColorStop( 1.0, '#' + colors[r2] + 'ff' );
+
+				ctx.fillStyle = grd;
+				ctx.fillRect( 0, 0, 512, 512 );
+
+
+			}
+
+			ctxdraw( ctx_01 );
+			ctxdraw( ctx_02 );
+			ctxdraw( ctx_03 );
+			
+
+		</script>
+
+		<script>
+
+			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+			var camera, scene, renderer, stats;
+			var timer = 0;
+			var grid, group;
+			var themeColor = 0xffffff;
+
+
+			init();
+			animate();
+
+			function init() {
+
+				// init scalars
+				var container = document.getElementById( 'container' );
+				var w = window.innerWidth;
+				var h = window.innerHeight;
+
+				// RENDERER
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+				renderer.shadowMap.enabled = true;
+				renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+				stats = new Stats();
+				container.appendChild( stats.dom );
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+				// Scene
+				scene = new THREE.Scene();
+				// scene.background = new THREE.Color( themeColor );
+				scene.fog = new THREE.Fog( '#' + colors[0], 1, 2400 );
+
+				// Camera
+				camera = new THREE.OrthographicCamera( w / - 2, w / 2, h / 2, h / - 2, 0.1, 4000 );
+				camera.position.x = 400;
+				camera.position.y = 400;
+				camera.position.z = 400;
+				// camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+				// camera.position.set( 65, 8, - 10 );
+
+				grid = new Grid( 8, 1, 8, 300, 200, 300 );
+
+				// Lights 
+
+				var ambientLight = new THREE.AmbientLight( '#ffffff', 1 );
+				scene.add( ambientLight );
+
+				var dirLight = new THREE.DirectionalLight( 0xffffff, 0.3 );
+				dirLight.position.set( -200, 600, 500 );
+				dirLight.castShadow = true;
+
+				dirLight.shadow.mapSize.width = 4096;
+				dirLight.shadow.mapSize.height = 4096;
+
+				dirLight.shadow.camera.near = 0.1;
+				dirLight.shadow.camera.far = 2000;
+				d = 3000;
+				dirLight.shadow.camera.left = -d;
+				dirLight.shadow.camera.right = d;
+				dirLight.shadow.camera.top = d;
+				dirLight.shadow.camera.bottom = -d;
+
+				scene.add( dirLight );
+
+				var helper = new THREE.CameraHelper( dirLight.shadow.camera );
+				// scene.add( helper );
+
+				// Material
+				var MaterialGroup = [
+					new THREE.MeshLambertMaterial({ map : new THREE.Texture( drawingcanvas_01 ) }),
+					new THREE.MeshLambertMaterial({ map : new THREE.Texture( drawingcanvas_02 ) }),
+					new THREE.MeshLambertMaterial({ map : new THREE.Texture( drawingcanvas_03 ) }),
+
+				];
+
+				for( var i=0; i<3; ++i ) {
+
+					MaterialGroup[i].map.needsUpdate = true;
+					MaterialGroup[i].transparent = true;
+					MaterialGroup[i].side = THREE.DoubleSide;
+
+				}
+
+				group = new THREE.Object3D();
+
+				for( var i=0; i<grid.totalNum; ++i ) {
+
+					var rand = Math.floor( Math.random() * canvasgroup.length );
+
+					// material.map = new THREE.Texture( canvasgroup[rand] );
+
+					var object = new THREE.Mesh( new THREE.ConeBufferGeometry(  60, 140, 100 ), MaterialGroup[rand] );
+					object.rotation.y = Math.PI;
+					object.position.set( grid.matrix[i].x, grid.matrix[i].y, grid.matrix[i].z );
+					object.castShadow = true;
+					group.add( object );
+				}
+
+				scene.add(group);
+
+				// Ground
+				var ground_geo = new THREE.PlaneBufferGeometry( 3000, 3000, 1 );
+				// var ground_mat = new THREE.MeshBasicMaterial( { color: 0xacacac	} );
+				var ground_mat = new THREE.MeshLambertMaterial( { color: '#'+colors[0], dithering: true } );
+				ground = new THREE.Mesh( ground_geo, ground_mat );
+				ground.position.y = -80;
+				ground.rotation.x = -Math.PI/2;
+				ground.receiveShadow = true;
+				scene.add( ground );
+
+
+
+
+
+
+				// Controls
+				var controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+				stats.update();
+
+			}
+
+			function render() {
+
+				// var timer = Date.now() * 0.001;
+				timer++;
+
+				// camera.position.x = Math.cos( timer ) * 800;
+				// camera.position.z = Math.sin( timer ) * 800;
+
+				// camera.lookAt( scene.position );
+
+				// scene.traverse( function( object ) {
+
+				// 	if ( object.isMesh === true ) {
+
+				// 		// object.position.z = Math.sin(timer) * 100;
+
+				// 		// object.rotation.x = timer * 5;
+				// 		// object.rotation.y = timer * 2.5;
+
+				// 	}
+
+				// } );
+
+				for( var i=0; i<group.children.length; ++i ) {
+
+					group.children[i].position.y = Math.abs( Math.sin( (timer + i)/20 ) * 140 );
+
+					group.children[i].rotation.x = Math.sin( (timer + i)/130 )*1;
+					group.children[i].rotation.y = Math.cos( (timer + i)/30 )*1;
+					group.children[i].rotation.z = Math.sin( (timer + i)/130 )*1;
+
+					// group.children[i].scale.x= Math.sin( (timer + i*10)/50 )*40;
+					// group.children[i].scale.y = Math.cos( (timer + i)/50 ) + 1;
+				}
+
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+
+	</body>
+</html>

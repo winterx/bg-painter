@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Color Gradients</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+			}
+
+			body {
+				color: #eee;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+
+				background-color: #000;
+				margin: 0px;
+				padding: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+			}
+
+			a {
+				color: #0080ff;
+			}
+
+			#canvas2d_wrapper {
+				position: absolute;
+				top: 0; left: 0;
+				width: 400px;
+				height: 200px;
+			}
+			#drawingcanvas {
+				/*display: none;*/
+				width: 100%;
+			}
+
+			#addDraw {
+				width: 200px; 
+				height: 20px;
+				background-color: #fff;
+			}
+		</style>
+	</head>
+<body>
+
+	<div id="container"></div>
+
+		<script src="../build/three.js"></script>
+
+		<script src="../js/Colors.js"></script>
+		<script src="../js/Detector.js"></script>
+		<script src="../js/libs/stats.min.js"></script>
+		<script src="../js/controls/OrbitControls.js"></script>
+
+		<script src="../js/CurveExtras.js"></script>
+		<script src="../js/ParametricGeometries.js"></script>
+
+		<script src="../js/_custom/ColorGradient_Influence.js"></script>
+
+		<script id="vertexShader" type="x-shader/x-vertex">
+
+			varying vec2 vUv;
+
+			void main() {
+
+				vUv = uv;
+
+				// vUv += vec2( 0.1, 0.1 );
+
+				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+			}
+
+		</script>
+
+
+		<script id="fragment_shader_init" type="x-shader/x-fragment">
+
+			void main() {
+
+				gl_FragColor = vec4( 0.0 );
+
+			}
+
+
+		</script>
+
+		<script id="fragment_shader_screen" type="x-shader/x-fragment">
+
+			precision highp float;
+
+			uniform sampler2D tDiffuse;
+			uniform float u_time;
+
+			varying vec2 vUv;
+
+			const float speed = 15.0;
+  			const float magnitude = 0.15;
+
+			void main() {
+
+				vec2 wavyCoord;
+
+				wavyCoord.s = vUv.s + (sin(u_time+vUv.t*speed) * magnitude);
+				wavyCoord.t = vUv.t + (cos(u_time+vUv.s*speed) * magnitude);
+
+				vec4 frameColor = texture2D(tDiffuse, wavyCoord);
+
+				gl_FragColor = frameColor;
+
+
+				// vec4 frameColor = texture2D(tDiffuse, vUv);
+			 //    float luminance = frameColor.r * 0.3 + frameColor.g * 0.59 + frameColor.b * 0.11;
+			 //    gl_FragColor = vec4(luminance, luminance, sin(u_time), frameColor.a);
+			}
+
+		</script>
+
+		<script type="text/javascript">
+
+			// Color scheme
+			function parsColors( rawcolors ) {
+
+				var colors = [];
+
+				for( var i=0; i<rawcolors.length; ++i ) {
+
+					var color = new THREE.Color( '#' + rawcolors[i] );
+
+					colors.push( color );
+
+				}
+
+				return colors;
+
+			}
+			// var Colors = [ [ "6FE7DD", "3490de", "6639a6", "521262" ] ];
+			var colorpick = Math.floor( Math.random()*Colors.length );
+			var colors = parsColors( Colors[ colorpick ] );
+			// var colors = parsColors( Colors[ 0 ] );
+
+
+
+			// load shader function
+
+			function loadShaderFromFile( filename, onLoadShader ) {
+
+			    var request = new XMLHttpRequest();
+
+			    request.onreadystatechange = function() {
+
+			    	if( request.readyState === 4 && request.status === 200 ) {
+
+			            onLoadShader( request.responseText );
+
+			        }
+
+			    }
+			        
+			    request.open( "GET", filename, true );
+			    request.send();
+
+			}
+
+
+			// 
+			var cameraRTT, camera, sceneRTT, scene, renderer;
+
+			var time = 0;
+
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			var rtTexture, quadRTT, matRTT, quad_geo, quad_mat, quad;
+
+			init();
+			animate();
+
+			function init() {
+
+				// Renderer
+
+				var w = window.innerWidth;
+				var h = window.innerHeight;
+
+				renderer = new THREE.WebGLRenderer({ antialias: true });
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( w, h );
+				renderer.autoClear = false;
+				container.appendChild( renderer.domElement );
+
+				
+
+
+
+
+
+				// ---- Step 1 : rtTexture rendered
+				// ----
+				// camera rendering texture
+				var texture_size = 400;
+				cameraRTT = new THREE.OrthographicCamera( texture_size / - 2, texture_size / 2, texture_size / 2, texture_size / - 2, -10000, 10000 );
+				cameraRTT.position.z = 400;
+
+				// scene rendered to texture
+				sceneRTT = new THREE.Scene();
+
+				// render target texture
+				rtTexture = new THREE.WebGLRenderTarget( 
+					texture_size, texture_size, { 
+					minFilter: THREE.LinearFilter, 
+					magFilter: THREE.NearestFilter, 
+					format: THREE.RGBFormat 
+				} ); 
+
+				matRTT = new THREE.ShaderMaterial( {
+
+					uniforms: { 
+						u_time: { value: 0.0 },
+						u_resolution: { value: new THREE.Vector2( texture_size, texture_size ) }, 
+						u_color_0: { value: colors[0] },
+						u_color_1: { value: colors[1] },
+						u_color_2: { value: colors[2] },
+						u_color_3: { value: colors[3] },
+					},
+					vertexShader: document.getElementById( 'vertexShader' ).textContent,
+					fragmentShader: document.getElementById( 'fragment_shader_init' ).textContent
+
+				} );
+				quadRTT = new THREE.Mesh( new THREE.PlaneBufferGeometry( texture_size, texture_size ), matRTT );
+
+				sceneRTT.add( quadRTT );
+
+				// custom GLSL
+
+				loadShaderFromFile( './scripts/colorful_shift_01.glsl', function(text) {
+
+					matRTT.fragmentShader = text;
+					matRTT.needsUpdate = true;
+
+				})
+
+
+
+
+
+
+
+
+				// ---- Step 2 : paint 
+				// ----
+				// camera
+				camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 0, 10000 );
+				camera.position.z = 2400;
+
+				// Scene
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color(0x0099ff);
+
+				// 
+				quad_geo = new THREE.PlaneGeometry( window.innerWidth, window.innerHeight, 99, 59 );
+				quad_mat = new THREE.ShaderMaterial( {
+
+					uniforms: { 
+						tDiffuse: { value: rtTexture.texture },
+						u_time: { value: 0.0 }
+					},
+					vertexShader: document.getElementById( 'vertexShader' ).textContent,
+					fragmentShader: document.getElementById( 'fragment_shader_screen' ).textContent,
+
+					depthWrite: false,
+					side: THREE.DoubleSide,
+					// wireframe: true
+
+				} );
+				scene.add( new THREE.Mesh( quad_geo, quad_mat ) );
+
+
+
+				// A Sprite Represents the Shader's Behaviour				
+				var spriteMaterial = new THREE.SpriteMaterial( { map: rtTexture.texture } );
+				shader_sprite = new THREE.Sprite( spriteMaterial );
+				shader_sprite.scale.set( 200, 200, 1 );
+				shader_sprite.position.set( w/2 - 100, h/2 - 100, 340 );
+				scene.add( shader_sprite );
+
+
+
+
+
+
+
+				// ---- Step 3 : Morphing the quad by Influence
+				// ----
+				ifl_01 = new Influence( 240, -200, 0, 900 );
+				ifl_01.surround( quad_geo );
+			 	ifl_01.moveTo( 260, 160, 400 );
+
+			 	ifl_02 = new Influence( -240, 200, 0, 900 );
+				ifl_02.surround( quad_geo );
+			 	ifl_02.moveTo( -260, -160, 400 );
+
+
+
+
+
+
+				// Controls
+				var controls = new THREE.OrbitControls( camera, renderer.domElement );
+				// Stats Info
+				stats = new Stats();
+				container.appendChild( stats.dom );
+			}
+
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+				stats.update();
+
+				render();
+
+			}
+
+			function render() {
+
+				matRTT.uniforms.u_time.value = time++/50;
+
+				quad_mat.uniforms.u_time.value = time++/50;
+				quad_mat.needsUpdate = true;
+
+				quad_geo.verticesNeedUpdate = true;
+
+
+				// render 
+				renderer.clear();
+
+				renderer.render( sceneRTT, cameraRTT, rtTexture, true );
+
+				renderer.render( scene, camera );
+
+			}
+
+
+		</script>
+
+</body>
+</html>

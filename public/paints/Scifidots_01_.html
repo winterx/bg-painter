@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Graph dots</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background-color: #000000;
+				margin: 0px;
+				overflow: hidden;
+				font-family: Monospace;
+				font-size: 13px;
+				text-align: center;
+				font-weight: bold;
+				text-align: center;
+			}
+
+			a {
+				color: #0078ff;
+			}
+
+			#info {
+				color: #fff;
+				position: relative;
+				top: 0px;
+				width: 50em;
+				margin: 0 auto -2.1em;
+				padding: 5px;
+				z-index: 100;
+			}
+		</style>
+	</head>
+
+	<body>
+		<script src="../build/three.js"></script>
+
+		<script src="../js/shaders/CopyShader.js"></script>
+		<script src="../js/shaders/BokehShader.js"></script>
+		<script src="../js/shaders/FXAAShader.js"></script>
+		<script src="../js/shaders/SMAAShader.js"></script>
+
+		<script src="../js/postprocessing/EffectComposer.js"></script>
+		<script src="../js/postprocessing/RenderPass.js"></script>
+		<script src="../js/postprocessing/ShaderPass.js"></script>
+		<script src="../js/postprocessing/MaskPass.js"></script>
+		<script src="../js/postprocessing/BokehPass.js"></script>
+		<script src="../js/postprocessing/SMAAPass.js"></script>
+
+		<script src="../js/controls/OrbitControls.js"></script>
+		<script src="../js/Detector.js"></script>
+		<script src="../js/libs/stats.min.js"></script>
+		<script src='../js/libs/dat.gui.min.js'></script>
+
+		<script>
+
+			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+			var container, stats, count=1;
+			var camera, scene, renderer;
+			var sphereGroup;
+
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			var width = window.innerWidth;
+			var height = window.innerHeight;
+
+			var postprocessing = {};
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				camera = new THREE.PerspectiveCamera( 70, width / height, 1, 3000 );
+				camera.position.z = 200;
+
+				scene = new THREE.Scene();
+
+				renderer = new THREE.WebGLRenderer({ antialias: true });
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( width, height );
+				renderer.autoClear = false;
+				container.appendChild( renderer.domElement );
+
+
+				var line_mat = new THREE.LineDashedMaterial( { 
+					color : 0x00aaff,
+					opacity: 0.3,
+					transparent: true,
+					blending: THREE['AdditiveBlending']
+				} );
+
+				sphereGroup = new THREE.Group;
+				var geo = new THREE.SphereGeometry( 0.7, 20, 10 );
+				var mat = new THREE.MeshBasicMaterial( { 
+					color: 0x00ffff,
+					opacity: 0.4,
+					transparent: true,
+					blending: THREE['AdditiveBlending']
+				} );
+
+
+
+				for( var i=0; i<500; ++i ) {
+					
+					var sphere = new THREE.Mesh( geo, mat );
+
+					sphere.position.set( Math.random()*600-300, Math.random()*400-200, Math.random()*200-100  );
+
+					sphereGroup.add( sphere );
+
+				}
+
+				for( var i=0; i<200; ++i ) {
+
+					var origin = sphereGroup.children[i].position;
+
+					for( var j=0; j<100; ++j ) {
+
+						var dest = sphereGroup.children[j].position;
+
+						if( origin.distanceTo( dest ) < 100 && i != j ) {
+
+							var line_geo = new THREE.BufferGeometry().setFromPoints([ origin, dest ]);
+							var line = new THREE.Line( line_geo, line_mat );
+							scene.add( line );
+
+						}
+
+					}
+
+				}
+
+				scene.add( sphereGroup );
+
+				
+
+				initPostprocessing();
+
+				// scene.add( new THREE.AxesHelper( 1 ) );
+
+
+				// other
+				stats = new Stats();
+				container.appendChild( stats.dom );
+				window.addEventListener( 'resize', onWindowResize, false );
+				var controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+				effectController  = {
+
+					positionz:  0, 
+					focus: 		700.0,
+					aperture:	0.5,
+					maxblur:	1.0
+
+				};
+
+				var matChanger = function( ) {
+
+					sphere.position.z = effectController.positionz;
+					postprocessing.bokeh.uniforms[ "focus" ].value = effectController.focus;
+					postprocessing.bokeh.uniforms[ "aperture" ].value = effectController.aperture * 0.00001;
+					postprocessing.bokeh.uniforms[ "maxblur" ].value = effectController.maxblur;
+
+				};
+
+				var gui = new dat.GUI();
+				gui.add( effectController, "positionz", -300, 300, 10 ).onChange( matChanger );
+				gui.add( effectController, "focus", 10.0, 3000.0, 10 ).onChange( matChanger );
+				gui.add( effectController, "aperture", 0, 10, 0.1 ).onChange( matChanger );
+				gui.add( effectController, "maxblur", 0.0, 3.0, 0.025 ).onChange( matChanger );
+				gui.open();
+
+				matChanger();
+			}
+
+			function onWindowResize() {
+
+				windowHalfX = window.innerWidth / 2;
+				windowHalfY = window.innerHeight / 2;
+
+				width = window.innerWidth;
+				height = window.innerHeight;
+
+				camera.aspect = width / height;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( width, height );
+				postprocessing.composer.setSize( width, height );
+			}
+
+			function initPostprocessing() {
+				var renderPass = new THREE.RenderPass( scene, camera );
+
+				var bokehPass = new THREE.BokehPass( scene, camera, {
+					focus: 		1.0,
+					aperture:	0.025,
+					maxblur:	1.0,
+
+					width: width,
+					height: height
+				} );
+
+				var effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
+				effectFXAA.uniforms[ 'resolution' ].value.set( 1 / width, 1 / height );
+
+				var effectSMAA = new THREE.SMAAPass( window.innerWidth * renderer.getPixelRatio(), window.innerHeight * renderer.getPixelRatio() );
+
+				// which is the final pass
+				bokehPass.renderToScreen = true;
+
+				var composer = new THREE.EffectComposer( renderer );
+				composer.addPass( renderPass );
+				composer.addPass( effectSMAA );
+				// composer.addPass( effectFXAA );
+				composer.addPass( bokehPass );
+
+				postprocessing.composer = composer;
+				postprocessing.bokeh = bokehPass;
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate, renderer.domElement );
+
+				stats.begin();
+				render();
+				stats.end();
+
+			}
+
+			function render() {
+
+				count++;
+
+				var factor = count*Math.PI/180;
+
+
+				for( var i=0; i<sphereGroup.children.length; ++i ) {
+
+						var factor = ( count + i*2 )*Math.PI/180;
+
+						sphereGroup.children[i].scale.set( Math.sin(factor)*1, Math.sin(factor)*1, Math.sin(factor)*1 );
+
+
+				}
+
+				postprocessing.composer.render( 0.1 );
+				// renderer.render( scene, camera );
+
+
+			}
+
+		</script>
+
+
+	</body>
+</html>

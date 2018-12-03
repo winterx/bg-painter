@@ -18,53 +18,7 @@ app.set('view engine', 'ejs');
 
 // index
 app.get('/',function(req,res){
-	res.render('index',{ title: 'pattern' });
-});
-
-// painter
-app.get('/painter',function(req,res){
-	res.render('painter',{ title:'pattern', w:800, h:480 });
-});
-
-app.get('/painter_02',function(req,res){
-	res.render('painter_02',{ title:'Sci-fi' });
-});
-
-// function test : 测试模型载入 以及 文字添加
-app.get('/function_canvas',function(req,res){
-	res.render('function_canvas',{ title: '' })
-});
-
-// render-test : 测试描边着色的方式
-app.get('/render_outlineEffect',function(req,res){
-	res.render('render_outlineEffect',{ title: '' })
-});
-
-// render-test : 测试Phong着色的模型
-app.get('/render_phong',function(req,res){
-	res.render('render_phong',{ title: '' })
-});
-
-// function test : 测试pattern生成器功能
-app.get('/pattern_generator',function(req,res){
-	res.render('pattern_generator',{title:''});
-});
-
-app.post('/paint',urlencodedParser,function(req,res){
-	var init_width = parseInt(req.body.init_width);
-	var init_height = parseInt(req.body.init_height);
-	var init_regular = parseInt(req.body.init_regular);
-	var init_volume = parseInt(req.body.init_volume);
-
-	res.render('painter_02', { 
-		init_width 		: req.body.init_width, 
-		init_height 	: req.body.init_height,
-		init_regular 	: req.body.init_regular,
-		init_volume 	: req.body.init_volume,
-		init_style		: req.body.init_style,
-		init_mainTitle  : req.body.init_mainTitle,
-		init_subTitle	: req.body.init_subTitle
-	});
+	res.render( 'index', { title: 'pattern' } );
 });
 
 

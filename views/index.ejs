@@ -1,52 +1,288 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <!-- script -->
-        <script type="text/javascript" src="js/gui/jquery-1.5.1.min.js"></script>
-        <script type='text/javascript' src='js/gui/jquery-ui-1.8.13.custom.min.js'></script> 
-        <!-- css -->
-        <link rel='stylesheet' type='text/css' href='css/smoothness/jquery-ui-1.8.13.custom.css'/>
-        <link rel="stylesheet" type="text/css" href="css/common.css">
-        <style type="text/css">
-            body {
-                background-color: #f2f6f8;
-            }
-            h1  {
-                text-align: center;
-                line-height: 100px; 
-            }
-            h3  {
-                text-align: center;
-            }
-            .wrapper {
-                position: relative;
-                margin: 0 auto;
-                width: 1400px;
-            }
+	<head>
+		<meta charset="utf-8">
+		<title>Bg Painter</title>
+		<style type="text/css">
+			* {
+				margin: 0;
+				padding: 0;
+				font-family: 'Helvetica Neue', sans-serif;
+				box-sizing: border-box;
+			}
 
-            header {
-                position: fixed;
-                top: 0;
-                width: 100%;
-                height: 60px;
-                background-color: #000;
-            }
+			html {
+				height: 100%;
+			}
 
-            .logo-wrapper {
-                color: #fff;
-                font-size: 20px;
-                font-weight: 500;
-                letter-spacing: 0.5px;
-            }
-        </style>
-        <title>Banner Studio</title>
-    </head>
+			body {
+				background-color: #fff;
+				margin: 0px;
+				height: 100%;
+				color: #555;
+				/*overflow: hidden;*/
+			}
+
+			.wrapper {
+				position: relative;
+				margin: 0 auto;
+				width: 900px;
+			}
+
+
+			.header {
+				position: relative;
+				width: 100%;
+				color: #fff;
+				background-color: #000;
+				font-size: 32px;
+				font-weight: 100;
+				font-family: 'Helvetica Neue';
+				text-align: left;
+			}
+			.header .logo {
+				display: inline-block;
+				vertical-align: middle;
+				margin-right: 6px;
+				width: 40px;
+				height: 40px;
+				background-image: url(images/logo.png);
+				background-size: cover;
+			}
+			.header .header-title {
+				display: inline-block;
+				vertical-align: middle;
+				line-height: 72px;
+			}
+			.header .spectial {
+				font-weight: 900;
+				letter-spacing: 1px;
+			}
+
+			.footer {
+				position: relative;
+				padding-right: 40px;
+				width: 100%;
+				height: 60px;
+				background-color: #000;
+				text-align: right;
+				z-index: 999;
+			}
+			.footer a {
+				color: #777;
+				text-decoration: underline;
+				line-height: 60px;
+				text-align: right;
+			}
+
+			h2 {
+				font-size: 20px;
+				font-weight: normal;
+			}
+
+			a {
+				color: #000;
+				text-decoration: none;
+			}
+
+			/* view */
+			#viewer {
+				position: relative;
+				margin: 0 auto;
+				width: 100%;
+				overflow: auto;
+			}
+			#painterview {
+				width: 100%;
+				height: 0;
+				border: none;
+				overflow: hidden;
+			}
+
+			/*info*/
+			.info {
+				display: none;
+				position: relative;
+			}
+			.info .wrapper {
+				position: relative;
+				margin: 0 auto;
+				width: 900px;
+			}
+			.info .wrapper #main_title {
+				margin: 24px 0 12px;
+				color: #112233;
+				font-size: 48px;
+				font-family: 'Helvetica Neue';
+				font-weight: 700;
+				line-height: 64px;
+				letter-spacing: -1.2px;
+			}
+			.info .wrapper .deco-line {
+				width: 100px;
+				height: 4px;
+				background-color: #112233;
+			}
+
+			
+			/* gallery */
+			#gallery {
+				position: relative;
+				margin: 0 auto;
+				width: 900px;
+				text-align: left;
+			}
+
+			#gallery h4 {
+				padding: 40px 0;
+				color: #5f606d;
+				font-size: 44px;
+				font-weight: 100;
+				letter-spacing: 2px;
+				text-align: left;
+			}
+
+			.link {
+				display: inline-block;
+				vertical-align: top;
+				margin: 12px 8px;
+				width: 200px;
+			}
+			.link-img {
+				width: 200px; height: 100px;
+				border-radius: 7px;
+				overflow: hidden;
+			}
+			.link-name {
+				color: #112233;
+				font-size: 14px;
+				font-weight: 200;
+				font-style: italic;
+				letter-spacing: 2px;
+				line-height: 32px;
+			}
+		</style>
+	</head>
 <body>
-    <header>
-        <div class="wrapper">
-            <div class="logo-wrapper"><span></span>Banner Studio</div>
-        </div>
-    </header>
+	<div class="header">
+		<div class="wrapper">
+			<div class="logo"></div>
+			<span class="header-title">Bg-</span><span class="header-title spectial">Painter</span>
+		</div>
+	</div>
+
+	<!-- main view -->
+	<section id="viewer">
+		<iframe id="painterview" 
+				src="./paints/ColorGradients_00.html" 
+				name="painterview" 
+				onload="setIframeInfo()" 
+				frameborder="0" 
+				scrolling="no" 
+				allowfullscreen 
+				allowvr 
+				onmousewheel="">
+		</iframe>
+	</section>
+
+	<!-- info view -->
+	<div class="info">
+		<div class="wrapper">
+			<div id="main_title"></div>
+			<div class="deco-line"></div>
+		</div>
+	</div>
+
+	<!-- gallery list -->
+	<section id="gallery">
+		<h4>Gallery List</h4>
+		<div id="content"></div>
+	</section>
+
+	<!-- footer -->
+	<div class="footer">Made by <a href="http://www.fangyexu.com" target="blank">Fangye X</a></div>
+
+	<script src="paints.js"></script>
+	<script type="text/javascript">
+
+		// style setting
+		var screenWidth = window.innerWidth;
+		var iframeHeight = screenWidth > 1400 ? 720 : 600;
+		var pview = document.getElementById('painterview');
+		pview.style.height = iframeHeight + 'px';
+
+
+
+		// 创建一个对象，用来封装当前选中的paint的信息
+
+		var CurrentPainterInfo = {
+			name: '',
+			url: '',
+			picurl: '',
+			description: ''
+		}
+
+
+
+		var selected = 'ColorGradients_00';
+
+		main_title.textContent = paints[selected].name;
+
+		for ( var key in paints ) {
+
+			var item = paints[key];
+
+			var linkItem = document.createElement('a');
+			linkItem.className = 'link';
+			linkItem.href = './paints/' + item.url;
+			linkItem.setAttribute( 'target', 'painterview' ); // 点击后切换至对应的iframe
+			linkItem.setAttribute( 'name', item.name );
+			linkItem.setAttribute( 'id', key );
+			linkItem.addEventListener( 'click', function(event){
+				var id = event.currentTarget.id;
+				var targetItem = paints[ id ];
+				// main_title.innerHTML = event.currentTarget.name; 
+				CurrentPainterInfo.name = targetItem.name;
+				CurrentPainterInfo.url = targetItem.url;
+				CurrentPainterInfo.description = targetItem.description;
+			},false);
+
+
+
+			var img = document.createElement('img');
+			img.src = item.picurl;
+			img.setAttribute('width','100%');
+			var imgwrapper = document.createElement('div');
+			imgwrapper.className = 'link-img';
+			imgwrapper.appendChild(img);
+
+			var paintName = document.createElement('div');
+			paintName.textContent = item.name;
+			paintName.className = 'link-name';
+
+			linkItem.appendChild(imgwrapper);
+			linkItem.appendChild(paintName);
+
+			content.appendChild(linkItem);
+
+		}
+
+		function setIframeInfo() {
+			if( painterview.window.document.getElementById("panel") ) {
+				painterview.window.document.getElementById("info_title").innerHTML = CurrentPainterInfo.name;
+				painterview.window.document.getElementById("info_description").innerHTML = CurrentPainterInfo.description;
+			}
+		}
+
+		function selectFile(file) {
+
+			window.location.hash = file;
+			painterview.focus();
+			painterview.src = file + '.html';
+
+			selected = file;
+
+		}
+	</script>
 </body>
 </html>

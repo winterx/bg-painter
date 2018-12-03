@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<!-- common js -->
+	<script src="../build/three.js"></script>
+	<script src="../js/Detector.js"></script>
+	<script src="../js/libs/stats.min.js"></script>
+	<script src="../js/libs/dat.gui.min.js"></script>
+	<script src="../js/controls/OrbitControls.js"></script>
+
+	<!-- post processing EFX -->
+	<script src="../js/postprocessing/EffectComposer.js"></script>
+	<script src="../js/postprocessing/RenderPass.js"></script>
+	<script src="../js/postprocessing/MaskPass.js"></script>
+	<script src="../js/postprocessing/ShaderPass.js"></script>
+	<script src="../js/postprocessing/UnrealBloomPass.js"></script>
+	<script src="../js/shaders/CopyShader.js"></script>
+	<script src="../js/shaders/FXAAShader.js"></script>
+	<script src="../js/shaders/ConvolutionShader.js"></script>
+	<script src="../js/shaders/LuminosityHighPassShader.js"></script>
+
+	<title>Pattern::Explosion</title>
+	<link rel="stylesheet" type="text/css" href="./style/common.css">
+</head>
+<body>
+	<div id="container"></div>
+	<script src="./scripts/Util.js"></script>
+	<script src="./scripts/Explosion/Explosion.js"></script>
+
+	<script type="x-shader/x-vertex" id="vertexShader">
+		precision highp float;
+
+		uniform float sineTime;
+
+		uniform mat4 modelViewMatrix;
+		uniform mat4 projectionMatrix;
+
+		attribute vec3 position;
+		attribute vec3 offset;
+		attribute vec4 color;
+		attribute vec4 orientationStart;
+		attribute vec4 orientationEnd;
+
+		varying vec3 vPosition;
+		varying vec4 vColor;
+
+		void main(){
+
+			// float sineTime = 1.0;
+
+			// vPosition = offset * max( abs( sineTime * 2.0 + 1.0 ), 0.5 ) + position;
+			vPosition = offset + position;
+			vec4 orientation = normalize( mix( orientationStart, orientationEnd, sineTime ) ); // 面片朝向
+			vec3 vcV = cross( orientation.xyz, vPosition ); // 面片法向
+			// vec3 vcV = vec3( 1.0, 1.0, 1.0 ); // 面片法向
+			vPosition = vcV * ( 2.0 * orientation.w ) + ( cross( orientation.xyz, vcV ) * 2.0 + vPosition );
+
+			vColor = color;
+
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( vPosition, 1.0 );
+		}
+	</script>
+
+	<script id="fragmentShader" type="x-shader/x-fragment">
+		precision highp float;
+
+		uniform float time;
+
+		varying vec3 vPosition;
+		varying vec4 vColor;
+
+		void main() {
+
+			vec4 color = vec4( vColor );
+			// color.r += sin( vPosition.x * 100.0 + time ) * 0.5;
+
+			gl_FragColor = color;
+
+		}
+	</script>
+
+	<script>
+		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+		var camera, scene, renderer, composer, stats, gui, controls;
+		var frame = 0;
+
+		var params = {
+			exposure: 0.9,
+			bloomStrength: 0.25,
+			bloomRadius: 0.67,
+			bloomThreshold: 0.43,
+			onPostProcess: true,
+		};
+
+		var globalColors = [];
+
+
+
+
+		fetch( './data/Color.json' ).then( res => {
+			return res.json().then( json => {
+				colors = json['Color_fantasy'][0].colors;
+				for( var i in colors ) {
+					var color = new THREE.Color( '#' + colors[i] );
+					globalColors.push(color);
+				}
+			});
+		}).then( () => {
+			init();
+			buildGui();
+			animate();
+		});
+
+		function init() {
+			var w = window.innerWidth;
+			var h = window.innerHeight;
+			var d = 100;
+			var GLOBAL_SIZE_FACTOR = w/1400;
+			var bounding = w/2;
+
+			// Camera and Scene 
+			// -----------------------------------------------------------------------------------
+			camera = new THREE.OrthographicCamera( w / - 2, w / 2, h / 2, h / - 2, 0.01, 2000 );
+			// camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
+			camera.position.z = 100;
+
+			scene = new THREE.Scene();
+			scene.background = new THREE.Color( 0x000000 );
+			// scene.fog = new THREE.Fog( 0x000000, 900, 1200 );
+
+
+
+			// Meshes and Sprites
+			// -----------------------------------------------------------------------------------
+			var explosion_0 = new Explosion( 14 * GLOBAL_SIZE_FACTOR, 40, bounding, globalColors ).make();
+			scene.add( explosion_0 );
+
+			var explosion_1 = new Explosion( 8 * GLOBAL_SIZE_FACTOR, 200, bounding, globalColors ).make();
+			scene.add( explosion_1 );
+
+			var explosion_2 = new Explosion( 3 * GLOBAL_SIZE_FACTOR, 800, bounding, globalColors ).make();
+			scene.add( explosion_2 );
+
+
+
+			// Decrating Meshes
+			var textureLoader = new THREE.TextureLoader();
+
+			// Spheres -----------------------------------------------
+			light = new THREE.HemisphereLight( globalColors[0].getHex(), globalColors[1].getHex(), 2.0 );
+			light.position.set( 0, 100, 0 );
+			scene.add( light );
+
+			var sphereGeo = new THREE.SphereBufferGeometry( 20, 32, 32 );
+			for( var i=0; i<30; ++i ) {
+
+				var sphereMat = new THREE.MeshPhongMaterial({
+					color: globalColors[i%6].getHex(),
+					blending: THREE.AdditiveBlending,
+					transparent: true,
+					opacity: 0.7
+				});
+				var sphere = new THREE.Mesh( sphereGeo, sphereMat );
+
+				sphere.position.copy( randomWithinScreen(w,h,d) );
+
+				var scaleFactor = Math.random()*2.0;
+				sphere.scale.set( scaleFactor, scaleFactor, scaleFactor );
+				scene.add( sphere );
+			}
+
+
+
+
+
+			// ============= ============= ============= ============= ============= ============= =============
+			// Renderer -----------------------------------------------------------------------------------
+			renderer = new THREE.WebGLRenderer( { antialias: true } );
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			// renderer.gammaInput = true
+			// renderer.gammaOutput = true;
+
+
+
+			// Post-processing EFX -----------------------------------------------------------------------------------
+			effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
+			effectFXAA.uniforms[ 'resolution' ].value.set( 1 / window.innerWidth, 1 / window.innerHeight );
+
+			effect_bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 0.4, 0.67, 0.43 ); 
+			effect_bloomPass.renderToScreen = true;
+
+			composer = new THREE.EffectComposer( renderer );
+			composer.addPass( new THREE.RenderPass( scene, camera ) );
+			composer.addPass( effectFXAA );
+			composer.addPass( effect_bloomPass );
+
+			// Stats / Gui / Controls -----------------------------------------------------------------------------------
+			stats = new Stats();
+			controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+
+
+			// Dom Manipulation -----------------------------------------------------------------------------------
+			var container = document.getElementById( 'container' );
+			container.appendChild( stats.dom );
+			container.appendChild( renderer.domElement );
+
+			window.addEventListener( 'resize', onWindowResize, false ); 
+		}
+
+		function onWindowResize() {
+
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+
+			renderer.setSize( window.innerWidth, window.innerHeight );
+
+		}
+
+		function animate() {
+
+			requestAnimationFrame( animate );
+
+			render();
+			stats.update();
+
+		}
+
+		function render() {
+
+			var time = performance.now();
+
+			var object = scene.children[ 1 ];
+
+			// object.rotation.y = time * 0.0005;
+			// object.material.uniforms.time.value = time * 0.005;
+			// object.material.uniforms.sineTime.value = Math.sin( object.material.uniforms.time.value * 0.05 );
+
+			if( params.onPostProcess ) {
+				composer.render();
+			}else{
+				renderer.render( scene, camera );
+			}
+
+		}
+
+		function buildGui() {
+			gui = new dat.GUI();
+
+			gui.add( params, 'exposure', 0.1, 2 );
+
+			gui.add( params, 'bloomStrength', 0.0, 3.0 ).onChange( function (value) {
+				effect_bloomPass.strength = Number(value);
+			});
+
+			gui.add( params, 'bloomRadius', 0.0, 1.0 ).onChange( function (value) {
+				effect_bloomPass.radius = Number(value);
+			});
+
+			gui.add( params, 'bloomThreshold', 0.0, 1.0 ).onChange( function(value){
+				effect_bloomPass.threshold = Number(value);
+			});
+
+			gui.add( params, 'onPostProcess' ).onChange( function (value) {
+				params.onPostProcess = value;
+			})
+
+			gui.open();
+		}
+	</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

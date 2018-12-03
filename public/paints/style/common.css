@@ -1,0 +1,135 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	color: #eee;
+	font-family:Monospace;
+	font-size: 0px;
+
+	background-color: #fff;
+	margin: 0px;
+	padding: 0px;
+	overflow: hidden;
+}
+
+
+#container {
+
+}
+
+
+/*
+主控制面板
+包括：paint标题 | 下载按钮 | 刷新按钮 
+*/
+#panel {
+	position: relative;
+	margin: 0 auto;
+	width: 900px;
+	height: 120px;
+	background-color: #f2f6f8;
+}
+#panel .info-wrapper {
+	position: relative;
+	display: inline-block;
+	vertical-align: top;
+	width: 60%;
+}
+#panel .info-wrapper .info-title {
+	margin: 12px 0 6px;
+	color: #112233;
+	font-size: 48px;
+	font-family: 'Helvetica Neue';
+	font-weight: 700;
+	line-height: 64px;
+	letter-spacing: -1.2px;
+}
+#panel .info-wrapper .info-description {
+	color: #556666;
+	font-size: 12px;
+}
+
+
+#panel .btn-wrapper {
+	display: inline-block;
+	vertical-align: top;
+	position: relative;
+	width: 40%;
+	height: 100px;
+	text-align: right;
+}
+#panel .btn-wrapper .btn-download {
+	display: inline-block;
+	vertical-align: top;
+	margin-top: 30px;
+	margin-right: 40px;
+	width: 60px;
+	height: 60px;
+	color: #fff;
+	font-size: 18px;
+	background-color: #000;
+	border-radius: 30px;
+	text-align: center;
+	line-height: 60px;
+}
+
+
+
+
+
+
+/* 时间帧控制 */
+#frame_control {
+	position: fixed;
+	bottom: 0px;
+	width: 100%;
+	height: 30px;
+}
+#frame_control .timeline {
+	position: absolute;
+	left: 25%;
+	width: 50%;
+	height: 10px;
+	background-color: #000;
+}
+#frame_control .timeline .slider {
+	position: absolute;
+	width: 10px;
+	height: 10px;
+	background-color: #f90;
+}
+
+
+/* 调色板 */
+#palette {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 200px;
+	height: 200px;
+	background-color: #fff;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
