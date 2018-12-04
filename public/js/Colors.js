@@ -22,10 +22,10 @@ var Color_fancy_02 = [
 ];
 
 var Color_fill = [
-  ['4F91F3','4F7CF3','3E6FF2','3867E7'],
-  ['6BACFF','4090F6','2380F8','006FFF'],
-  ['B6D4FF','9FBCF4','89ABEF','779CE5'],
-  ['FFDCB6','FFD8A9','FFD097','FBC379']
+  ["4F91F3","4F7CF3","3E6FF2","3867E7"],
+  ["6BACFF","4090F6","2380F8","006FFF"],
+  ["B6D4FF","9FBCF4","89ABEF","779CE5"],
+  ["FFDCB6","FFD8A9","FFD097","FBC379"]
 ];
 
 var Color_fancy = [

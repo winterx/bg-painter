@@ -37,6 +37,20 @@
 </head>
 <body>
 	<div id="container"></div>
+
+	<script id="init_vertex_shader" type="x-shader/x-vertex">
+		// varying vec2 vUv;
+		void main() {
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		}
+	</script>
+
+	<script id="init_fragment_shader" type="x-shader/x-fragment">
+		void main() {
+			gl_FragColor = vec4( 0.0 );
+		}
+	</script>
+
 	<script>
 		// Common Template :: 
 		// -----------------------------------------------------------------------------------
@@ -44,6 +58,7 @@
 		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 		var camera, scene, renderer, composer, stats, controls, globalColors=[];
+		var cameraRTT, sceneRTT, rtTexture, texture_mat;
 		var frame = 0;
 
 		var canvasW = window.innerWidth;
@@ -86,6 +101,15 @@
 
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
+
+			// if use RTT texture, then use below
+			initRendererToTexture(); // render texuture with shader
+			loadShaderFromFile( './scripts/shaping_01.glsl', function(text) {
+				texture_mat.fragmentShader = text;
+				texture_mat.needsUpdate = true;
+			});
+
+			// 
 			initInfoDomPanel( renderer ); // Div 
 			buildObjects(); // Meshes | Sprites | Lights | Shaders
 			buildPostEFX(); // Post processings
@@ -137,6 +161,39 @@
 
 			// window
 			window.addEventListener( 'resize', onWindowResize, false );
+		}
+
+		function initRendererToTexture() {
+			// camera rendering texture
+			var texture_size = 400;
+
+			cameraRTT = new THREE.OrthographicCamera( texture_size / - 2, texture_size / 2, texture_size / 2, texture_size / - 2, -10000, 10000 );
+			cameraRTT.position.z = 400;
+			
+			sceneRTT = new THREE.Scene(); // scene rendered to texture
+
+			rtTexture = new THREE.WebGLRenderTarget( 
+				texture_size, texture_size, { 
+				minFilter: THREE.LinearFilter, 
+				magFilter: THREE.NearestFilter, 
+				format: THREE.RGBFormat 
+			} ); // render target texture
+
+			// things on the texture
+			// canvasMaterial = new THREE.MeshBasicMaterial( {
+			// 	map: new THREE.Texture( drawingcanvas ),
+			// } ); 
+			texture_mat = new THREE.ShaderMaterial( {
+				uniforms: { 
+					u_time: { value: 0.0 },
+					u_resolution: { value: new THREE.Vector2( texture_size, texture_size ) }, 
+				},
+				vertexShader: document.getElementById( 'init_vertex_shader' ).textContent,
+				fragmentShader: document.getElementById( 'init_fragment_shader' ).textContent
+			} );
+			var texture_quad = new THREE.Mesh( new THREE.PlaneBufferGeometry( texture_size, texture_size ), texture_mat );
+
+			sceneRTT.add( texture_quad );
 		}
 
 		function buildObjects() {
@@ -194,6 +251,9 @@
 			if( PaintData.isPostEfxOn ) {
 				composer.render( 0.1 );
 			}else{
+				// if using RTT texture, then use below
+				// renderer.clear();
+				// renderer.render( sceneRTT, cameraRTT, rtTexture, true );
 				renderer.render( scene, camera );
 			}
 		}

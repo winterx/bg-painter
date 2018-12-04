@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Color Management</title>
+	<script src="https://unpkg.com/vue/dist/vue.min.js"></script>
+	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+	<style type="text/css">
+		.color-palette {
+			margin: 8px 0;
+			list-style: none;
+		}
+		.color-rect {
+			position: relative;
+			display: inline-block;
+			vertical-align: top;
+			width: 80px;
+			height: 30px;
+			color: rgba( 255, 255, 255, 0.9 );
+			font-size: 12px;
+			font-weight: 100;
+			font-family: 'monaco';
+			text-align: center;
+			line-height: 30px;
+		}
+	</style>
+</head>
+<body>
+	<div id="app">
+		<ul class="color-gengresList">
+			<li	is="color-gengre" v-for="(gengre,key) in Colors" class="color-gengre" v-bind:title="key">
+				<ul>
+					<li	is="color-palette" v-for="( palette, index ) in Colors[key]" class="color-palette"
+						v-bind:color_00="palette[0]"
+						v-bind:color_01="palette[1]"
+						v-bind:color_02="palette[2]"
+						v-bind:color_03="palette[3]"
+					></li>	
+				</ul>
+			</li>	
+		</ul>
+	</div> 
+
+	<button id="btn_test" onclick="change()">change</button>
+
+	<script>
+
+		axios.get('/api/colors_data')
+		.then(function (response) {
+			app.Colors = response.data;
+		}).catch(function (error) {
+			console.log(error);
+		});
+
+
+		// VUE 
+		// --------------------------------------------------------
+		Vue.component( 'color-gengre', {
+			data: {
+				function: function() {
+					return {
+						msg: '父组件的数据'
+					}
+				}
+			},
+			props: {
+				title: {
+					type: String,
+					default: 'No-name'
+				}
+			},
+			template:
+				'<div> \
+					<h2>{{ title }}</h2> \
+					<slot></slot> \
+				</div>'
+		});
+
+		Vue.component( 'color-palette', {
+			props: {
+				color_00: {
+					type: String,
+					default: '#000000'
+				},
+				color_01: {
+					type: String,
+					default: '#000000'
+				},
+				color_02: {
+					type: String,
+					default: '#000000'
+				},
+				color_03: {
+					type: String,
+					default: '#000000'
+				}
+			},
+			template: 
+				'<li> \
+					<div class="color-rect" :style="{ backgroundColor:\'#\'+color_00 }">{{ color_00 }} </div> \
+					<div class="color-rect" :style="{ backgroundColor:\'#\'+color_01 }">{{ color_01 }} </div> \
+					<div class="color-rect" :style="{ backgroundColor:\'#\'+color_02 }">{{ color_02 }} </div> \
+					<div class="color-rect" :style="{ backgroundColor:\'#\'+color_03 }">{{ color_03 }} </div> \
+				</li>'
+		});
+
+
+		
+
+		var app = new Vue({
+
+			el: '#app',
+
+			data: 
+			{	
+				Colors: {
+					Fantasy : [
+						[ "9B50ED", "69D5FF", "FFBD6E", "FF77BC" ],
+						[ "8E00FF", "FF0087", "FFBD6E", "FF3333" ] ],
+
+					Red : [
+						[ "FFF1F4", "FF560D", "FF4463", "FF865E" ] ],
+
+					Wild : [
+						["f9ed69", "f08a5d", "b83b5e", "6a2c70"] ]
+				}
+			}
+		});
+
+	</script>
+
+</body>
+</html>

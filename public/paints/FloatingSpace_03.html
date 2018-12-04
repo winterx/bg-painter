@@ -3,6 +3,8 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<title>Floating Hearts</title>
+	
 	<script src="https://cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
 
 	<script src="../build/three.js"></script>
@@ -33,8 +35,6 @@
 	<script src='../js/libs/dat.gui.min.js'></script>
 
 	<script src="./scripts/Util.js"></script>
-
-	<title>Floating Hearts</title>
 
 	<link rel="stylesheet" type="text/css" href="./style/common.css">
 </head>
@@ -132,6 +132,7 @@
 			modelpath:  GeometryPath + 'heart.dae',
 
 			// Objects
+			'Heart number' : 64,
 
 			// PostEFX
 			isPostEfxOn: false,
@@ -357,6 +358,12 @@
 			gui.add( PaintData, 'isPostEfxOn' ).onChange( function (value) {
 				PaintData.isPostEfxOn = value;
 			})
+
+			gui.add( PaintData, 'Heart number', 0, 64 ).onChange( function(value){
+				var num = Math.floor( value );
+				instanced_geo.maxInstancedCount = num;
+			});
+
 			gui.open();
 
 			onParamsChange();			

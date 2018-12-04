@@ -3,6 +3,7 @@ var express= require('express');
 var multer = require('multer');
 var path = require('path');
 var fs = require('fs');
+var ejs = require('ejs');
 
 var app = express();
 
@@ -14,13 +15,26 @@ app.use( express.static('public') );
 
 // 设置显示模板
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+app.engine('html', ejs.__express);
+app.set('view engine', 'html');
 
 // index
 app.get('/',function(req,res){
-	res.render( 'index', { title: 'pattern' } );
+	res.render('index');
 });
 
+app.get('/colors',function(req,res){
+	res.render('colors');
+});
+
+// 后端接口,请求颜色数据
+app.get( '/api/colors_data', function( req, res ) {
+	fs.readFile( __dirname + '/public/paints/data/Color.json', 'utf-8', function(err,data){
+		var colordata = JSON.parse(data).Colors;
+		res.send(colordata);
+		res.end();
+	});
+});
 
 // 文件上传
 var upload = multer({ dest: 'public/upload/' });
