@@ -9,6 +9,8 @@ function randomWithinScreen ( width, height, depth ) {
 	return new THREE.Vector3( _x, _y, _z );
 }
 
+
+
 // 加载外部文件
 function loadShaderFromFile( filename, onLoadShader ) {
 

@@ -5,6 +5,8 @@
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<title>Pattern::Color Gradients</title>
 
+	<script src="https://cdn.bootcss.com/lodash.js/4.17.11/lodash.min.js"></script>
+
 	<script src="../build/three.js"></script>
 
 	<script src="../js/Detector.js"></script>
@@ -135,14 +137,7 @@
 
 		var BaseCanvas2d = {
 
-			colorscheme_0: [],
-			colorscheme_1: [],
-
-			pattern: [],
-
-			ctx: null,
-
-			loadColorScheme: function( url ) {
+			loadColorScheme: function() {
 
 				this.reset2dPattern(); // 首先重排一下2d canvas的样式
 
@@ -158,7 +153,54 @@
 
 			},
 
-			reset2dPattern: function( url ) {
+			
+		};
+
+	</script>
+
+	<script type="text/javascript">
+		// Common Template :: 
+		// -----------------------------------------------------------------------------------
+			
+		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+		var camera, scene, renderer, composer, stats, controls, globalColors=[];
+		var cameraRTT, sceneRTT, rtTexture, texture_mat;
+		var frame = 0;
+		var isFrameControlling = false;
+
+		var canvasW = window.innerWidth;
+		var canvasH = canvasW > 1400 ? 600 : 480;
+		var canvasD = 500;
+		var GLOBAL_SIZE_FACTOR = canvasW/1400;
+		var GLOBAL_SIZE_BOUNDING = canvasW/2;
+
+
+		// Paint Data :: defines the pattern of every paint
+		// -----------------------------------------------------------------------------------
+		var PaintData = { 
+			// Colors
+			color_scheme: 'Fantasy',
+			colors: [],
+
+			colorscheme_0: [],
+			colorscheme_1: [],
+
+			pattern: [],
+
+			ctx: null,
+
+			// Objects
+
+			// PostEFX
+			isPostEfxOn: true,
+			tiltFocus: 0.5,
+			tiltAmount: 0.006,
+			tiltBrightness: 0.65,
+
+
+			// Methods
+			reset2dPattern: function() {
 				var cWidth = 1024;
 				var cHeight = 512;
 
@@ -173,7 +215,7 @@
 						var radius_outer = Math.random() * 300 + 200;
 
 						// 随机设定喷圈颜色索引
-						var indices = [ 0, 1, 2, 3, 4, 5 ];
+						var indices = [ 0, 1, 2, 3 ];
 						var color_index_0 = this.pick(indices);
 						var color_index_1 = this.pick(indices);
 						var color_index_2 = this.pick(indices);
@@ -228,47 +270,19 @@
 				return result;
 
 			}
-		};
-
-		BaseCanvas2d.loadColorScheme();		
-	</script>
-
-	<script type="text/javascript">
-		// Common Template :: 
-		// -----------------------------------------------------------------------------------
-			
-		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
-
-		var camera, scene, renderer, composer, stats, controls, globalColors=[];
-		var cameraRTT, sceneRTT, rtTexture, texture_mat;
-		var frame = 0;
-		var isFrameControlling = false;
-
-		var canvasW = window.innerWidth;
-		var canvasH = canvasW > 1400 ? 600 : 480;
-		var canvasD = 500;
-		var GLOBAL_SIZE_FACTOR = canvasW/1400;
-		var GLOBAL_SIZE_BOUNDING = canvasW/2;
-
-
-		// Paint Data :: defines the pattern of every paint
-		// -----------------------------------------------------------------------------------
-		var PaintData = { 
-			// Objects
-
-			// PostEFX
-			isPostEfxOn: true,
-			tiltFocus: 0.5,
-			tiltAmount: 0.006,
-			tiltBrightness: 0.65,
 		}
 
 		// get Colors and init
 		fetch( './data/Color.json' ).then( res => {
 			return res.json().then( json => {
-				colors = json['Color_fantasy'][0].colors;
+
+				colors = json['Colors'][ PaintData.color_scheme ][0];
+
 				for( var i in colors ) {
-					globalColors.push( new THREE.Color( '#'+colors[i] ) );					
+					PaintData.colors.push( new THREE.Color( '#'+colors[i] ) );	
+
+					PaintData.colorscheme_0 = colors;
+					PaintData.colorscheme_1 = json['Colors'][ PaintData.color_scheme ][1];				
 				}
 			});
 		}).then( () => {
@@ -281,19 +295,19 @@
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
 
+			PaintData.reset2dPattern();
+			PaintData.drawCanvas2d();
+
 			// if use RTT texture, then use below
 			initRendererToTexture(); // render texuture with shader
-			// loadShaderFromFile( './scripts/shaping_01.glsl', function(text) {
-			// 	texture_mat.fragmentShader = text;
-			// 	texture_mat.needsUpdate = true;
-			// });
 
-			// 
-			initUIInfoPanel( renderer ); // Div 
+			// init UI controls
+			initUIInfoPanel( renderer ); 
 			initUIFrameControlPanel();
-			buildObjects(); // Meshes | Sprites | Lights | Shaders
-			// buildPostEFX(); // Post processings
-			buildControls(); // Dat.gui
+
+
+			buildObjects(); 
+			buildControls(); 
 		};
 
 		function initRenderer() {
@@ -335,7 +349,6 @@
 
 		function initRendererToTexture() {
 			// camera rendering texture
-			var texture_size = 400;
 
 			cameraRTT = new THREE.OrthographicCamera( canvasW / - 2, canvasW / 2, canvasH / 2, canvasH / - 2, -10000, 10000 );
 			cameraRTT.position.z = 400;
