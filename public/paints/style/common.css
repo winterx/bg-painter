@@ -17,7 +17,7 @@ body {
 
 
 #container {
-
+	position: relative;
 }
 
 
@@ -83,19 +83,14 @@ body {
 
 /* 时间帧控制 */
 #frame_control {
-	position: fixed;
-	bottom: 0px;
-	width: 100%;
-	height: 30px;
-}
-#frame_control .timeline {
 	position: absolute;
-	left: 25%;
-	width: 50%;
-	height: 10px;
-	background-color: #000;
+	bottom: 0;
+	left: 30%;
+	width: 40%;
+	height: 30px;
+	background: #000;
 }
-#frame_control .timeline .slider {
+#frame_control .slider {
 	position: absolute;
 	width: 10px;
 	height: 10px;

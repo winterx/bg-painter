@@ -1,5 +1,6 @@
 GeometryPath = '../geometries/';
 
+// 在整个空间里面随机选择位置
 function randomWithinScreen ( width, height, depth ) {
 	var _x = ( Math.random() - 0.5 ) * width;
 	var _y = ( Math.random() - 0.5 ) * height;
@@ -8,7 +9,28 @@ function randomWithinScreen ( width, height, depth ) {
 	return new THREE.Vector3( _x, _y, _z );
 }
 
-function initInfoDomPanel ( renderer ) {
+// 加载外部文件
+function loadShaderFromFile( filename, onLoadShader ) {
+
+    var request = new XMLHttpRequest();
+
+    request.onreadystatechange = function() {
+
+    	if( request.readyState === 4 && request.status === 200 ) {
+
+            onLoadShader( request.responseText );
+
+        }
+
+    }
+        
+    request.open( "GET", filename, true );
+    request.send();
+
+}
+
+// 初始化主信息面板，功能包括显示标题、简介，控制下载和刷新
+function initUIInfoPanel ( renderer ) {
 	renderer.domElement.setAttribute('id','canvas_painter');
 	// canvas_painter.style.height = 
 
@@ -100,29 +122,42 @@ function initInfoDomPanel ( renderer ) {
 	panel.appendChild(infoWrapper);
 	panel.appendChild(btnWrapper);
 
-	document.getElementsByTagName("body")[0].appendChild(panel);
-
-	
+	document.getElementsByTagName("body")[0].appendChild(panel);	
 }
 
-function loadShaderFromFile( filename, onLoadShader ) {
 
-    var request = new XMLHttpRequest();
+function initUIFrameControlPanel() {
+	var frameControlSwitch = document.createElement('INPUT');
+	frameControlSwitch.setAttribute('type','button');
+	frameControlSwitch.setAttribute('id','frame_control_switch');
 
-    request.onreadystatechange = function() {
+	var frameControlSlider = document.createElement('INPUT');
+	frameControlSlider.setAttribute('type','range');
+	frameControlSlider.setAttribute('id','frame_control_slider');
 
-    	if( request.readyState === 4 && request.status === 200 ) {
+	var frameControl = document.createElement('DIV');
+	frameControl.setAttribute('id','frame_control');
+	frameControl.appendChild(frameControlSwitch);
+	frameControl.appendChild(frameControlSlider);
 
-            onLoadShader( request.responseText );
+	document.getElementById('container').appendChild(frameControl);	
 
-        }
+	frameControlSlider.min = 0;
+	frameControlSlider.max = 100;
 
-    }
-        
-    request.open( "GET", filename, true );
-    request.send();
-
+	frame_control_switch.addEventListener('click',function(){
+		if( isFrameControlling ) {
+			isFrameControlling = false;
+		}else{
+			isFrameControlling = true;
+		}
+	},false);
 }
+
+
+
+
+
 
 function Grid( xnum, ynum, znum, unitsize_width, unitsize_height, unitsize_depth ) {
 	this.xnum = xnum;

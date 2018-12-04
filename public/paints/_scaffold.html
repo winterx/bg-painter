@@ -3,6 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<title>Scaffold</title>
 	
 	<script src="../build/three.js"></script>
 
@@ -24,14 +25,12 @@
 	<script src="../js/postprocessing/FilmPass.js"></script>
 	<script src="../js/postprocessing/UnrealBloomPass.js"></script>
 
-	<script src="../js/controls/OrbitControls.js"></script>
 	<script src="../js/Detector.js"></script>
 	<script src="../js/libs/stats.min.js"></script>
 	<script src='../js/libs/dat.gui.min.js'></script>
+	<script src="../js/controls/OrbitControls.js"></script>
 
 	<script src="./scripts/Util.js"></script>
-
-	<title>Scaffold</title>
 
 	<link rel="stylesheet" type="text/css" href="./style/common.css">
 </head>
@@ -60,6 +59,8 @@
 		var camera, scene, renderer, composer, stats, controls, globalColors=[];
 		var cameraRTT, sceneRTT, rtTexture, texture_mat;
 		var frame = 0;
+		var isFrameControlling = false;
+
 
 		var canvasW = window.innerWidth;
 		var canvasH = canvasW > 1400 ? 600 : 480;
@@ -110,7 +111,9 @@
 			});
 
 			// 
-			initInfoDomPanel( renderer ); // Div 
+			initUIFrameControlPanel();
+			initUIInfoPanel( renderer ); // Div 
+
 			buildObjects(); // Meshes | Sprites | Lights | Shaders
 			buildPostEFX(); // Post processings
 			buildControls(); // Dat.gui
@@ -245,8 +248,13 @@
 		}
 
 		function render() {
-			// time 
-			frame++;
+
+			if( !isFrameControlling ) {
+				frame++;
+				frame_control_slider.value = frame*100/314;
+
+				if( frame == 314 ) frame = 0;
+			}
 
 			if( PaintData.isPostEfxOn ) {
 				composer.render( 0.1 );

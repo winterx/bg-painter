@@ -1,55 +1,56 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<title>Color Gradients</title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<title>Pattern::Color Gradients</title>
 
-		<script src="../build/three.js"></script>
-		<script src="../js/Detector.js"></script>
-		<script src="../js/libs/stats.min.js"></script>
-		<script src="../js/controls/OrbitControls.js"></script>
+	<script src="../build/three.js"></script>
 
-		<script src="../js/_custom/ColorGradient_Influence.js"></script>
-		<script src="./scripts/jscolor.js"></script>
+	<script src="../js/Detector.js"></script>
+	<script src="../js/libs/stats.min.js"></script>
+	<script src='../js/libs/dat.gui.min.js'></script>
+	<script src="../js/controls/OrbitControls.js"></script>
 
-		<link rel="stylesheet" type="text/css" href="./style/common.css">
+	<script src="./scripts/ColorGradients/ColorGradient_Influence.js"></script>
+	<script src="./scripts/Util.js"></script>
+	<script src="./scripts/jscolor.js"></script>
 
-		<style>
-			#canvas2d_wrapper {
-				position: absolute;
-				top: 0; left: 0;
-				width: 400px;
-				height: 200px;
-			}
-			#drawingcanvas {
-				/*display: none;*/
-				width: 100%;
-			}
+	<link rel="stylesheet" type="text/css" href="./style/common.css">
+	<style>
+		#canvas2d_wrapper {
+			position: absolute;
+			top: 0; left: 0;
+			width: 400px;
+			height: 200px;
+		}
+		#drawingcanvas {
+			/*display: none;*/
+			width: 100%;
+		}
 
 
-			#btn_resetColors {
-				position: relative;
-				top: 0;
-				right: 0;
-				width: 200px;
-				height: 30px;
-				background-color: #f30;
-				color: #000;
-			}
-			#btn_resetPattern {
-				position: relative;
-				top: 0;
-				right: 0;
-				width: 200px;
-				height: 30px;
-				background-color: #f90;
-				color: #000;
-			}
-		</style>
-	</head>
+		#btn_resetColors {
+			position: relative;
+			top: 0;
+			right: 0;
+			width: 200px;
+			height: 30px;
+			background-color: #f30;
+			color: #000;
+		}
+		#btn_resetPattern {
+			position: relative;
+			top: 0;
+			right: 0;
+			width: 200px;
+			height: 30px;
+			background-color: #f90;
+			color: #000;
+		}
+	</style>
+</head>
 <body>
-
 	<div id="container"></div>
 
 	<div id="palette">
@@ -62,29 +63,6 @@
 
 		<div id="btn_resetColors" onclick="testRefreshColor()">Reset Colors</div>
 		<div id="btn_resetPattern" onclick="testRefreshPattern()">Reset Pattern</div>
-	</div>
-
-	<div id="frame_control">
-		<div class="timeline">
-			<input type="button" name="" id="frame_control_switch">
-			<!-- <div class="slider" id="frame_control_slider"></div> -->
-			<input type="range" name="" id="frame_control_slider">
-			<script type="text/javascript">
-				var isFrameControlling = false;
-
-				frame_control_slider.min = 0;
-				frame_control_slider.max = 100;
-
-				frame_control_switch.addEventListener('click',function(){
-					if( isFrameControlling ) {
-						isFrameControlling = false;
-					}else{
-						isFrameControlling = true;
-					}
-				},false);
-				
-			</script>
-		</div>
 	</div>
 
 	<div id="canvas2d_wrapper"><canvas id="drawingcanvas" width="1024" height="512" ></canvas></div>
@@ -154,7 +132,6 @@
 		}
 
 		// 获取一个canvas的 drawing context
-		var drawingCanvas = document.getElementById( 'drawingcanvas' );
 
 		var BaseCanvas2d = {
 
@@ -215,7 +192,7 @@
 
 			drawCanvas2d: function() {
 				// 先绘制出背景底色
-				this.ctx = drawingCanvas.getContext( '2d' );
+				this.ctx = drawingcanvas.getContext( '2d' );
 				var grd = this.ctx.createLinearGradient( 0, 0, 0, 512 );
 				grd.addColorStop( 0.0, '#' + this.colorscheme_0[0] + 'ff' );
 				grd.addColorStop( 0.3, '#' + this.colorscheme_0[1] + 'ff' );
@@ -251,93 +228,139 @@
 				return result;
 
 			}
-
 		};
 
 		BaseCanvas2d.loadColorScheme();		
-
-		function addCanvasDraw() {
-
-			var x = Math.random() * 1024;
-			var y = Math.random() * 512;
-			var radius_inner = Math.random() * 50 + 50;
-			var radius_outer = Math.random() * 100 + 400;
-
-			var grd = ctx.createRadialGradient( x, y, radius_inner, x, y, radius_outer);
-
-			var r1 = Math.floor( Math.random()*4 );
-			var r2 = Math.floor( Math.random()*4 );
-			var r3 = Math.floor( Math.random()*4 );
-
-			grd.addColorStop( 0.0, '#' + colors[r1] );
-			// grd.addColorStop( 0.3, '#' + colors[r2] );
-			// grd.addColorStop( 0.6, '#' + colors[r3] );
-			grd.addColorStop( 1.0, '#' + colors[r3] + '00' );
-
-			ctx.fillStyle = grd;
-			ctx.fillRect( 0, 0, 1024, 512 );
-		}
-
 	</script>
 
 	<script type="text/javascript">
-		var cameraRTT, camera, sceneRTT, sceneScreen, scene, renderer, zmesh1, zmesh2;
+		// Common Template :: 
+		// -----------------------------------------------------------------------------------
+			
+		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
+		var camera, scene, renderer, composer, stats, controls, globalColors=[];
+		var cameraRTT, sceneRTT, rtTexture, texture_mat;
 		var frame = 0;
+		var isFrameControlling = false;
 
-		var windowHalfX = window.innerWidth / 2;
-		var windowHalfY = window.innerHeight / 2;
+		var canvasW = window.innerWidth;
+		var canvasH = canvasW > 1400 ? 600 : 480;
+		var canvasD = 500;
+		var GLOBAL_SIZE_FACTOR = canvasW/1400;
+		var GLOBAL_SIZE_BOUNDING = canvasW/2;
 
-		var rtTexture, material, quad;
 
-		init();
-		animate();
+		// Paint Data :: defines the pattern of every paint
+		// -----------------------------------------------------------------------------------
+		var PaintData = { 
+			// Objects
 
-		function init() {
-			// Renderer
-			renderer = new THREE.WebGLRenderer({ antialias: true });
+			// PostEFX
+			isPostEfxOn: true,
+			tiltFocus: 0.5,
+			tiltAmount: 0.006,
+			tiltBrightness: 0.65,
+		}
+
+		// get Colors and init
+		fetch( './data/Color.json' ).then( res => {
+			return res.json().then( json => {
+				colors = json['Color_fantasy'][0].colors;
+				for( var i in colors ) {
+					globalColors.push( new THREE.Color( '#'+colors[i] ) );					
+				}
+			});
+		}).then( () => {
+			initPaint();
+			animate();
+		});
+
+
+
+		function initPaint() {
+			initRenderer(); // Scene | Camera | Renderer
+
+			// if use RTT texture, then use below
+			initRendererToTexture(); // render texuture with shader
+			// loadShaderFromFile( './scripts/shaping_01.glsl', function(text) {
+			// 	texture_mat.fragmentShader = text;
+			// 	texture_mat.needsUpdate = true;
+			// });
+
+			// 
+			initUIInfoPanel( renderer ); // Div 
+			initUIFrameControlPanel();
+			buildObjects(); // Meshes | Sprites | Lights | Shaders
+			// buildPostEFX(); // Post processings
+			buildControls(); // Dat.gui
+		};
+
+		function initRenderer() {
+			// Camera 
+			camera = new THREE.OrthographicCamera( canvasW / - 2, canvasW / 2, canvasH / 2, canvasH / - 2, 1, 4000 );
+			// camera = new THREE.PerspectiveCamera( 50, canvasW / canvasH, 1, 10 );
+			camera.position.z = 2400;
+
+			// scene
+			scene = new THREE.Scene();
+			scene.background = new THREE.Color( 0x000000 );
+			// scene.fog = new THREE.Fog( 0x000000, 900, 1200 );
+
+			// helper
+			var axesHelper = new THREE.AxesHelper( 25 );
+			// scene.add( axesHelper );
+			var gridHelper = new THREE.GridHelper( 100, 10 );
+			// scene.add( gridHelper );
+
+			// Renderer 
+			renderer = new THREE.WebGLRenderer( { antialias: true, preserveDrawingBuffer: true } );
 			renderer.setPixelRatio( window.devicePixelRatio );
-			renderer.setSize( window.innerWidth, window.innerHeight );
-			renderer.autoClear = false;
+			renderer.setSize( canvasW, canvasH );
+			// renderer.gammaInput = true
+			// renderer.gammaOutput = true;
+
+			// control and monitor
+			controls = new THREE.OrbitControls( camera, renderer.domElement );
+			gui = new dat.GUI();
+			stats = new Stats();
+
+			// dom 
+			container.appendChild( stats.dom );
 			container.appendChild( renderer.domElement );
 
-			
+			// window
+			window.addEventListener( 'resize', onWindowResize, false );
+		}
 
-
-			// ---- Step 1 : rtTexture rendered
-			// ----
+		function initRendererToTexture() {
 			// camera rendering texture
-			cameraRTT = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, -10000, 10000 );
+			var texture_size = 400;
+
+			cameraRTT = new THREE.OrthographicCamera( canvasW / - 2, canvasW / 2, canvasH / 2, canvasH / - 2, -10000, 10000 );
 			cameraRTT.position.z = 400;
+			
+			sceneRTT = new THREE.Scene(); // scene rendered to texture
 
-			// scene rendered to texture
-			sceneRTT = new THREE.Scene();
-
-			// render target texture
-			rtTexture = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBFormat } );
+			rtTexture = new THREE.WebGLRenderTarget( 
+				canvasW, canvasH, { 
+				minFilter: THREE.LinearFilter, 
+				magFilter: THREE.NearestFilter, 
+				format: THREE.RGBFormat 
+			} ); // render target texture
 
 			// things on the texture
 			canvasMaterial = new THREE.MeshBasicMaterial( {
 				map: new THREE.Texture( drawingcanvas ),
 			} ); 
-			var canvas = new THREE.Mesh( new THREE.PlaneBufferGeometry(window.innerWidth,window.innerHeight), canvasMaterial );
+			var canvas = new THREE.Mesh( new THREE.PlaneBufferGeometry( canvasW, canvasH ), canvasMaterial );
 
 			sceneRTT.add( canvas );
+		}
 
+		function buildObjects() {
 
-
-			// ---- Step 2 : paint 
-			// ----
-			// camera
-			camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 0, 10000 );
-			camera.position.z = 2400;
-
-			// Scene
-			scene = new THREE.Scene();
-			scene.background = new THREE.Color(0x0099ff);
-
-			// 
-			quad_geo = new THREE.PlaneGeometry( window.innerWidth, window.innerHeight, 99, 59 );
+			quad_geo = new THREE.PlaneGeometry( canvasW, canvasH, 99, 59 );
 			quad_mat = new THREE.ShaderMaterial( {
 
 				uniforms: { 
@@ -354,8 +377,6 @@
 			} );
 			scene.add( new THREE.Mesh( quad_geo, quad_mat ) );
 
-
-
 			// ---- Step 3 : Morphing the quad by Influence
 			// ----
 			ifl_01 = new Influence( 240, -200, 0, 900 );
@@ -367,15 +388,13 @@
 		 	ifl_02.moveTo( -260, -160, 400 );
 
 
-		 	// var width = window.innerWidth;
-		 	// var height = window.innerHeight;
 
 		 	// for( var i=0; i<2; i++ ) {
 		 	// 	for( var j=0; j<2; j++ ) {
 			 // 		var direction = Math.random() > 0.5 ? 1 : -1;
 
-			 // 		var anchorX = Math.random() * width/2 * Math.pow( -1, i );
-			 // 		var anchorY = Math.random() * height/2 * Math.pow( -1, j );
+			 // 		var anchorX = Math.random() * canvasW/2 * Math.pow( -1, i );
+			 // 		var anchorY = Math.random() * canvasH/2 * Math.pow( -1, j );
 			 // 		var anchorRadius = Math.random() * 300 + 450;
 
 			 // 		var moveToX = anchorX + direction * ( Math.random() * 300 + 150 );
@@ -389,24 +408,34 @@
 
 		 	// 	}
 		 	// }
-
-
-
-			// Controls
-			var controls = new THREE.OrbitControls( camera, renderer.domElement );
-			// Stats Info
-			stats = new Stats();
-			container.appendChild( stats.dom );
 		}
 
+		function buildControls() {
+			//init GUI				
+			gui.add( PaintData, 'isPostEfxOn' ).onChange( function (value) {
+				PaintData.isPostEfxOn = value;
+			})
+			gui.open();
+
+			onParamsChange();			
+		}
+
+		function onParamsChange () {
+			camera.updateProjectionMatrix();
+		}
+
+		function onWindowResize() {
+
+			camera.aspect = canvasW / canvasH;
+			camera.updateProjectionMatrix();
+
+			renderer.setSize( canvasW, canvasH );
+		}
 
 		function animate() {
-
 			requestAnimationFrame( animate );
-
 			stats.update();
 			render();
-
 		}
 
 		function render() {

@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<title>Pattern:: Floating Objects</title>
+	<title>Pattern::Floating Objects</title>
 
 	<script src="../build/three.js"></script>
 	<script src="../js/Colors.js"></script>
@@ -13,38 +13,30 @@
 	<script src="../js/controls/OrbitControls.js"></script>
 
 	<script src="./scripts/Util.js"></script>
-	<!-- <script src="../js/_custom/Grid.js"></script> -->
 
+	<link rel="stylesheet" type="text/css" href="./style/common.css">
 	<style type="text/css">
-		
-			body {
-				color: #eee;
-				font-family:Monospace;
-				font-size:13px;
-				text-align:center;
-
-				background-color: #000;
-				margin: 0px;
-				padding: 0px;
-				overflow: hidden;
-			}
-
-			#canvas2d_wrapper {
-				position: absolute;
-				top: 0; left: 0;
-				width: 400px;
-				height: 200px;
-				background-color: #fff;
-				z-index: 999;
-			}
-			#canvas2d_wrapper canvas {
-				width: 30%;
-			}
+		#canvas2d_wrapper {
+			position: absolute;
+			top: 0; left: 0;
+			width: 400px;
+			height: 200px;
+			background-color: #fff;
+			z-index: 999;
+		}
+		#canvas2d_wrapper canvas {
+			width: 30%;
+		}
 	</style>
 </head>
 
 <body>
-	<div id="container"></div>
+	<div id="container">
+		<div id="frame_control">
+			<input type="button" name="" id="frame_control_switch">
+			<input type="range" name="" id="frame_control_slider">
+		</div>
+	</div>
 
 	<div id="canvas2d_wrapper">
 		<canvas class="texture-canvas" id="drawingcanvas_01" width="512" height="512" ></canvas>
@@ -167,9 +159,9 @@
 		// get Colors and init
 		fetch( './data/Color.json' ).then( res => {
 			return res.json().then( json => {
-				colors = json['Color_red'][0].colors;
-				for( var i in colors ) {
-					globalColors.push( new THREE.Color( '#'+colors[i] ) );
+				datacolors = json['Color_red'][0].colors;
+				for( var i in datacolors ) {
+					globalColors.push( new THREE.Color( '#'+datacolors[i] ) );
 				}
 			});
 		}).then( () => {
@@ -179,7 +171,8 @@
 
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
-			initInfoDomPanel( renderer ); // Div 
+			initUIInfoPanel( renderer ); // Div 
+			// initFrameControl();
 			buildObjects(); // Meshes | Sprites | Lights | Shaders
 			// buildPostEFX(); // Post processings
 			buildControls(); // Dat.gui
@@ -316,10 +309,10 @@
 
 		function onWindowResize() {
 
-			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.aspect = canvasW / canvasH;
 			camera.updateProjectionMatrix();
 
-			renderer.setSize( window.innerWidth, window.innerHeight );
+			renderer.setSize( canvasW, canvasH );
 
 		}
 
