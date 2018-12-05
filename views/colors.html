@@ -35,6 +35,8 @@
 						v-bind:color_01="palette[1]"
 						v-bind:color_02="palette[2]"
 						v-bind:color_03="palette[3]"
+						v-bind:color_04="palette[4]"
+						v-bind:color_05="palette[5]"
 					></li>	
 				</ul>
 			</li>	
@@ -93,6 +95,14 @@
 				color_03: {
 					type: String,
 					default: '#000000'
+				},
+				color_04: {
+					type: String,
+					default: '#000000'
+				},
+				color_05: {
+					type: String,
+					default: '#000000'
 				}
 			},
 			template: 
@@ -101,6 +111,8 @@
 					<div class="color-rect" :style="{ backgroundColor:\'#\'+color_01 }">{{ color_01 }} </div> \
 					<div class="color-rect" :style="{ backgroundColor:\'#\'+color_02 }">{{ color_02 }} </div> \
 					<div class="color-rect" :style="{ backgroundColor:\'#\'+color_03 }">{{ color_03 }} </div> \
+					<div class="color-rect" :style="{ backgroundColor:\'#\'+color_04 }">{{ color_04 }} </div> \
+					<div class="color-rect" :style="{ backgroundColor:\'#\'+color_05 }">{{ color_05 }} </div> \
 				</li>'
 		});
 

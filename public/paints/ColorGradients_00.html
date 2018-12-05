@@ -16,7 +16,6 @@
 
 	<script src="./scripts/ColorGradients/ColorGradient_Influence.js"></script>
 	<script src="./scripts/Util.js"></script>
-	<script src="./scripts/jscolor.js"></script>
 
 	<link rel="stylesheet" type="text/css" href="./style/common.css">
 	<style>
@@ -56,13 +55,6 @@
 	<div id="container"></div>
 
 	<div id="palette">
-		<input class="jscolor" id="color_0" onchange="update( id, this.jscolor )" value="cc66ff">
-		<input class="jscolor" id="color_1" onchange="update( id, this.jscolor )" value="0099ff">
-		<input class="jscolor" id="color_2" onchange="update( id, this.jscolor )" value="0099ff">
-		<input class="jscolor" id="color_3" onchange="update( id, this.jscolor )" value="0099ff">
-		<input class="jscolor" id="color_4" onchange="update( id, this.jscolor )" value="0099ff">
-		<input class="jscolor" id="color_5" onchange="update( id, this.jscolor )" value="0099ff">
-
 		<div id="btn_resetColors" onclick="testRefreshColor()">Reset Colors</div>
 		<div id="btn_resetPattern" onclick="testRefreshPattern()">Reset Pattern</div>
 	</div>
@@ -133,28 +125,6 @@
 			BaseCanvas2d.drawCanvas2d();
 		}
 
-		// 获取一个canvas的 drawing context
-
-		var BaseCanvas2d = {
-
-			loadColorScheme: function() {
-
-				this.reset2dPattern(); // 首先重排一下2d canvas的样式
-
-				fetch( './data/Color.json' ).then( res => {
-					return res.json().then( json => {
-						var data = json;
-						this.colorscheme_0 = data['Color_fantasy'][0].colors;
-						this.colorscheme_1 = data['Color_fantasy'][1].colors;
-					});
-				}).then( () => {
-					this.drawCanvas2d();
-				});
-
-			},
-
-			
-		};
 
 	</script>
 
@@ -180,12 +150,12 @@
 		// -----------------------------------------------------------------------------------
 		var PaintData = { 
 			// Colors
-			color_scheme: 'Fantasy',
-			colors: [],
+			colorName: 'Fantasy',
 
 			colorscheme_0: [],
 			colorscheme_1: [],
 
+			// Pattern
 			pattern: [],
 
 			ctx: null,
@@ -194,12 +164,13 @@
 
 			// PostEFX
 			isPostEfxOn: true,
-			tiltFocus: 0.5,
-			tiltAmount: 0.006,
-			tiltBrightness: 0.65,
-
 
 			// Methods
+			resetColorScheme: function () {
+				this.colorscheme_0 = _.shuffle( this.colorscheme_0 );
+				this.colorscheme_1 = _.shuffle( this.colorscheme_1 );
+			},
+
 			reset2dPattern: function() {
 				var cWidth = 1024;
 				var cHeight = 512;
@@ -215,7 +186,7 @@
 						var radius_outer = Math.random() * 300 + 200;
 
 						// 随机设定喷圈颜色索引
-						var indices = [ 0, 1, 2, 3 ];
+						var indices = [ 0, 1, 2, 3, 4, 5 ];
 						var color_index_0 = this.pick(indices);
 						var color_index_1 = this.pick(indices);
 						var color_index_2 = this.pick(indices);
@@ -236,10 +207,10 @@
 				// 先绘制出背景底色
 				this.ctx = drawingcanvas.getContext( '2d' );
 				var grd = this.ctx.createLinearGradient( 0, 0, 0, 512 );
-				grd.addColorStop( 0.0, '#' + this.colorscheme_0[0] + 'ff' );
-				grd.addColorStop( 0.3, '#' + this.colorscheme_0[1] + 'ff' );
-				grd.addColorStop( 0.7, '#' + this.colorscheme_0[2] + 'ff' );
-				grd.addColorStop( 1.0, '#' + this.colorscheme_0[3] + 'ff' );
+				grd.addColorStop( 0.0, this.colorscheme_0[0] + 'ff' );
+				grd.addColorStop( 0.3, this.colorscheme_0[1] + 'ff' );
+				grd.addColorStop( 0.7, this.colorscheme_0[2] + 'ff' );
+				grd.addColorStop( 1.0, this.colorscheme_0[3] + 'ff' );
 				this.ctx.fillStyle = grd;
 				this.ctx.fillRect( 0, 0, 1024, 512 );
 
@@ -250,9 +221,9 @@
 					var c1 = this.colorscheme_1[ spray.color_indices[0] ];
 					var c2 = this.colorscheme_1[ spray.color_indices[1] ];
 					var c3 = this.colorscheme_1[ spray.color_indices[2] ];
-					grd.addColorStop( 0.0, '#' + c1 );
-					grd.addColorStop( 0.2, '#' + c2 );
-					grd.addColorStop( 1.0, '#' + c3 + '00' );
+					grd.addColorStop( 0.0, c1 );
+					grd.addColorStop( 0.2, c2 );
+					grd.addColorStop( 1.0, c3 + '00' );
 
 					this.ctx.fillStyle = grd;
 					this.ctx.fillRect( 0, 0, 1024, 512 );
@@ -276,13 +247,15 @@
 		fetch( './data/Color.json' ).then( res => {
 			return res.json().then( json => {
 
-				colors = json['Colors'][ PaintData.color_scheme ][0];
+				var name = PaintData.colorName;
+				var colors = json['Colors'][ name ];
 
 				for( var i in colors ) {
-					PaintData.colors.push( new THREE.Color( '#'+colors[i] ) );	
-
-					PaintData.colorscheme_0 = colors;
-					PaintData.colorscheme_1 = json['Colors'][ PaintData.color_scheme ][1];				
+					colors[i].forEach( function( item, index ) {
+						PaintData[ 'colorscheme_' + i ].push( '#' + item );
+					})
+					// PaintData.colorscheme_0 = colors[0];
+					// PaintData.colorscheme_1 = colors[1];
 				}
 			});
 		}).then( () => {
@@ -295,6 +268,7 @@
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
 
+			PaintData.resetColorScheme();
 			PaintData.reset2dPattern();
 			PaintData.drawCanvas2d();
 
@@ -427,7 +401,40 @@
 			//init GUI				
 			gui.add( PaintData, 'isPostEfxOn' ).onChange( function (value) {
 				PaintData.isPostEfxOn = value;
-			})
+			});
+
+			gui.addColor( PaintData.colorscheme_1, '0' ).onChange( function (value) {
+				PaintData.colorscheme_1[0] = value;
+				PaintData.drawCanvas2d();
+			});
+
+			gui.addColor( PaintData.colorscheme_1, '1' ).onChange( function (value) {
+				PaintData.colorscheme_1[2] = value;
+				PaintData.drawCanvas2d();
+			});
+
+			gui.addColor( PaintData.colorscheme_1, '2' ).onChange( function (value) {
+				PaintData.colorscheme_1[2] = value;
+				PaintData.drawCanvas2d();
+			});
+
+			gui.addColor( PaintData.colorscheme_1, '3' ).onChange( function (value) {
+				PaintData.colorscheme_1[3] = value;
+				PaintData.drawCanvas2d();
+			});
+
+			gui.addColor( PaintData.colorscheme_1, '4' ).onChange( function (value) {
+				PaintData.colorscheme_1[4] = value;
+				PaintData.drawCanvas2d();
+			});
+
+			gui.addColor( PaintData.colorscheme_1, '5' ).onFinishChange( function (value) {
+				PaintData.colorscheme_1[5] = value;
+				PaintData.drawCanvas2d();
+			});
+
+
+			// gui.add()
 			gui.open();
 
 			onParamsChange();			
