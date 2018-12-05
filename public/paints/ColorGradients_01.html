@@ -7,60 +7,15 @@
 
 	<script src="../build/three.js"></script>
 
-	<script src="../js/Colors.js"></script>
 	<script src="../js/Detector.js"></script>
 	<script src="../js/libs/stats.min.js"></script>
+	<script src='../js/libs/dat.gui.min.js'></script>
 	<script src="../js/controls/OrbitControls.js"></script>
 
-	<script src="../js/CurveExtras.js"></script>
-	<script src="../js/ParametricGeometries.js"></script>
-
-	<script src="../js/_custom/ColorGradient_Influence.js"></script>
-	<style>
-		* {
-			margin: 0;
-			padding: 0;
-		}
-
-		body {
-			color: #eee;
-			font-family:Monospace;
-			font-size:13px;
-			text-align:center;
-
-			background-color: #000;
-			margin: 0px;
-			padding: 0px;
-			overflow: hidden;
-		}
-
-		#info {
-			position: absolute;
-			top: 0px; width: 100%;
-			padding: 5px;
-		}
-
-		a {
-			color: #0080ff;
-		}
-
-		#canvas2d_wrapper {
-			position: absolute;
-			top: 0; left: 0;
-			width: 400px;
-			height: 200px;
-		}
-		#drawingcanvas {
-			/*display: none;*/
-			width: 100%;
-		}
-
-		#addDraw {
-			width: 200px; 
-			height: 20px;
-			background-color: #fff;
-		}
-	</style>
+	<script src="./scripts/ColorGradients/ColorGradient_Influence.js"></script>
+	<script src="./scripts/Util.js"></script>
+	
+	<link rel="stylesheet" type="text/css" href="./style/common.css">
 </head>
 <body>
 	<div id="container"></div>
@@ -99,7 +54,7 @@
 		varying vec2 vUv;
 
 		const float speed = 15.0;
-			const float magnitude = 0.15;
+		const float magnitude = 0.15;
 
 		void main() {
 
@@ -139,31 +94,324 @@
 		var GLOBAL_SIZE_BOUNDING = canvasW/2;
 
 
-
 		// Paint Data :: defines the pattern of every paint
 		// -----------------------------------------------------------------------------------
 		var quadRTT, matRTT, quad_geo, quad_mat, quad;
 
-		// Color scheme
-		function parsColors( rawcolors ) {
+		var PaintData = { 
+			// Colors
+			colorName: 'Wild',
+			colortheme: {
+				'color-0': '#ffffff',
+				'color-1': '#ffffff',
+				'color-2': '#ffffff',
+				'color-3': '#ffffff',
+			},
 
-			var colors = [];
+			// Pattern
+			pattern: {
+				morphdata: {
+					"0": {
+						"anchorX": 240,
+						"anchorY": -200,
+						"anchorZ": 0,
+						"anchorRadius": 900,
+						"moveToX": 260,
+						"moveToY": 160,
+						"moveToZ": 400,
+					},
+					"1": {
+						"anchorX": -240,
+						"anchorY": 200,
+						"anchorZ": 0,
+						"anchorRadius": 900,
+						"moveToX": -260,
+						"moveToY": -160,
+						"moveToZ": 400,
+					}
+				}
+			},
 
-			for( var i=0; i<rawcolors.length; ++i ) {
+			// Objects
 
-				var color = new THREE.Color( '#' + rawcolors[i] );
+			// PostEFX
+			isPostEfxOn: true,
 
-				colors.push( color );
+			// methods
+			'Refresh pattern': function() {
+				var index = 0;
+				for( var i=0; i<2; i++ ) {
+		 		for( var j=0; j<2; j++ ) {
+		 			// 方向
+			 		var direction = Math.random() > 0.5 ? 1 : -1;
 
+			 		var ax = Math.random() * canvasW/2 * Math.pow( -1, i );
+			 		var ay = Math.random() * canvasH/2 * Math.pow( -1, j );
+			 		var az = 0;
+			 		var radius = Math.random() * 300 + 450;
+
+			 		var mx = ax + direction * ( Math.random() * 300 + 150 );
+			 		var my = ay + direction * ( Math.random() * 200 + 100 );
+
+			 		this.pattern.morphdata[ '' + index++ ] = {
+			 			anchorX: ax,
+			 			anchorY: ay,
+			 			anchorZ: az,
+			 			anchorRadius: radius,
+			 			moveToX: mx,
+			 			moveToY: my
+			 		};
+		 		}
+			 	}
+
+			 	deleteObjects();
+			 	buildObjects();
 			}
+		}
 
-			return colors;
+		// get Colors and init
+		fetch( './data/Color.json' ).then( res => {
+			return res.json().then( json => {
+
+				var colorlist = json[ 'Colors' ][ 'Wild' ];
+				var random = Math.floor( Math.random() * colorlist.length );
+				for( var i in colorlist[random] ) {
+					PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[random][i];
+				}
+			});
+		}).then( () => {
+			initPaint();
+			animate();
+		});
+
+
+		function initPaint() {
+			initRenderer(); // Scene | Camera | Renderer
+			initRendererToTexture(); // render texuture with shader, if use RTT texture
+
+			loadShaderFromFile( './scripts/ColorGradients/colorful_shift_01.glsl', function(text) {
+				matRTT.fragmentShader = text;
+				matRTT.needsUpdate = true;
+			})
+
+
+			// init UI controls
+			initUIInfoPanel( renderer ); 
+			initUIFrameControlPanel();
+
+			// build scene and controls
+			buildResources();
+			buildObjects(); 
+			buildControls(); 
+		};
+
+		function buildResources() {
+			// material
+			quad_mat = new THREE.ShaderMaterial( {
+
+				uniforms: { 
+					tDiffuse: { value: rtTexture.texture },
+					u_time: { value: 0.0 }
+				},
+				vertexShader: document.getElementById( 'vertexShader' ).textContent,
+				fragmentShader: document.getElementById( 'fragment_shader_screen' ).textContent,
+
+				depthWrite: false,
+				side: THREE.DoubleSide,
+				// wireframe: true
+			} );
+		}
+
+		function initRenderer() {
+			// Camera 
+			camera = new THREE.OrthographicCamera( canvasW / - 2, canvasW / 2, canvasH / 2, canvasH / - 2, 1, 4000 );
+			// camera = new THREE.PerspectiveCamera( 50, canvasW / canvasH, 1, 10 );
+			camera.position.z = 2400;
+
+			// scene
+			scene = new THREE.Scene();
+			scene.background = new THREE.Color( 0x000000 );
+			// scene.fog = new THREE.Fog( 0x000000, 900, 1200 );
+
+			// helper
+			var axesHelper = new THREE.AxesHelper( 25 );
+			// scene.add( axesHelper );
+			var gridHelper = new THREE.GridHelper( 100, 10 );
+			// scene.add( gridHelper );
+
+			// Renderer 
+			renderer = new THREE.WebGLRenderer( { antialias: true, preserveDrawingBuffer: true } );
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( canvasW, canvasH );
+			// renderer.gammaInput = true
+			// renderer.gammaOutput = true;
+
+			// control and monitor
+			// controls = new THREE.OrbitControls( camera, renderer.domElement );
+			gui = new dat.GUI();
+			stats = new Stats();
+
+			// dom 
+			container.appendChild( stats.dom );
+			container.appendChild( renderer.domElement );
+
+			// window
+			window.addEventListener( 'resize', onWindowResize, false );
+		}
+
+		function initRendererToTexture() {
+			// camera rendering texture
+			var texture_size = 400;
+
+			cameraRTT = new THREE.OrthographicCamera( texture_size / - 2, texture_size / 2, texture_size / 2, texture_size / - 2, -10000, 10000 );
+			cameraRTT.position.z = 400;
+			
+			sceneRTT = new THREE.Scene(); // scene rendered to texture
+
+			rtTexture = new THREE.WebGLRenderTarget( 
+				texture_size, texture_size, { 
+				minFilter: THREE.LinearFilter, 
+				magFilter: THREE.NearestFilter, 
+				format: THREE.RGBFormat 
+			} ); // render target texture
+
+			matRTT = new THREE.ShaderMaterial( {
+
+				uniforms: { 
+					u_time: { value: 0.0 },
+					u_resolution: { value: new THREE.Vector2( texture_size, texture_size ) }, 
+					u_color_0: { value: new THREE.Color( PaintData.colortheme['color-'+0] ) },
+					u_color_1: { value: new THREE.Color( PaintData.colortheme['color-'+1] ) },
+					u_color_2: { value: new THREE.Color( PaintData.colortheme['color-'+2] ) },
+					u_color_3: { value: new THREE.Color( PaintData.colortheme['color-'+3] ) },
+				},
+				vertexShader: document.getElementById( 'vertexShader' ).textContent,
+				fragmentShader: document.getElementById( 'fragment_shader_init' ).textContent
+			} );
+
+			quadRTT = new THREE.Mesh( new THREE.PlaneBufferGeometry( texture_size, texture_size ), matRTT );
+
+			sceneRTT.add( quadRTT );
+		}
+
+		function buildObjects() {
+			// Geometry
+			quad_geo = new THREE.PlaneGeometry( canvasW, canvasH, 99, 59 );
+
+			// Mesh
+			quad = new THREE.Mesh( quad_geo, quad_mat );
+			scene.add( quad );
+
+			// A Sprite Represents the Shader's Behaviour				
+			var spriteMaterial = new THREE.SpriteMaterial( { map: rtTexture.texture } );
+			shader_sprite = new THREE.Sprite( spriteMaterial );
+			shader_sprite.scale.set( 200, 200, 1 );
+			shader_sprite.position.set( canvasW/2 - 100, canvasH/2 - 100, 340 );
+			scene.add( shader_sprite );
+
+			// ---- Step 3 : Morphing the quad by Influence
+			// ----
+			// ifl_01 = new Influence( 240, -200, 0, 900 );
+			// ifl_01.surround( quad_geo );
+		 // 	ifl_01.moveTo( 260, 160, 400 );
+
+		 // 	ifl_02 = new Influence( -240, 200, 0, 900 );
+			// ifl_02.surround( quad_geo );
+		 // 	ifl_02.moveTo( -260, -160, 400 );
+
+		 	// morph the quad
+		 	var morphdata = PaintData.pattern.morphdata;
+
+		 	for( var index in morphdata ) {
+
+		 		var data = morphdata[index];
+
+		 		// 这里的influence是一个只存在于当前作用域下的对象，并非挂载在window全局中
+			 	var influence = new Influence( data.anchorX, data.anchorY, data.anchorZ, data.anchorRadius );
+			 	influence.surround( quad_geo );
+			 	influence.moveTo( data.moveToX, data.moveToY, 400 );
+		 	}
+		}
+
+		function deleteObjects() {
+			// clear scene
+			scene.remove(quad);
+		}
+
+		function buildControls() {
+			//init GUI				
+			gui.add( PaintData, 'isPostEfxOn' ).onChange( function (value) {
+				PaintData.isPostEfxOn = value;
+			});
+
+			gui.addColor( PaintData.colortheme, 'color-0' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-0'] = value;
+				matRTT.uniforms.u_color_0.value = new THREE.Color( PaintData.colortheme['color-'+0] ) ;
+			});
+
+			gui.addColor( PaintData.colortheme, 'color-1' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-1'] = value;
+				matRTT.uniforms.u_color_1.value = new THREE.Color( PaintData.colortheme['color-'+1] ) ;
+			});
+
+			gui.addColor( PaintData.colortheme, 'color-2' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-2'] = value;
+				matRTT.uniforms.u_color_2.value = new THREE.Color( PaintData.colortheme['color-'+2] ) ;
+			});
+
+			gui.addColor( PaintData.colortheme, 'color-3' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-3'] = value;
+				matRTT.uniforms.u_color_3.value = new THREE.Color( PaintData.colortheme['color-'+3] ) ;
+			});
+
+			gui.add( PaintData, 'Refresh pattern' );
+
+			gui.open();	
+		}
+
+
+		function onWindowResize() {
+
+			camera.aspect = canvasW / canvasH;
+			camera.updateProjectionMatrix();
+
+			renderer.setSize( canvasW, canvasH );
+		}
+
+		function animate() {
+
+			requestAnimationFrame( animate );
+			stats.update();
+
+			render();
 
 		}
-		// var Colors = [ [ "6FE7DD", "3490de", "6639a6", "521262" ] ];
-		var colorpick = Math.floor( Math.random()*Colors.length );
-		var colors = parsColors( Colors[ colorpick ] );
-		// var colors = parsColors( Colors[ 0 ] );
+
+		function render() {
+
+			if( !isFrameControlling ) {
+				frame++;
+				frame_control_slider.value = frame*100/314;
+
+				if( frame == 314 ) frame = 0;
+			}
+
+			matRTT.uniforms.u_time.value = frame/50;
+
+			quad_mat.uniforms.u_time.value = frame/50;
+			quad_mat.needsUpdate = true;
+
+			quad_geo.verticesNeedUpdate = true;
+
+
+			// render 
+			renderer.clear();
+
+			renderer.render( sceneRTT, cameraRTT, rtTexture, true );
+
+			renderer.render( scene, camera );
+
+		}
 
 
 
@@ -187,178 +435,6 @@
 		    request.send();
 
 		}
-
-
-
-		init();
-		animate();
-
-		function init() {
-
-			// Renderer
-
-			var w = window.innerWidth;
-			var h = window.innerHeight;
-
-			renderer = new THREE.WebGLRenderer({ antialias: true });
-			renderer.setPixelRatio( window.devicePixelRatio );
-			renderer.setSize( w, h );
-			renderer.autoClear = false;
-			container.appendChild( renderer.domElement );
-
-			
-
-
-
-
-
-			// ---- Step 1 : rtTexture rendered
-			// ----
-			// camera rendering texture
-			var texture_size = 400;
-			cameraRTT = new THREE.OrthographicCamera( texture_size / - 2, texture_size / 2, texture_size / 2, texture_size / - 2, -10000, 10000 );
-			cameraRTT.position.z = 400;
-
-			// scene rendered to texture
-			sceneRTT = new THREE.Scene();
-
-			// render target texture
-			rtTexture = new THREE.WebGLRenderTarget( 
-				texture_size, texture_size, { 
-				minFilter: THREE.LinearFilter, 
-				magFilter: THREE.NearestFilter, 
-				format: THREE.RGBFormat 
-			} ); 
-
-			matRTT = new THREE.ShaderMaterial( {
-
-				uniforms: { 
-					u_time: { value: 0.0 },
-					u_resolution: { value: new THREE.Vector2( texture_size, texture_size ) }, 
-					u_color_0: { value: colors[0] },
-					u_color_1: { value: colors[1] },
-					u_color_2: { value: colors[2] },
-					u_color_3: { value: colors[3] },
-				},
-				vertexShader: document.getElementById( 'vertexShader' ).textContent,
-				fragmentShader: document.getElementById( 'fragment_shader_init' ).textContent
-
-			} );
-			quadRTT = new THREE.Mesh( new THREE.PlaneBufferGeometry( texture_size, texture_size ), matRTT );
-
-			sceneRTT.add( quadRTT );
-
-			// custom GLSL
-
-			loadShaderFromFile( './scripts/colorful_shift_01.glsl', function(text) {
-
-				matRTT.fragmentShader = text;
-				matRTT.needsUpdate = true;
-
-			})
-
-
-
-
-
-
-
-
-			// ---- Step 2 : paint 
-			// ----
-			// camera
-			camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 0, 10000 );
-			camera.position.z = 2400;
-
-			// Scene
-			scene = new THREE.Scene();
-			scene.background = new THREE.Color(0x0099ff);
-
-			// 
-			quad_geo = new THREE.PlaneGeometry( window.innerWidth, window.innerHeight, 99, 59 );
-			quad_mat = new THREE.ShaderMaterial( {
-
-				uniforms: { 
-					tDiffuse: { value: rtTexture.texture },
-					u_time: { value: 0.0 }
-				},
-				vertexShader: document.getElementById( 'vertexShader' ).textContent,
-				fragmentShader: document.getElementById( 'fragment_shader_screen' ).textContent,
-
-				depthWrite: false,
-				side: THREE.DoubleSide,
-				// wireframe: true
-
-			} );
-			scene.add( new THREE.Mesh( quad_geo, quad_mat ) );
-
-
-
-			// A Sprite Represents the Shader's Behaviour				
-			var spriteMaterial = new THREE.SpriteMaterial( { map: rtTexture.texture } );
-			shader_sprite = new THREE.Sprite( spriteMaterial );
-			shader_sprite.scale.set( 200, 200, 1 );
-			shader_sprite.position.set( w/2 - 100, h/2 - 100, 340 );
-			scene.add( shader_sprite );
-
-
-
-
-
-
-
-			// ---- Step 3 : Morphing the quad by Influence
-			// ----
-			ifl_01 = new Influence( 240, -200, 0, 900 );
-			ifl_01.surround( quad_geo );
-		 	ifl_01.moveTo( 260, 160, 400 );
-
-		 	ifl_02 = new Influence( -240, 200, 0, 900 );
-			ifl_02.surround( quad_geo );
-		 	ifl_02.moveTo( -260, -160, 400 );
-
-
-
-
-
-
-			// Controls
-			var controls = new THREE.OrbitControls( camera, renderer.domElement );
-			// Stats Info
-			stats = new Stats();
-			container.appendChild( stats.dom );
-		}
-
-
-		function animate() {
-
-			requestAnimationFrame( animate );
-			stats.update();
-
-			render();
-
-		}
-
-		function render() {
-
-			matRTT.uniforms.u_time.value = frame++/50;
-
-			quad_mat.uniforms.u_time.value = frame++/50;
-			quad_mat.needsUpdate = true;
-
-			quad_geo.verticesNeedUpdate = true;
-
-
-			// render 
-			renderer.clear();
-
-			renderer.render( sceneRTT, cameraRTT, rtTexture, true );
-
-			renderer.render( scene, camera );
-
-		}
-
-
 	</script>
 
 </body>

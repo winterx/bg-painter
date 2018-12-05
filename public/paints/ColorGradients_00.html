@@ -121,7 +121,7 @@
 
 		// Paint Data :: defines the pattern of every paint
 		// -----------------------------------------------------------------------------------
-		var quad_geo, quad_mat, quad;
+		var quadRTT, quad_geo, quad_mat, quad;
 
 		var PaintData = { 
 			// Colors
@@ -366,7 +366,7 @@
 			canvasMaterial = new THREE.MeshBasicMaterial( {
 				map: new THREE.Texture( drawingcanvas ),
 			} ); 
-			var canvas = new THREE.Mesh( new THREE.PlaneBufferGeometry( canvasW, canvasH ), canvasMaterial );
+			quadRTT = new THREE.Mesh( new THREE.PlaneBufferGeometry( canvasW, canvasH ), canvasMaterial );
 
 			sceneRTT.add( canvas );
 		}
