@@ -1,5 +1,5 @@
 {
-	"standard" : 
+	"old" : 
 	[
 		{
 			"influence_01": 
@@ -25,5 +25,14 @@
 				"moveToZ": 400,
 			}
 		}
-	]
+	],
+
+	"standard": {
+		"colorName": "Fantasy",
+		"colortheme": [],
+		"pattern": {
+			"sprays" : [],
+			"influences" : []
+		}
+	}
 }

@@ -54,11 +54,6 @@
 <body>
 	<div id="container"></div>
 
-	<div id="palette">
-		<div id="btn_resetColors" onclick="testRefreshColor()">Reset Colors</div>
-		<div id="btn_resetPattern" onclick="testRefreshPattern()">Reset Pattern</div>
-	</div>
-
 	<div id="canvas2d_wrapper"><canvas id="drawingcanvas" width="1024" height="512" ></canvas></div>
 
 	<script id="vertexShader" type="x-shader/x-vertex">
@@ -105,30 +100,6 @@
 	</script>
 
 	<script type="text/javascript">
-
-		function update( id, jscolor ) {
-
-			var color = jscolor.toHEXString().slice(1,7);
-
-			var index = id.split('').pop();
-
-			BaseCanvas2d.colorscheme_1[ index ] = color;
-
-		}
-
-		function testRefreshPattern() {
-			BaseCanvas2d.reset2dPattern();
-			BaseCanvas2d.drawCanvas2d();
-		}
-
-		function testRefreshColor() {
-			BaseCanvas2d.drawCanvas2d();
-		}
-
-
-	</script>
-
-	<script type="text/javascript">
 		// Common Template :: 
 		// -----------------------------------------------------------------------------------
 			
@@ -136,6 +107,8 @@
 
 		var camera, scene, renderer, composer, stats, controls, globalColors=[];
 		var cameraRTT, sceneRTT, rtTexture, texture_mat;
+		var ctx;
+
 		var frame = 0;
 		var isFrameControlling = false;
 
@@ -148,17 +121,37 @@
 
 		// Paint Data :: defines the pattern of every paint
 		// -----------------------------------------------------------------------------------
+		var quad_geo, quad_mat, quad;
+
 		var PaintData = { 
 			// Colors
 			colorName: 'Fantasy',
-
-			colorscheme_0: [],
-			colorscheme_1: [],
+			colortheme: [],
 
 			// Pattern
-			pattern: [],
-
-			ctx: null,
+			pattern: {
+				sprays : [],
+				morphdata: {
+					"1": {
+						"anchorX": 240,
+						"anchorY": -200,
+						"anchorZ": 0,
+						"anchorRadius": 900,
+						"moveToX": 260,
+						"moveToY": 160,
+						"moveToZ": 400,
+					},
+					"2": {
+						"anchorX": -240,
+						"anchorY": 200,
+						"anchorZ": 0,
+						"anchorRadius": 900,
+						"moveToX": -260,
+						"moveToY": -160,
+						"moveToZ": 400,
+					}
+				}
+			},
 
 			// Objects
 
@@ -167,8 +160,7 @@
 
 			// Methods
 			resetColorScheme: function () {
-				this.colorscheme_0 = _.shuffle( this.colorscheme_0 );
-				this.colorscheme_1 = _.shuffle( this.colorscheme_1 );
+				this.colortheme = _.shuffle( this.colortheme );
 			},
 
 			reset2dPattern: function() {
@@ -186,48 +178,75 @@
 						var radius_outer = Math.random() * 300 + 200;
 
 						// 随机设定喷圈颜色索引
-						var indices = [ 0, 1, 2, 3, 4, 5 ];
+						var indices = [ 0, 1, 2, 3, 4, 5, 6, 7 ];
 						var color_index_0 = this.pick(indices);
 						var color_index_1 = this.pick(indices);
 						var color_index_2 = this.pick(indices);
 
 						// 产生pattern子集
-						this.pattern.push({
+						this.pattern.sprays.push({
 							x: x,
 							y: y,
 							radius_inner: radius_inner,
 							radius_outer: radius_outer,
 							color_indices: [ color_index_0, color_index_1, color_index_2 ]
-						})
+						});
 					}
 				}
 			},
 
 			drawCanvas2d: function() {
 				// 先绘制出背景底色
-				this.ctx = drawingcanvas.getContext( '2d' );
-				var grd = this.ctx.createLinearGradient( 0, 0, 0, 512 );
-				grd.addColorStop( 0.0, this.colorscheme_0[0] + 'ff' );
-				grd.addColorStop( 0.3, this.colorscheme_0[1] + 'ff' );
-				grd.addColorStop( 0.7, this.colorscheme_0[2] + 'ff' );
-				grd.addColorStop( 1.0, this.colorscheme_0[3] + 'ff' );
-				this.ctx.fillStyle = grd;
-				this.ctx.fillRect( 0, 0, 1024, 512 );
+				ctx = drawingcanvas.getContext( '2d' );
+				var grd = ctx.createLinearGradient( 0, 0, 0, 512 );
+				grd.addColorStop( 0.0, this.colortheme['color-'+0] + 'ff' );
+				grd.addColorStop( 0.3, this.colortheme['color-'+1] + 'ff' );
+				grd.addColorStop( 0.7, this.colortheme['color-'+2] + 'ff' );
+				grd.addColorStop( 1.0, this.colortheme['color-'+3] + 'ff' );
+				ctx.fillStyle = grd;
+				ctx.fillRect( 0, 0, 1024, 512 );
 
 				// 然后绘制主体圆圈颜色
-				for( var i=0; i<this.pattern.length; ++i ) {
-					var spray = this.pattern[i];
-					var grd = this.ctx.createRadialGradient( spray.x, spray.y, spray.radius_inner, spray.x, spray.y, spray.radius_outer);
-					var c1 = this.colorscheme_1[ spray.color_indices[0] ];
-					var c2 = this.colorscheme_1[ spray.color_indices[1] ];
-					var c3 = this.colorscheme_1[ spray.color_indices[2] ];
-					grd.addColorStop( 0.0, c1 );
-					grd.addColorStop( 0.2, c2 );
-					grd.addColorStop( 1.0, c3 + '00' );
+				for( var i=0; i<this.pattern.sprays.length; ++i ) {
+					var spray = this.pattern.sprays[i];
+					var grd = ctx.createRadialGradient( spray.x, spray.y, spray.radius_inner, spray.x, spray.y, spray.radius_outer);
+					grd.addColorStop( 0.0, this.colortheme[ 'color-' + spray.color_indices[0] ] );
+					grd.addColorStop( 0.2, this.colortheme[ 'color-' + spray.color_indices[1] ] );
+					grd.addColorStop( 1.0,  this.colortheme[ 'color-' + spray.color_indices[2] ] + '00' );
 
-					this.ctx.fillStyle = grd;
-					this.ctx.fillRect( 0, 0, 1024, 512 );
+					ctx.fillStyle = grd;
+					ctx.fillRect( 0, 0, 1024, 512 );
 				}
+			},
+
+			'Refresh pattern': function() {
+				var index = 0;
+				for( var i=0; i<2; i++ ) {
+		 		for( var j=0; j<2; j++ ) {
+		 			// 方向
+			 		var direction = Math.random() > 0.5 ? 1 : -1;
+
+			 		var ax = Math.random() * canvasW/2 * Math.pow( -1, i );
+			 		var ay = Math.random() * canvasH/2 * Math.pow( -1, j );
+			 		var az = 0;
+			 		var radius = Math.random() * 300 + 450;
+
+			 		var mx = ax + direction * ( Math.random() * 300 + 150 );
+			 		var my = ay + direction * ( Math.random() * 200 + 100 );
+
+			 		this.pattern.morphdata[ '' + index++ ] = {
+			 			anchorX: ax,
+			 			anchorY: ay,
+			 			anchorZ: az,
+			 			anchorRadius: radius,
+			 			moveToX: mx,
+			 			moveToY: my
+			 		};
+		 		}
+			 	}
+
+			 	deleteObjects();
+			 	buildObjects();
 			},
 
 			pick: function( array ) {
@@ -249,13 +268,21 @@
 
 				var name = PaintData.colorName;
 				var colors = json['Colors'][ name ];
+				var tempColors = [];
 
+				// 从Colors -> Fantasy 中获取2组16个颜色，随机地放8个颜色在color_scheme中
 				for( var i in colors ) {
 					colors[i].forEach( function( item, index ) {
-						PaintData[ 'colorscheme_' + i ].push( '#' + item );
+						tempColors.push( '#'+item );
 					})
-					// PaintData.colorscheme_0 = colors[0];
-					// PaintData.colorscheme_1 = colors[1];
+				}
+
+				// 随机打乱排序
+				tempColors = _.shuffle(tempColors);
+
+				// 装填入colortheme中
+				for( var i=0; i<8; i++ ){
+					PaintData.colortheme[ 'color-' + i ]= tempColors[i];
 				}
 			});
 		}).then( () => {
@@ -267,19 +294,18 @@
 
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
+			initRendererToTexture(); // render texuture with shader, if use RTT texture
 
-			PaintData.resetColorScheme();
+			// PaintData.resetColorScheme();
 			PaintData.reset2dPattern();
 			PaintData.drawCanvas2d();
-
-			// if use RTT texture, then use below
-			initRendererToTexture(); // render texuture with shader
 
 			// init UI controls
 			initUIInfoPanel( renderer ); 
 			initUIFrameControlPanel();
 
-
+			// build scene and controls
+			buildResources();
 			buildObjects(); 
 			buildControls(); 
 		};
@@ -345,11 +371,9 @@
 			sceneRTT.add( canvas );
 		}
 
-		function buildObjects() {
-
-			quad_geo = new THREE.PlaneGeometry( canvasW, canvasH, 99, 59 );
+		function buildResources() {
+			// Material
 			quad_mat = new THREE.ShaderMaterial( {
-
 				uniforms: { 
 					tDiffuse: { value: rtTexture.texture },
 					uTime: { value: 0.0 }
@@ -358,43 +382,34 @@
 				fragmentShader: document.getElementById( 'fragment_shader_screen' ).textContent,
 
 				depthWrite: false,
-				// side: THREE.DoubleSide,
-				// wireframe: true
-
 			} );
-			scene.add( new THREE.Mesh( quad_geo, quad_mat ) );
+		}
 
-			// ---- Step 3 : Morphing the quad by Influence
-			// ----
-			ifl_01 = new Influence( 240, -200, 0, 900 );
-			ifl_01.surround( quad_geo );
-		 	ifl_01.moveTo( 260, 160, 400 );
+		function buildObjects() {
+			// Geometry
+			quad_geo = new THREE.PlaneGeometry( canvasW, canvasH, 99, 59 );
 
-		 	ifl_02 = new Influence( -240, 200, 0, 900 );
-			ifl_02.surround( quad_geo );
-		 	ifl_02.moveTo( -260, -160, 400 );
+			// Mesh
+			quad = new THREE.Mesh( quad_geo, quad_mat );
+			scene.add( quad );
 
+			// morph the quad
+		 	var morphdata = PaintData.pattern.morphdata;
 
+		 	for( var index in morphdata ) {
 
-		 	// for( var i=0; i<2; i++ ) {
-		 	// 	for( var j=0; j<2; j++ ) {
-			 // 		var direction = Math.random() > 0.5 ? 1 : -1;
+		 		var data = morphdata[index];
 
-			 // 		var anchorX = Math.random() * canvasW/2 * Math.pow( -1, i );
-			 // 		var anchorY = Math.random() * canvasH/2 * Math.pow( -1, j );
-			 // 		var anchorRadius = Math.random() * 300 + 450;
+		 		// 这里的influence是一个只存在于当前作用域下的对象，并非挂载在window全局中
+			 	var influence = new Influence( data.anchorX, data.anchorY, data.anchorZ, data.anchorRadius );
+			 	influence.surround( quad_geo );
+			 	influence.moveTo( data.moveToX, data.moveToY, 400 );
+		 	}
+		}
 
-			 // 		var moveToX = anchorX + direction * ( Math.random() * 300 + 150 );
-			 // 		var moveToY = anchorY + direction * ( Math.random() * 200 + 100 );
-
-			 // 		var ifl = new Influence( anchorX, anchorY, 0, anchorRadius );
-
-			 // 		ifl.surround( quad_geo );
-
-			 // 		ifl.moveTo( moveToX, moveToY, 400 );
-
-		 	// 	}
-		 	// }
+		function deleteObjects() {
+			// clear scene
+			scene.remove(quad);
 		}
 
 		function buildControls() {
@@ -403,45 +418,50 @@
 				PaintData.isPostEfxOn = value;
 			});
 
-			gui.addColor( PaintData.colorscheme_1, '0' ).onChange( function (value) {
-				PaintData.colorscheme_1[0] = value;
+			gui.addColor( PaintData.colortheme, 'color-0' ).onChange( function (value) {
+				PaintData.colortheme[0] = value;
 				PaintData.drawCanvas2d();
 			});
 
-			gui.addColor( PaintData.colorscheme_1, '1' ).onChange( function (value) {
-				PaintData.colorscheme_1[2] = value;
+			gui.addColor( PaintData.colortheme, 'color-1' ).onChange( function (value) {
+				PaintData.colortheme[2] = value;
 				PaintData.drawCanvas2d();
 			});
 
-			gui.addColor( PaintData.colorscheme_1, '2' ).onChange( function (value) {
-				PaintData.colorscheme_1[2] = value;
+			gui.addColor( PaintData.colortheme, 'color-2' ).onChange( function (value) {
+				PaintData.colortheme[2] = value;
 				PaintData.drawCanvas2d();
 			});
 
-			gui.addColor( PaintData.colorscheme_1, '3' ).onChange( function (value) {
-				PaintData.colorscheme_1[3] = value;
+			gui.addColor( PaintData.colortheme, 'color-3' ).onChange( function (value) {
+				PaintData.colortheme[3] = value;
 				PaintData.drawCanvas2d();
 			});
 
-			gui.addColor( PaintData.colorscheme_1, '4' ).onChange( function (value) {
-				PaintData.colorscheme_1[4] = value;
+			gui.addColor( PaintData.colortheme, 'color-4' ).onChange( function (value) {
+				PaintData.colortheme[4] = value;
 				PaintData.drawCanvas2d();
 			});
 
-			gui.addColor( PaintData.colorscheme_1, '5' ).onFinishChange( function (value) {
-				PaintData.colorscheme_1[5] = value;
+			gui.addColor( PaintData.colortheme, 'color-5' ).onChange( function (value) {
+				PaintData.colortheme[5] = value;
 				PaintData.drawCanvas2d();
 			});
 
+			gui.addColor( PaintData.colortheme, 'color-6' ).onChange( function (value) {
+				PaintData.colortheme[6] = value;
+				PaintData.drawCanvas2d();
+			});
+
+			gui.addColor( PaintData.colortheme, 'color-7' ).onChange( function (value) {
+				PaintData.colortheme[7] = value;
+				PaintData.drawCanvas2d();
+			});
+
+			gui.add( PaintData, 'Refresh pattern' );
 
 			// gui.add()
 			gui.open();
-
-			onParamsChange();			
-		}
-
-		function onParamsChange () {
-			camera.updateProjectionMatrix();
 		}
 
 		function onWindowResize() {
@@ -487,4 +507,4 @@
 	</script>
 
 </body>
-</html>
+</html>	

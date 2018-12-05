@@ -58,6 +58,8 @@
 
 		var camera, scene, renderer, composer, stats, controls, globalColors=[];
 		var cameraRTT, sceneRTT, rtTexture, texture_mat;
+		var ctx;
+
 		var frame = 0;
 		var isFrameControlling = false;
 
@@ -72,6 +74,13 @@
 		// Paint Data :: defines the pattern of every paint
 		// -----------------------------------------------------------------------------------
 		var PaintData = { 
+			// Colors
+			colorName: 'Fantasy',
+			colortheme: [],
+
+			// Pattern
+			pattern: [],
+
 			// Objects
 
 			// PostEFX
@@ -102,9 +111,8 @@
 
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
-
-			// if use RTT texture, then use below
 			initRendererToTexture(); // render texuture with shader
+
 			loadShaderFromFile( './scripts/shaping_01.glsl', function(text) {
 				texture_mat.fragmentShader = text;
 				texture_mat.needsUpdate = true;
@@ -114,6 +122,8 @@
 			initUIFrameControlPanel();
 			initUIInfoPanel( renderer ); // Div 
 
+			// build scene and controls
+			buildResources(); 
 			buildObjects(); // Meshes | Sprites | Lights | Shaders
 			buildPostEFX(); // Post processings
 			buildControls(); // Dat.gui
@@ -199,8 +209,17 @@
 			sceneRTT.add( texture_quad );
 		}
 
+		function buildResources() {
+			// 将可复用的几何体、材质、贴图放在这里
+		}
+
 		function buildObjects() {
 			
+		}
+
+		function deleteObjects() {
+			// scene.remove()
+			// dispose geometry | material | texture
 		}
 
 		function buildPostEFX() {

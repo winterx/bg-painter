@@ -98,17 +98,6 @@ body {
 }
 
 
-/* 调色板 */
-#palette {
-	position: absolute;
-	top: 0;
-	right: 0;
-	width: 200px;
-	height: 200px;
-	background-color: #fff;
-}
-
-
 
 
 
