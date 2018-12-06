@@ -1,280 +1,475 @@
 <!DOCTYPE html>
-<html lang="en">
-	<head>
-		<title>Curves in THREE</title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<style>
-			body {
-				color: #eee;
-				font-family:Monospace;
-				font-size:13px;
-				text-align:center;
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<meta name=”description” id="description" content="">
+	<title>Scifi Dots 00</title>
+	
+	<script src="../build/three.js"></script>
 
-				background-color: #000;
-				margin: 0px;
-				padding: 0px;
-				overflow: hidden;
-			}
+	<script src="../js/shaders/CopyShader.js"></script>
+	<script src="../js/shaders/BokehShader.js"></script>
+	<script src="../js/shaders/FXAAShader.js"></script>
+	<script src="../js/shaders/SMAAShader.js"></script>
+	<script src="../js/shaders/TiltShiftShader.js"></script>
+	<script src="../js/shaders/FilmShader.js"></script>
+	<script src="../js/shaders/ConvolutionShader.js"></script>
+	<script src="../js/shaders/LuminosityHighPassShader.js"></script>
 
-			#info {
-				position: absolute;
-				top: 0px; width: 100%;
-				padding: 5px;
-			}
+	<script src="../js/postprocessing/EffectComposer.js"></script>
+	<script src="../js/postprocessing/RenderPass.js"></script>
+	<script src="../js/postprocessing/ShaderPass.js"></script>
+	<script src="../js/postprocessing/MaskPass.js"></script>
+	<script src="../js/postprocessing/BokehPass.js"></script>
+	<script src="../js/postprocessing/SMAAPass.js"></script>
+	<script src="../js/postprocessing/FilmPass.js"></script>
+	<script src="../js/postprocessing/UnrealBloomPass.js"></script>
 
-			a {
-				color: #0080ff;
-			}
-		</style>
-	</head>
-	<body>
+	<script src="../js/Detector.js"></script>
+	<script src="../js/libs/stats.min.js"></script>
+	<script src='../js/libs/dat.gui.min.js'></script>
+	<script src="../js/controls/OrbitControls.js"></script>
 
-		<div id="container"></div>
+	<script src="./scripts/Util.js"></script>
 
-		<script src="../build/three.js"></script>
+	<link rel="stylesheet" type="text/css" href="./style/common.css">
+</head>
+<body>
+	<div id="container"></div>
 
-		<script src="../js/Detector.js"></script>
-		<script src="../js/libs/stats.min.js"></script>
-		<script src="../js/controls/OrbitControls.js"></script>
+	<script id="init_vertex_shader" type="x-shader/x-vertex">
+		// varying vec2 vUv;
+		void main() {
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		}
+	</script>
 
-		<script src="../js/CurveExtras.js"></script>
-		<script src="../js/ParametricGeometries.js"></script>
+	<script id="init_fragment_shader" type="x-shader/x-fragment">
+		void main() {
+			gl_FragColor = vec4( 0.0 );
+		}
+	</script>
 
-		<script>
+	<script>
+		// Common Template :: 
+		// -----------------------------------------------------------------------------------
+			
+		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+		var camera, scene, renderer, composer, stats, controls, globalColors=[];
+		var cameraRTT, sceneRTT, rtTexture, quadRTT, matRTT, quad_geo, quad_mat, quad;
+		var	postprocessing = {};
+		var ctx;
 
-			var camera, scene, renderer, stats;
-			var count = 0;
-
-			init();
-			animate();
-
-			function init() {
-
-				var container = document.getElementById( 'container' );
-
-				var w = window.innerWidth;
-				var h = window.innerHeight;
-
-
-				camera = new THREE.OrthographicCamera( w / - 2, w / 2, h / 2, h / - 2, 1, 4000 );
-				camera.position.z = 800;
-
-				scene = new THREE.Scene();
-
-				var themeColor = 0x00050a;
-				scene.background = new THREE.Color( themeColor );
-				scene.fog = new THREE.Fog( themeColor, 400, 1200 );
-
-				
-				var curve_ellipse = new THREE.EllipseCurve(
-					0,  0,            // ax, aY
-					200, 100,           // xRadius, yRadius
-					0,  2 * Math.PI,  // aStartAngle, aEndAngle
-					false,            // aClockwise
-					0                 // aRotation
-				);
-
-				var curve_linear = new THREE.LineCurve( 
-					new THREE.Vector3( -400, 40, 0 ), 
-					new THREE.Vector3( 400, -40, 0 ) 
-				);
+		var frame = 0;
+		var isFrameControlling = false;
 
 
-				var lineMaterial = new THREE.LineDashedMaterial( { 
-					color : 0x0099ff, 
-					transparent: true,
-					opacity: 0.3,
-					blending: THREE['AdditiveBlending'],
-					linewidth: 2.0, 
-					scale: 1,
-					dashSize: 3,
-					gapSize: 1,
-				} );
+		var canvasW = window.innerWidth;
+		var canvasH = canvasW > 1400 ? 600 : 480;
+		var canvasD = 500;
+		var GLOBAL_SIZE_FACTOR = canvasW/1400;
+		var GLOBAL_SIZE_BOUNDING = canvasW/2;
 
-				var dotMaterial = new THREE.MeshBasicMaterial( { 
-					color:0x00ffff,
-					transparent: true,
-					blending: THREE['AdditiveBlending']
+
+		// Paint Data :: defines the pattern of every paint
+		// -----------------------------------------------------------------------------------
+		var lineMaterial, dotMaterial, dotGeometry;
+		var interval_x, antenna_num;
+
+		var PaintData = { 
+			// Colors
+			colorName: 'Fantasy',
+			colortheme: {
+				'color-0': '#00050A',
+				'color-1': '#ffffff',
+				'color-2': '#ffffff',
+				'color-3': '#ffffff'
+			},
+
+			// Pattern
+			pattern: {
+				fog: {
+					near: 400,
+					far: 1000
+				}
+			},
+
+			// PostEFX
+			postEFX: {
+				Effects: true,
+				tiltFocus: 0.5,
+				tiltAmount: 0.006,
+				tiltBrightness: 0.65,
+			},
+
+			// Methods
+			'Refresh pattern': function() {
+			 	deleteObjects();
+			 	buildObjects();
+			},
+
+			'Shuffle colors': function() {
+				fetch( './data/Color.json' ).then( res => {
+					return res.json().then( json => {
+						var colorlist = json[ 'Colors' ][ 'Wild' ];
+						var random = Math.floor( Math.random() * colorlist.length );
+						for( var i in colorlist[random] ) {
+							PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[random][i];
+						}
+					});
+				}).then( () => {
+					this.updateColors();
+					gui.updateDisplay();
 				});
-				var dotGeometry = new THREE.SphereGeometry( 2, 4, 4 );
+			},
+
+			updateColors: function () {
+				scene.background.set( PaintData.colortheme['color-0'] );
+				matRTT.uniforms.u_color_0.value.set( PaintData.colortheme['color-0'] );
+				matRTT.uniforms.u_color_1.value.set( PaintData.colortheme['color-1'] );
+				matRTT.uniforms.u_color_2.value.set( PaintData.colortheme['color-2'] );
+				matRTT.uniforms.u_color_3.value.set( PaintData.colortheme['color-3'] );
+				matRTT.needsUpdate = true;
+			}
+		}
 
 
-				function Antenna( vectors ) {
-
-					this.curve = new THREE.CatmullRomCurve3( vectors );
-
-					this.points = this.curve.getPoints( 20 );
-
-					this.line_geo = new THREE.BufferGeometry().setFromPoints( this.points );
-
-					this.line = new THREE.Line( this.line_geo, lineMaterial );
-
-					this.dots = new THREE.Group();
-
-					for( var i=0; i<=20; ++i ) {
-
-						var dot = new THREE.Mesh( dotGeometry, dotMaterial );
-
-						var scale = Math.random()*3;
-
-						dot.scale.set( scale, scale, scale );
-
-						dot.position.set( this.points[i].x, this.points[i].y, this.points[i].z );
-
-						this.dots.add( dot );
-
-					}
-
-				}	
-
-				antennaGroup = [];
-				linesgroup = new THREE.Group();
-
-				for( var i=0; i<25; ++i ) {
-
-					var randx = Math.random()*100;
-					var randy = Math.random()*400-200;
-					var randz = Math.random()*400 - 400;
-
-					var a = new Antenna([ 
-						new THREE.Vector3( -w/2+randx, -40 + randy*2, -200+randz ),
-						new THREE.Vector3( -240+randx, -10 + randy/2, 300+randz ),
-						new THREE.Vector3( 240+randx, -40 + randy/2, 300+randz ),
-						new THREE.Vector3( w/2+randx, -10 + randy*2, -200+randz ),
-					]);
-
-					antennaGroup.push( a );
-
-					linesgroup.add( a.line );
-
-					scene.add( a.dots );
-
+		// Color Data and Start initPaint
+		// -----------------------------------------------------------------------------------
+		fetch( './data/Color.json' ).then( res => {
+			return res.json().then( json => {
+				colorlist = json['Colors']["Fancy"][0];
+				for( var i in colorlist ) {
+					// PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[i];
 				}
-
-				scene.add(linesgroup);
-
-
-				// for( var i =0; i<=20; ++i ) { 
-
-				// 	var box = new THREE.Mesh( geo, mat );
-
-				// 	box.position.set( arrpos[i].x, arrpos[i].y, arrpos[i].z );
-
-				// 	var tangent = curve_CatmullRom.getTangent( i/20 );
-
-				// 	var angle = Math.atan( tangent.y/tangent.x );
-				// 	box.rotation.set( 0, 0, angle );
-
-				// 	pointsgroup.add( box );
-
-				// }
-
-				// scene.add(pointsgroup);
+			});
+		}).then( () => {
+			initPaint();
+			animate();
+		});
 
 
-				// GRID HELPER
-				// scene.add(new THREE.GridHelper( 400, 10 ));
 
 
-				renderer = new THREE.WebGLRenderer( { antialias: true } );
-				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( window.innerWidth, window.innerHeight );
-				container.appendChild( renderer.domElement );
 
-				stats = new Stats();
-				container.appendChild( stats.dom );
+		function initPaint() {
+			initRenderer(); // Scene | Camera | Renderer
+			// initRendererToTexture(); // render texuture with shader
 
-				window.addEventListener( 'resize', onWindowResize, false );
-				
-				var controls = new THREE.OrbitControls( camera, renderer.domElement );
+			// init UI controls
+			initUIFrameControlPanel();
+			initUIInfoPanel( renderer ); // Div 
+
+			// build scene and controls
+			buildResources(); 
+			buildObjects(); // Meshes | Sprites | Lights | Shaders
+			buildPostEFX(); // Post processings
+			buildControls(); // Dat.gui
+		};
+
+		function refreshPaint() {
+			// 删除Scene中的所有物体
+			while (scene.children.length) {
+			    scene.remove(scene.children[0]);
+			}
+
+			buildObjects();
+		}
+
+		function initRenderer() {
+			// Camera 
+			camera = new THREE.OrthographicCamera( canvasW / - 2, canvasW / 2, canvasH / 2, canvasH / - 2, 0.01, 4000 );
+			// camera = new THREE.PerspectiveCamera( 50, canvasW / canvasH, 1, 10 );
+			camera.position.z = 800;
+			camera.position.y = -100;
+
+			// scene
+			scene = new THREE.Scene();
+			scene.background = new THREE.Color( PaintData.colortheme['color-0'] );
+			scene.fog = new THREE.Fog( PaintData.colortheme['color-0'], PaintData.pattern.fog.near, PaintData.pattern.fog.far );
+
+			// helper
+			var axesHelper = new THREE.AxesHelper( 25 );
+			// scene.add( axesHelper );
+			var gridHelper = new THREE.GridHelper( 100, 10 );
+			// scene.add( gridHelper );
+
+			// Renderer 
+			renderer = new THREE.WebGLRenderer( { antialias: true, preserveDrawingBuffer: true } );
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( canvasW, canvasH );
+			// renderer.gammaInput = true
+			// renderer.gammaOutput = true;
+
+			// control and monitor
+			controls = new THREE.OrbitControls( camera, renderer.domElement );
+			gui = new dat.GUI();
+			stats = new Stats();
+
+			// dom 
+			container.appendChild( stats.dom );
+			container.appendChild( renderer.domElement );
+
+			// window
+			window.addEventListener( 'resize', onWindowResize, false );
+		}
+
+		function initRendererToTexture() {
+			// camera rendering texture
+			var texture_size = 400;
+
+			cameraRTT = new THREE.OrthographicCamera( texture_size / - 2, texture_size / 2, texture_size / 2, texture_size / - 2, -10000, 10000 );
+			cameraRTT.position.z = 400;
+			
+			sceneRTT = new THREE.Scene(); // scene rendered to texture
+
+			rtTexture = new THREE.WebGLRenderTarget( 
+				texture_size, texture_size, { 
+				minFilter: THREE.LinearFilter, 
+				magFilter: THREE.NearestFilter, 
+				format: THREE.RGBFormat 
+			} ); // render target texture
+
+			// things on the texture
+			// canvasMaterial = new THREE.MeshBasicMaterial( {
+			// 	map: new THREE.Texture( drawingcanvas ),
+			// } ); 
+			texture_mat = new THREE.ShaderMaterial( {
+				uniforms: { 
+					u_time: { value: 0.0 },
+					u_resolution: { value: new THREE.Vector2( texture_size, texture_size ) }, 
+				},
+				vertexShader: document.getElementById( 'init_vertex_shader' ).textContent,
+				fragmentShader: document.getElementById( 'init_fragment_shader' ).textContent
+			} );
+			var texture_quad = new THREE.Mesh( new THREE.PlaneBufferGeometry( texture_size, texture_size ), texture_mat );
+
+			sceneRTT.add( texture_quad );
+		}
+
+		function buildResources() {
+			// 将可复用的几何体、材质、贴图放在这里
+			lineMaterial = new THREE.LineDashedMaterial( { 
+				color : 0x0099ff, 
+				transparent: true,
+				opacity: 0.3,
+				blending: THREE['AdditiveBlending'],
+				linewidth: 2.0, 
+				scale: 1,
+				dashSize: 3,
+				gapSize: 1,
+			});
+
+			dotMaterial = new THREE.MeshBasicMaterial( { 
+				color:0x00ffff,
+				transparent: true,
+				blending: THREE['AdditiveBlending']
+			});
+
+			dotGeometry = new THREE.SphereGeometry( 2, 4, 4 );
+		}
+
+		function Antenna( vectors ) {
+
+			this.curve = new THREE.CatmullRomCurve3( vectors );
+
+			this.points = this.curve.getPoints( 20 );
+
+			this.line_geo = new THREE.BufferGeometry().setFromPoints( this.points );
+
+			this.line = new THREE.Line( this.line_geo, lineMaterial );
+
+			this.dots = new THREE.Group();
+
+			for( var i=0; i<=20; ++i ) {
+
+				var dot = new THREE.Mesh( dotGeometry, dotMaterial );
+
+				var scale = Math.random()*3;
+
+				dot.scale.set( scale, scale, scale );
+
+				dot.position.set( this.points[i].x, this.points[i].y, this.points[i].z );
+
+				this.dots.add( dot );
 
 			}
 
-			function onWindowResize() {
+		}	
 
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
+		function buildObjects() {
+			antennaGroup = [];
+			linesgroup = new THREE.Group();
 
-				renderer.setSize( window.innerWidth, window.innerHeight );
+			interval_x = 40;
+			antenna_num = Math.floor( canvasW/interval_x ) + 20;
+			var commonx = -canvasW/2 - 10*interval_x;
+			var commony = canvasH/2;
+
+			for( var i=0; i<antenna_num; ++i ) {
+
+				var randx = Math.random()*100;
+				var randy = Math.random()*400 - 200;
+				var randz = Math.random()*800 - 400;
+
+
+				var a = new Antenna([ 
+					new THREE.Vector3( commonx+i*interval_x+400, 	commony, 		randz 		),
+					new THREE.Vector3( commonx+i*interval_x+200, 	commony/2, 		 Math.random()*800 - 400 		),
+					new THREE.Vector3( commonx+i*interval_x+000, 	0,		 		 Math.random()*800 - 400 		),
+					new THREE.Vector3( commonx+i*interval_x-200, 	-commony/2,		 Math.random()*800 - 400 		),
+					new THREE.Vector3( commonx+i*interval_x-400, 	-commony,		randz 		),
+				]);
+
+				antennaGroup.push( a );
+
+				linesgroup.add( a.line );
+
+				scene.add( a.dots );
 
 			}
 
-			function animate() {
+			scene.add(linesgroup);
+		}
 
-				requestAnimationFrame( animate );
+		function deleteObjects() {
+			// scene.remove()
+			// dispose geometry | material | texture
+		}
 
-				render();
-				stats.update();
+		function buildPostEFX() {
+			var renderPass = new THREE.RenderPass( scene, camera );
+			var effectFilmPass = new THREE.FilmPass( 6, 0.9, 648, false );
+			var tiltShiftPass = new THREE.ShaderPass( THREE.VerticalTiltShiftShader );
+			var effect_bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( canvasW, canvasH ), 2.8, 0.67, 0.23 ); 
 
+			// define which pass is the final pass
+			effect_bloomPass.renderToScreen = true;
+
+			composer = new THREE.EffectComposer( renderer );
+			composer.addPass( renderPass );
+			composer.addPass( effectFilmPass );
+			composer.addPass( effect_bloomPass );
+
+			postprocessing.tilt = tiltShiftPass;
+			postprocessing.tilt.uniforms.focusPos.value = PaintData.postEFX.tiltFocus;
+			postprocessing.tilt.uniforms.amount.value = PaintData.postEFX.tiltAmount;
+			postprocessing.tilt.uniforms.brightness.value = PaintData.postEFX.tiltBrightness;
+		}
+
+		function buildControls() {
+			gui.width = 300;
+
+			// post processing effects
+			var folder_effects = gui.addFolder('Post Effects');	
+			folder_effects.open();	
+			folder_effects.add( PaintData.postEFX, 'Effects' ).onChange( function (value) {
+				PaintData.postEFX.Effects = value;
+			});
+			folder_effects.add( PaintData.postEFX, "tiltFocus", 0, 1, 0.5 ).onChange( onParamsChange ).step(0.05);
+			folder_effects.add( PaintData.postEFX, "tiltAmount", 0, 0.02, 0.005 ).onChange( onParamsChange ).step(0.001);
+			folder_effects.add( PaintData.postEFX, "tiltBrightness", 0, 1, 0.5 ).onChange( onParamsChange ).step(0.02);
+
+			// colors modification
+			var folder_colors = gui.addFolder('Color Theme');	
+			folder_colors.open();
+			folder_colors.addColor( PaintData.colortheme, 'color-0' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-0'] = value;
+				PaintData.updateColors();
+			});
+			folder_colors.addColor( PaintData.colortheme, 'color-1' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-1'] = value;
+				PaintData.updateColors();
+			});
+			folder_colors.addColor( PaintData.colortheme, 'color-2' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-2'] = value;
+				PaintData.updateColors();
+			});
+			folder_colors.addColor( PaintData.colortheme, 'color-3' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-3'] = value;
+				PaintData.updateColors();
+			});
+
+			// fog modification
+			var folder_fog = gui.addFolder('Fog');	
+			folder_fog.open();	
+
+			folder_fog.add( PaintData.pattern.fog, 'near', 0, 600, 400 ).onChange( function (value) {
+				PaintData.pattern.fog.near = value;
+				// scene.fog.needsUpdate = true;
+			scene.fog = new THREE.Fog( PaintData.colortheme['color-0'], PaintData.pattern.fog.near, PaintData.pattern.fog.far );
+			}).step(20);
+
+			folder_fog.add( PaintData.pattern.fog, 'far', 220, 600, 400 ).onChange( function (value) {
+				PaintData.pattern.fog.far = value;
+				scene.fog.needsUpdate = true;
+			}).step(20);
+
+
+			// randomize
+			gui.add( PaintData, 'Refresh pattern' );
+
+			gui.add( PaintData, 'Shuffle colors' );
+
+			gui.open();
+
+			onParamsChange();			
+		}
+
+		function onParamsChange () {
+			camera.updateProjectionMatrix();
+		}
+
+		function onWindowResize() {
+
+			camera.aspect = canvasW / canvasH;
+			camera.updateProjectionMatrix();
+
+			renderer.setSize( canvasW, canvasH );
+
+		}
+
+		function animate() {
+
+			requestAnimationFrame( animate );
+
+			render();
+			stats.update();
+
+		}
+
+		function render() {
+
+			if( !isFrameControlling ) {
+				frame++;
+				frame_control_slider.value = frame*100/314;
+
+				if( frame == 314 ) frame = 1;
 			}
 
-			function render() {
 
-				var timer = Date.now() * 0.001;
+			// specific animation 
+			for( var i=0; i<antenna_num; ++i ) {
+				for( var p=0; p<20; ++p ) {
 
-				count++;
+					var factor =  2 * Math.PI * ( frame + p*10 + i*2 )/314;
 
-				var factor = count*Math.PI/180;
-
-
-				// for( var i=0; i<5; ++i ) {
-
-				// 	var a = antennaGroup[i];
-
-				// 	a.curve.points[0].y += Math.sin(factor)*2;
-
-				// 	a.points = a.curve.getPoints(20);
-
-
-
-				// }
-
-
-				// curve_CatmullRom.points[0].y += Math.sin(factor)*2;
-				// curve_CatmullRom.points[1].y += Math.sin(factor+30)*1;
-				// curve_CatmullRom.points[2].y += Math.sin(factor+60)*2;
-				// // curve_CatmullRom.points[3].y += Math.sin(factor+200)*1;
-
-				// var points = curve_CatmullRom.getPoints( 20 );
-				// curve.geometry.setFromPoints(points);
-				
-				// for( var i=0; i<=20; ++i ) {
-
-				// 	var pos = curve_CatmullRom.getPointAt( i/20 );
-				// 	var tangent = curve_CatmullRom.getTangent( i/20 );
-				// 	var angle = Math.atan( tangent.y/tangent.x );
-
-				// 	pointsgroup.children[i].position.set( pos.x, pos.y, pos.z );
-				// 	pointsgroup.children[i].rotation.set( 0, 0, angle );
-
-				// 	var factor = ( count + i*10 )*Math.PI/180;
-
-				// 	pointsgroup.children[i].scale.set( Math.sin(factor)*2, Math.sin(factor)*2, Math.sin(factor)*2 );
-
-				// }
-
-				for( var i=0; i<25; ++i ) {
-
-					for( var p=0; p<20; ++p ) {
-
-						var factor = ( count + p*10 + i*2 )*Math.PI/180;
-
-						antennaGroup[i].dots.children[p].scale.set( Math.sin(factor)*2, Math.sin(factor)*2, Math.sin(factor)*2 );
-
-
-					}
-
-
+					antennaGroup[i].dots.children[p].scale.set( Math.sin(factor)*2, Math.sin(factor)*2, Math.sin(factor)*2 );
 				}
+			}
 
+
+			if( PaintData.postEFX.Effects ) {
+				composer.render( 0.1 );
+			}else{
+				// if using RTT texture, then use below
+				// renderer.clear();
+				// renderer.render( sceneRTT, cameraRTT, rtTexture, true );
 				renderer.render( scene, camera );
-
 			}
-
-		</script>
-
-	</body>
+		}
+	</script>
+</body>
 </html>

@@ -1,424 +1,512 @@
 <!DOCTYPE html>
-<html lang="en">
-	<head>
-		<title>Floating Space</title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<style>
-			body {
-				color: #cccccc;
-				font-family:Monospace;
-				font-size:13px;
-				text-align:center;
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<meta name=”description” id="description" content="">
+	<title>Pattern::Color Gradients</title>
+	
+	<script src="../build/three.js"></script>
 
-				background-color: #000000;
-				margin: 0px;
-				overflow: hidden;
-			}
+	<script src="../js/shaders/CopyShader.js"></script>
+	<script src="../js/shaders/BokehShader.js"></script>
+	<script src="../js/shaders/FXAAShader.js"></script>
+	<script src="../js/shaders/SMAAShader.js"></script>
+	<script src="../js/shaders/TiltShiftShader.js"></script>
+	<script src="../js/shaders/FilmShader.js"></script>
+	<script src="../js/shaders/ConvolutionShader.js"></script>
+	<script src="../js/shaders/LuminosityHighPassShader.js"></script>
 
-			#info {
-				position: absolute;
-				top: 0px; width: 100%;
-				padding: 5px;
-			}
+	<script src="../js/postprocessing/EffectComposer.js"></script>
+	<script src="../js/postprocessing/RenderPass.js"></script>
+	<script src="../js/postprocessing/ShaderPass.js"></script>
+	<script src="../js/postprocessing/MaskPass.js"></script>
+	<script src="../js/postprocessing/BokehPass.js"></script>
+	<script src="../js/postprocessing/SMAAPass.js"></script>
+	<script src="../js/postprocessing/FilmPass.js"></script>
+	<script src="../js/postprocessing/UnrealBloomPass.js"></script>
 
-			a {
-				color: #0080ff;
-			}	
+	<script src="../js/Detector.js"></script>
+	<script src="../js/libs/stats.min.js"></script>
+	<script src='../js/libs/dat.gui.min.js'></script>
+	<script src="../js/controls/OrbitControls.js"></script>
 
-			#container {
-				position: relative;
-			}
+	<script src="./scripts/Util.js"></script>
 
-			#canvas2d_wrapper {
-				position: absolute;
-				top: 0; left: 0;
-				width: 400px;
-				height: 200px;
-				z-index: 99;
-			}
-			#drawingcanvas {
-				display: none;
-				width: 100%;
-			}
+	<link rel="stylesheet" type="text/css" href="./style/common.css">
+</head>
 
-		</style>
-	</head>
-	<body>
+<body>
+	<div id="container"></div>
 
-		<div id="container"></div>
+	<script id="init_vertex_shader" type="x-shader/x-vertex">
+		// varying vec2 vUv;
+		void main() {
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		}
+	</script>
 
-		<div id="canvas2d_wrapper">
-			<canvas id="drawingcanvas" width="1024" height="512" ></canvas>
-		</div>
+	<script id="init_fragment_shader" type="x-shader/x-fragment">
+		void main() {
+			gl_FragColor = vec4( 0.0 );
+		}
+	</script>
 
-		<script src="../build/three.js"></script>
-		<script src="../js/controls/OrbitControls.js"></script>
-		<script src="../js/libs/dat.gui.min.js"></script>
-		<script src="../js/libs/stats.min.js"></script>
+	<script id="vert_scene" type="x-shader/x-vertex">
+		precision highp float;
 
-		<script src="../js/_custom/Grid.js"></script>
+		uniform mat4 modelViewMatrix;
+		uniform mat4 projectionMatrix;
 
-		<script id="vert_scene" type="x-shader/x-vertex">
-			precision highp float;
+		attribute vec3 position;
+		attribute vec3 offset;
+		attribute vec2 uv;
+		// attribute vec4 orientation;
+		attribute float variation;
 
-			uniform mat4 modelViewMatrix;
-			uniform mat4 projectionMatrix;
+		varying vec2 vUv;
+		varying float vVariation;
 
-			attribute vec3 position;
-			attribute vec3 offset;
-			attribute vec2 uv;
-			// attribute vec4 orientation;
-			attribute float variation;
+		void main() {
 
-			varying vec2 vUv;
-			varying float vVariation;
+			// vec3 vPosition = position;
+			// vec3 vcV = cross( orientation.xyz, vPosition );
+			// vPosition = vcV * ( 2.0 * orientation.w ) + ( cross( orientation.xyz, vcV ) * 2.0 + vPosition ); 
 
-			void main() {
+			vUv = uv; 
 
-				// vec3 vPosition = position;
-				// vec3 vcV = cross( orientation.xyz, vPosition );
-				// vPosition = vcV * ( 2.0 * orientation.w ) + ( cross( orientation.xyz, vcV ) * 2.0 + vPosition ); 
+			vVariation = variation;
 
-				vUv = uv; 
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( offset + position, 1.0 ); 
+		}
+	</script>
 
-				vVariation = variation;
+	<script id="frag_scene" type="x-shader/x-fragment">
+		precision highp float;
 
-				gl_Position = projectionMatrix * modelViewMatrix * vec4( offset + position, 1.0 ); 
+		uniform sampler2D map;
+		uniform float u_time;
 
-			}
-		</script>
+		varying vec2 vUv;
+		varying float vVariation;
 
-		<script id="frag_scene" type="x-shader/x-fragment">
-			precision highp float;
+		void main() {
 
-			uniform sampler2D map;
-			uniform float u_time;
+			vec2 uv = vUv;
 
-			varying vec2 vUv;
-			varying float vVariation;
+			// uv.y += vVariation;
 
-			void main() {
+			// uv.y = sin( 3.1415926 * u_time / 314.0 ) + vVariation;
 
-				vec2 uv = vUv;
+			gl_FragColor = texture2D( map, uv );
+		}
+	</script>
 
-				// uv.x += vVariation;
-
-				// uv.y += sin( u_time + uv.x*1.0 );
-
-				gl_FragColor = texture2D( map, uv );
-
-			}
-		</script>
-
-		<script id="vertexShader" type="x-shader/x-vertex">
-
-			// varying vec2 vUv;
-
-			void main() {
-
-				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-
-			}
-		</script>
-
-		<script id="init_fragmentShader" type="x-shader/x-fragment">
-		
-			void main() {
-
-				gl_FragColor = vec4( 0.0 );
-
-			}
-		</script>
-
-		<script>
-
-			// Color scheme
-
-			var Colors = [ '2B4FF0', '452DEF', '552FFF', '3AA4FA' ];
-			// var Colors = [ '4F91F3','4F7CF3','3E6FF2','3867E7' ];
-
-
-			function randomsort(a, b) {
-
-			    return Math.random()>.5 ? -1 : 1;
-
-			}
+	<script>
+		// Common Template :: 
+		// -----------------------------------------------------------------------------------
 			
-			function randomSwap( array ) {
+		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-				return array.sort(randomsort);
+		var camera, scene, renderer, composer, stats, controls, globalColors=[];
+		var cameraRTT, sceneRTT, rtTexture, texture_mat;
+		var ctx;
 
-			}
-
-			Colors.sort(randomsort);
-
-
-			// load shader function
-
-			function loadShaderFromFile( filename, onLoadShader ) {
-
-			    var request = new XMLHttpRequest();
-
-			    request.onreadystatechange = function() {
-
-			    	if( request.readyState === 4 && request.status === 200 ) {
-
-			            onLoadShader( request.responseText );
-
-			        }
-
-			    }
-			        
-			    request.open( "GET", filename, true );
-			    request.send();
-
-			}
+		var frame = 0;
+		var isFrameControlling = false;
 
 
-			function parsColors( rawcolors ) {
+		var canvasW = window.innerWidth;
+		var canvasH = canvasW > 1400 ? 600 : 480;
+		var canvasD = 500;
+		var GLOBAL_SIZE_FACTOR = canvasW/1400;
+		var GLOBAL_SIZE_BOUNDING = canvasW/2;
 
-				var colors = [];
 
-				for( var i=0; i<rawcolors.length; ++i ) {
+		// Paint Data :: defines the pattern of every paint
+		// -----------------------------------------------------------------------------------
+		var quadRTT, matRTT, quad_geo, quad_mat, quad;
+		var basic_geo, instanced_geo, gridboxes;
+		var uv_array;
 
-					var color = new THREE.Color( '#' + rawcolors[i] );
+		var PaintData = { 
+			// Colors
+			colorName: 'Fantasy',
+			colortheme: {
+				'color-0': '#ffffff',
+				'color-1': '#ffffff',
+				'color-2': '#ffffff',
+				'color-3': '#ffffff'
+			},
 
-					colors.push( color );
-
+			// Pattern
+			pattern: {
+				'box size': {
+					width: 32,
+					height: 230,
+					depth: 32
 				}
+			},
 
-				return colors;
+			// PostEFX
+			postEFX: {
+				Effects: false,
+				tiltFocus: 0.5,
+				tiltAmount: 0.006,
+				tiltBrightness: 0.65,
+			},
 
+			postprocessing: {
+			},
+
+			// Methods
+			'Refresh pattern': function() {
+				this.pattern['box size'].width = 32 + Math.random()*200 - 100;
+				this.pattern['box size'].height = 230 + Math.random()*20 - 10;
+				this.pattern['box size'].depth = 32 + Math.random()*200 - 100;
+
+			 	deleteObjects();
+			 	buildObjects();
+			},
+
+			'Shuffle colors': function() {
+				fetch( './data/Color.json' ).then( res => {
+					return res.json().then( json => {
+						var colorlist = json[ 'Colors' ][ 'Wild' ];
+						var random = Math.floor( Math.random() * colorlist.length );
+						for( var i in colorlist[random] ) {
+							PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[random][i];
+						}
+					});
+				}).then( () => {
+					this.updateColors();
+					this.postEFX.Effects = false;
+					gui.updateDisplay();
+				});
+			},
+
+			updateColors: function () {
+				scene.background.set( PaintData.colortheme['color-0'] );
+				matRTT.uniforms.u_color_0.value.set( PaintData.colortheme['color-0'] );
+				matRTT.uniforms.u_color_1.value.set( PaintData.colortheme['color-1'] );
+				matRTT.uniforms.u_color_2.value.set( PaintData.colortheme['color-2'] );
+				matRTT.uniforms.u_color_3.value.set( PaintData.colortheme['color-3'] );
+				matRTT.needsUpdate = true;
 			}
+		}
 
-
-			var cameraRTT, camera, sceneRTT, sceneScreen, scene, renderer;
-
-			var u_time = 0;
-
-			var colors = parsColors(Colors);
-
-			init();
+		// Color Data and Start initPaint
+		// -----------------------------------------------------------------------------------
+		fetch( './data/Color.json' ).then( res => {
+			return res.json().then( json => {
+				colorlist = json['Colors']['Scifi_Blue'][0];
+				for( var i in colorlist ) {
+					PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[i];					
+				}
+			});
+		}).then( () => {
+			initPaint();
 			animate();
+		});
 
-			function init() {
 
-				// RENDERER
 
-				var w = window.innerWidth;
-				var h = window.innerHeight;
 
 
-				renderer = new THREE.WebGLRenderer( { antialias: true } );
-				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( w, h );
-				container.appendChild( renderer.domElement );
+		function initPaint() {
+			initRenderer(); // Scene | Camera | Renderer
+			initRendererToTexture(); // render texuture with shader
 
+			// 
+			initUIFrameControlPanel();
+			initUIInfoPanel( renderer ); // Div 
 
+			// build scene and controls
+			buildResources(); 
+			buildObjects(); // Meshes | Sprites | Lights | Shaders
+			buildPostEFX(); // Post processings
+			buildControls(); // Dat.gui
 
+			loadShaderFromFile( './scripts/shaping_01.glsl', function(text) {
+				matRTT.fragmentShader = text;
+				matRTT.needsUpdate = true;
+			});
+		};
 
-				// ---- Step 1 : rtTexture rendered
-				// ----
-				// camera rendering texture
-				var texture_size = 400;
 
-				cameraRTT = new THREE.OrthographicCamera( texture_size / - 2, texture_size / 2, texture_size / 2, texture_size / - 2, -10000, 10000 );
-				cameraRTT.position.z = 400;
-				
-				sceneRTT = new THREE.Scene(); // scene rendered to texture
-
-				rtTexture = new THREE.WebGLRenderTarget( 
-					texture_size, texture_size, { 
-					minFilter: THREE.LinearFilter, 
-					magFilter: THREE.NearestFilter, 
-					format: THREE.RGBFormat 
-				} ); // render target texture
-
-				// things on the texture
-				// canvasMaterial = new THREE.MeshBasicMaterial( {
-				// 	map: new THREE.Texture( drawingcanvas ),
-				// } ); 
-				quad_mat = new THREE.ShaderMaterial( {
-
-					uniforms: { 
-						u_time: { value: 0.0 },
-						u_resolution: { value: new THREE.Vector2( texture_size, texture_size ) }, 
-						u_color_0: { value: colors[0] },
-						u_color_1: { value: colors[1] },
-						u_color_2: { value: colors[2] },
-						u_color_3: { value: colors[3] },
-					},
-					vertexShader: document.getElementById( 'vertexShader' ).textContent,
-					fragmentShader: document.getElementById( 'init_fragmentShader' ).textContent
-
-				} );
-				var texture_quad = new THREE.Mesh( new THREE.PlaneBufferGeometry( texture_size, texture_size ), quad_mat );
-
-				sceneRTT.add( texture_quad );
-
-
-
-
-				
-
-
-
-
-				// ------ Step 2 : Normal Scene
-				// ------
-
-				// camera
-				camera = new THREE.OrthographicCamera( w / - 2, w / 2, h / 2, h / - 2, 0.1, 8000 );
-				camera.position.x = 2000;
-				camera.position.y = 1200;
-				camera.position.z = 1600;
-
-				// scene
-				scene = new THREE.Scene();
-				scene.background = colors[0];
-				// scene.fog = new THREE.Fog( colors[3], 700, 1200 );
-
-				// Lights
-				var amblight = new THREE.AmbientLight( 0xffffff, 1.0 );
-				// scene.add( amblight );
-
-				var dirlight = new THREE.DirectionalLight( 0x0099ff, 0.4 ); 
-				dirlight.position.set( 1, 2, 3 );
-				// scene.add( dirlight );
-
-				// A Sprite Represents the Shader's Behaviour				
-				var spriteMaterial = new THREE.SpriteMaterial( { map: rtTexture.texture } );
-				shader_sprite = new THREE.Sprite( spriteMaterial );
-				shader_sprite.scale.set( 200, 200, 1 );
-				shader_sprite.position.set( w/2 - 100, h/2 - 100, 340 );
-				// scene.add( shader_sprite );
-
-
-
-
-
-
-				// Floating Meshes
-				// -----------
-				// -----------
-				// -----------
-
-				var shader_mat = new THREE.MeshBasicMaterial( { map: rtTexture.texture } );
-
-				var mat_test = new THREE.MeshBasicMaterial( { color: 0xffffff } );
-
-				basic_geo = new THREE.BoxBufferGeometry( 32, 230, 32 );
-
-				instanced_geo = new THREE.InstancedBufferGeometry();
-				instanced_geo.index = basic_geo.index;
-				instanced_geo.attributes.position = basic_geo.attributes.position;
-				instanced_geo.attributes.uv = basic_geo.attributes.uv;
-
-				var offsets 		= [];
-				// var orientations 	= [];
-				var variations 		= [];
-
-				var grid = new Grid( 12, 1, 12, 200, 200, 300 ); //
-
-				for( var i=0; i<grid.totalNum; ++i ) {
-
-					offsets.push( grid.matrix[i].x, grid.matrix[i].y, grid.matrix[i].z );
-
-					// orientations.push( 0, 0, 0, 0 );
-
-					variations.push( Math.random() );
-
-				}
-
-
-				offsetsAttribute = new THREE.InstancedBufferAttribute( new Float32Array( offsets ), 3 );
-				// orientationAttribute = new THREE.InstancedBufferAttribute( new Float32Array( orientations ), 4 ).setDynamic( true );
-				variationsAttribute = new THREE.InstancedBufferAttribute( new Float32Array( variations ), 1 );
-
-
-				instanced_geo.addAttribute( 'offset', offsetsAttribute );
-				// instanced_geo.addAttribute( 'orientation', orientationAttribute );
-				instanced_geo.addAttribute( 'variation', variationsAttribute );
-
-
-				rawshaderMat = new THREE.RawShaderMaterial( {
-
-					uniforms: { 
-						u_time: { value: 0.0 },
-						map: { value: rtTexture.texture },
-					},
-
-					vertexShader: document.getElementById( 'vert_scene' ).textContent,
-					fragmentShader: document.getElementById( 'frag_scene' ).textContent
-
-				} );
-
-				gridboxes = new THREE.Mesh( instanced_geo, rawshaderMat );
-
-				scene.add( gridboxes );
-
-				// var sphere_geo = new THREE.SphereBufferGeometry( 80, 32, 32 );
-				// var sphere = new THREE.Mesh( sphere_geo, shader_mat );
-				// scene.add( sphere );
-
-
-
-
-
-
-				loadShaderFromFile( './scripts/shaping_01.glsl', function(text) {
-
-					quad_mat.fragmentShader = text;
-					quad_mat.needsUpdate = true;
-
-				})
-
-
-
-				// Additional 
-				// ----------
-				stats = new Stats();
-				container.appendChild( stats.dom );
-				var controls = new THREE.OrbitControls( camera, container );
-				window.addEventListener( 'resize', onWindowResize, false );
+		function refreshPaint() {
+			// 删除Scene中的所有物体
+			while (scene.children.length) {
+			    scene.remove(scene.children[0]);
 			}
 
-			function onWindowResize() {
+			buildObjects();
+		}
 
-				// camera.aspect = window.innerWidth / window.innerHeight;
-				// camera.updateProjectionMatrix();
+		function initRenderer() {
+			// Camera 
+			camera = new THREE.OrthographicCamera( canvasW / - 2, canvasW / 2, canvasH / 2, canvasH / - 2, 0.1, 8000 );
+			// camera = new THREE.PerspectiveCamera( 50, canvasW / canvasH, 1, 10 );
+			camera.position.x = 2000;
+			camera.position.y = 1200;
+			camera.position.z = 1600;
 
-				// renderer.setSize( window.innerWidth, window.innerHeight );
+			// scene
+			scene = new THREE.Scene();
+			scene.background = new THREE.Color( PaintData.colortheme['color-'+0] );
+			// scene.fog = new THREE.Fog( 0x000000, 900, 1200 );
 
+			// helper
+			var axesHelper = new THREE.AxesHelper( 25 );
+			// scene.add( axesHelper );
+			var gridHelper = new THREE.GridHelper( 100, 10 );
+			// scene.add( gridHelper );
+
+			// Renderer 
+			renderer = new THREE.WebGLRenderer( { antialias: true, preserveDrawingBuffer: true } );
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( canvasW, canvasH );
+			// renderer.gammaInput = true
+			// renderer.gammaOutput = true;
+
+			// control and monitor
+			controls = new THREE.OrbitControls( camera, renderer.domElement );
+			gui = new dat.GUI();
+			stats = new Stats();
+
+			// dom 
+			container.appendChild( stats.dom );
+			container.appendChild( renderer.domElement );
+
+			// window
+			window.addEventListener( 'resize', onWindowResize, false );
+		}
+
+		function initRendererToTexture() {
+			// camera rendering texture
+			var texture_size = 400;
+
+			cameraRTT = new THREE.OrthographicCamera( texture_size / - 2, texture_size / 2, texture_size / 2, texture_size / - 2, -10000, 10000 );
+			cameraRTT.position.z = 400;
+			
+			sceneRTT = new THREE.Scene(); // scene rendered to texture
+
+			rtTexture = new THREE.WebGLRenderTarget( 
+				texture_size, texture_size, { 
+				minFilter: THREE.LinearFilter, 
+				magFilter: THREE.NearestFilter, 
+				format: THREE.RGBFormat 
+			} ); // render target texture
+
+			// things on the texture
+			// canvasMaterial = new THREE.MeshBasicMaterial( {
+			// 	map: new THREE.Texture( drawingcanvas ),
+			// } ); 
+			matRTT = new THREE.ShaderMaterial( {
+				uniforms: { 
+					u_time: { value: 0.0 },
+					u_resolution: { value: new THREE.Vector2( texture_size, texture_size ) },
+					u_color_0: { value: new THREE.Color( PaintData.colortheme['color-'+0] ) },
+					u_color_1: { value: new THREE.Color( PaintData.colortheme['color-'+1] ) },
+					u_color_2: { value: new THREE.Color( PaintData.colortheme['color-'+2] ) },
+					u_color_3: { value: new THREE.Color( PaintData.colortheme['color-'+3] ) },
+				},
+				vertexShader: document.getElementById( 'init_vertex_shader' ).textContent,
+				fragmentShader: document.getElementById( 'init_fragment_shader' ).textContent
+			} );
+			var quadRTT = new THREE.Mesh( new THREE.PlaneBufferGeometry( texture_size, texture_size ), matRTT );
+
+			sceneRTT.add( quadRTT );
+		}
+
+		function buildResources() {
+			// 将可复用的几何体、材质、贴图放在这里
+			rawshaderMat = new THREE.RawShaderMaterial( {
+
+				uniforms: { 
+					u_time: { value: 0.0 },
+					map: { value: rtTexture.texture },
+				},
+
+				vertexShader: document.getElementById( 'vert_scene' ).textContent,
+				fragmentShader: document.getElementById( 'frag_scene' ).textContent
+
+			} );
+		}
+
+		function buildObjects() {
+			// A Sprite Represents the Shader's Behaviour				
+			var spriteMaterial = new THREE.SpriteMaterial( { map: rtTexture.texture } );
+			shader_sprite = new THREE.Sprite( spriteMaterial );
+			shader_sprite.scale.set( 200, 200, 1 );
+			shader_sprite.position.set( -canvasW/2 + 100, -canvasH/2 + 100, 0 );
+			// scene.add( shader_sprite );
+
+			// 基础形态
+			var p = PaintData.pattern['box size'];
+			basic_geo = new THREE.BoxBufferGeometry( p.width, p.height, p.depth );
+
+			// 实例形态
+			instanced_geo = new THREE.InstancedBufferGeometry();
+			instanced_geo.index = basic_geo.index;
+			instanced_geo.attributes.position = basic_geo.attributes.position;
+			instanced_geo.attributes.uv = basic_geo.attributes.uv;
+			instanced_geo.attributes.uv.dynamic = true;
+
+			function modifyUV( index, u, v ) {
+				var array = instanced_geo.attributes.uv.array;
+				array[ index*2+0 ] = u;
+				array[ index*2+1 ] = v;
 			}
 
-			function animate() {
+			// modifyUV( 11, 2, 1.5 );
 
-				requestAnimationFrame( animate );
+			uv_array = instanced_geo.attributes.uv.array;
 
-				stats.update();
-				render();
+			var offsets 		= [];
+			var variations 		= [];
 
+			var grid = new Grid( 12, 1, 12, 200, 200, 300 ); //
+
+			for( var i=0; i<grid.totalNum; ++i ) {
+
+				var progress = i/grid.totalNum;
+
+				offsets.push( grid.matrix[i].x, grid.matrix[i].y+Math.sin(progress*Math.PI)*120, grid.matrix[i].z );
+				variations.push( Math.random() );
 			}
 
-			function render() {
+			offsetsAttribute = new THREE.InstancedBufferAttribute( new Float32Array( offsets ), 3 );
+			variationsAttribute = new THREE.InstancedBufferAttribute( new Float32Array( variations ), 1 );
 
-				// mesh_material.map.needsUpdate = true;
+			instanced_geo.addAttribute( 'offset', offsetsAttribute );
+			instanced_geo.addAttribute( 'variation', variationsAttribute );
 
-				// var u_time = Date.now() * 0.001;
+			instanced_geo.attributes.uv.array[1] = 1;
 
-				quad_mat.uniforms.u_time.value = u_time++/220;
-				rawshaderMat.uniforms.u_time.value = u_time++/220;
+			gridboxes = new THREE.Mesh( instanced_geo, rawshaderMat );
 
+			scene.add( gridboxes );
+		}
+
+		function deleteObjects() {
+			// scene.remove()
+			// dispose geometry | material | texture
+			scene.remove( gridboxes );
+		}
+
+		function buildPostEFX() {
+			var renderPass = new THREE.RenderPass( scene, camera );
+			var tiltShiftPass = new THREE.ShaderPass( THREE.VerticalTiltShiftShader );
+			var effectFilmPass = new THREE.FilmPass( 0.2, 0.2, 1000, false );
+
+			// define which pass is the final pass
+			tiltShiftPass.renderToScreen = true;
+
+			composer = new THREE.EffectComposer( renderer );
+			composer.addPass( renderPass );
+			composer.addPass( tiltShiftPass );
+			composer.addPass( effectFilmPass );
+
+			PaintData.postprocessing.tilt = tiltShiftPass;
+		}
+
+		function buildControls() {
+			gui.width = 300;
+			//init GUI			
+			var folder_effects = gui.addFolder('Post Effects');	
+			folder_effects.open();	
+			folder_effects.add( PaintData.postEFX, 'Effects' ).onChange( function (value) {
+				PaintData.postEFX.Effects = value;
+			});
+			folder_effects.add( PaintData.postEFX, "tiltFocus", 0, 1, 0.5 ).onChange( onParamsChange ).step(0.05);
+			folder_effects.add( PaintData.postEFX, "tiltAmount", 0, 0.02, 0.005 ).onChange( onParamsChange ).step(0.001);
+			folder_effects.add( PaintData.postEFX, "tiltBrightness", 0, 1, 0.5 ).onChange( onParamsChange ).step(0.02);
+
+			var folder_colors = gui.addFolder('Color Theme');	
+			folder_colors.open();
+			folder_colors.addColor( PaintData.colortheme, 'color-0' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-0'] = value;
+				PaintData.updateColors();
+			});
+			folder_colors.addColor( PaintData.colortheme, 'color-1' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-1'] = value;
+				PaintData.updateColors();
+			});
+			folder_colors.addColor( PaintData.colortheme, 'color-2' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-2'] = value;
+				PaintData.updateColors();
+			});
+			folder_colors.addColor( PaintData.colortheme, 'color-3' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-3'] = value;
+				PaintData.updateColors();
+			});
+
+			gui.add( PaintData, 'Refresh pattern' );
+
+			gui.add( PaintData, 'Shuffle colors' );
+
+			gui.open();
+
+			onParamsChange();			
+		}
+
+		function onParamsChange () {
+			PaintData.postprocessing.tilt.uniforms.focusPos.value = PaintData.postEFX.tiltFocus;
+			PaintData.postprocessing.tilt.uniforms.amount.value = PaintData.postEFX.tiltAmount;
+			PaintData.postprocessing.tilt.uniforms.brightness.value = PaintData.postEFX.tiltBrightness;
+
+			camera.updateProjectionMatrix();
+		}
+
+		function onWindowResize() {
+
+			camera.aspect = canvasW / canvasH;
+			camera.updateProjectionMatrix();
+
+			renderer.setSize( canvasW, canvasH );
+
+		}
+
+		function animate() {
+
+			requestAnimationFrame( animate );
+
+			render();
+			stats.update();
+
+		}
+
+		function render() {
+
+			if( !isFrameControlling ) {
+				frame++;
+				frame_control_slider.value = frame*100/314;
+
+				if( frame == 314 ) frame = 0;
+			}
+
+			matRTT.uniforms.u_time.value = frame/314;
+			rawshaderMat.uniforms.u_time.value = frame;
+
+			// 
+			var delta = Math.sin( frame/100 );
+			uv_array[8*2+1] 	= delta+0.1;
+			uv_array[9*2+1] 	= delta+0.2;
+			uv_array[10*2+1] 	= delta+0.3;
+			uv_array[11*2+1] 	= delta+0.4;
+			instanced_geo.attributes.uv.needsUpdate = true;
+
+
+			if( PaintData.postEFX.Effects ) {
+				composer.render( 0.1 );
+			}else{
+				// if using RTT texture, then use below
 				renderer.clear();
-
 				renderer.render( sceneRTT, cameraRTT, rtTexture, true );
-
 				renderer.render( scene, camera );
-
 			}
-
-		</script>
-	</body>
+		}
+	</script>
+</body>
 </html>
