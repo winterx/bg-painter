@@ -27,7 +27,7 @@ void main() {
     
     // vec3 finalColor_02 = mix( color_01, color_02, st.y );
     
-    vec3 mixColor = xmixColor*0.6 + ymixColor*0.8;
+    vec3 mixColor = xmixColor*0.6 + ymixColor*0.6;
     
     vec3 finalColor_04 = mix( u_color_0, mixColor, st.y );
 

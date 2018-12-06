@@ -75,23 +75,6 @@ var paints = {
 
 	},
 
-	'Scifidots_02' : {
-
-		name : 'Sci-fi dots #02',
-		url : 'Scifidots_02.html',
-		picurl : 'images/scifi-dots-02.png'
-
-	},
-
-	'Scifidots_03' : {
-
-		name : 'Sci-fi dots #03',
-		url : 'Scifidots_03.html',
-		picurl : 'images/scifi-dots-03.png'
-
-	},
-
-
 	// explosion
 
 	'Explosion_00' : {

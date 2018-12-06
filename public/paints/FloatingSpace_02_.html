@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<meta name=”description” id="description" content="">
-	<title>Scaffold</title>
+	<title>Floating Signs</title>
 	
 	<script src="../build/three.js"></script>
 
@@ -25,6 +25,8 @@
 	<script src="../js/postprocessing/SMAAPass.js"></script>
 	<script src="../js/postprocessing/FilmPass.js"></script>
 	<script src="../js/postprocessing/UnrealBloomPass.js"></script>
+
+	<script src="../js/loaders/ColladaLoader.js"></script>
 
 	<script src="../js/Detector.js"></script>
 	<script src="../js/libs/stats.min.js"></script>
@@ -51,6 +53,58 @@
 		}
 	</script>
 
+	<script id="vert_scene" type="x-shader/x-vertex">
+			precision highp float;
+
+			uniform mat4 modelViewMatrix;
+			uniform mat4 projectionMatrix;
+
+			attribute vec3 position;
+			attribute vec3 offset;
+			attribute vec2 uv;
+			attribute vec4 orientation;
+			// attribute float variation;
+
+			varying vec2 vUv;
+			// varying float vVariation;
+
+			void main() {
+
+				// vec3 vPosition = position;
+				// vec3 vcV = cross( orientation.xyz, vPosition );
+				// vPosition = vcV * ( 2.0 * orientation.w ) + ( cross( orientation.xyz, vcV ) * 2.0 + vPosition ); 
+
+				vUv = uv; 
+
+				// vVariation = variation;
+
+				gl_Position = projectionMatrix * modelViewMatrix * vec4( offset + position, 1.0 ); 
+
+			}
+		</script>
+
+		<script id="frag_scene" type="x-shader/x-fragment">
+			precision highp float;
+
+			uniform sampler2D map;
+			uniform float u_time;
+
+			varying vec2 vUv;
+			// varying float vVariation;
+
+			void main() {
+
+				vec2 uv = vUv;
+
+				// uv.x += vVariation;
+
+				// uv.y += sin( u_time + uv.x*1.0 );
+
+				gl_FragColor = texture2D( map, uv );
+
+			}
+		</script>
+
 	<script>
 		// Common Template :: 
 		// -----------------------------------------------------------------------------------
@@ -75,9 +129,11 @@
 
 		// Paint Data :: defines the pattern of every paint
 		// -----------------------------------------------------------------------------------
+		var instanced_geo = new THREE.InstancedBufferGeometry();
+
 		var PaintData = { 
 			// Colors
-			colorName: 'Fantasy',
+			colorName: 'Luxury_Golden',
 			colortheme: {
 				'color-0': '#ffffff',
 				'color-1': '#ffffff',
@@ -133,7 +189,7 @@
 		// -----------------------------------------------------------------------------------
 		fetch( './data/Color.json' ).then( res => {
 			return res.json().then( json => {
-				colorlist = json['Colors']["Fancy"][0];
+				colorlist = json['Colors'][PaintData.colorName][0];
 				for( var i in colorlist ) {
 					PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[i];
 				}
@@ -151,11 +207,6 @@
 			initRenderer(); // Scene | Camera | Renderer
 			initRendererToTexture(); // render texuture with shader
 
-			loadShaderFromFile( './scripts/shaping_01.glsl', function(text) {
-				texture_mat.fragmentShader = text;
-				texture_mat.needsUpdate = true;
-			});
-
 			// 
 			initUIFrameControlPanel();
 			initUIInfoPanel( renderer ); // Div 
@@ -165,6 +216,12 @@
 			buildObjects(); // Meshes | Sprites | Lights | Shaders
 			buildPostEFX(); // Post processings
 			buildControls(); // Dat.gui
+
+			loadShaderFromFile( './scripts/shaping_01.glsl', function(text) {
+				matRTT.fragmentShader = text;
+				matRTT.needsUpdate = true;
+			});
+
 		};
 
 
@@ -179,20 +236,22 @@
 
 		function initRenderer() {
 			// Camera 
-			camera = new THREE.OrthographicCamera( canvasW / - 2, canvasW / 2, canvasH / 2, canvasH / - 2, 1, 4000 );
+			camera = new THREE.OrthographicCamera( canvasW / - 2, canvasW / 2, canvasH / 2, canvasH / - 2, 1, 10000 );
 			// camera = new THREE.PerspectiveCamera( 50, canvasW / canvasH, 1, 10 );
-			camera.position.z = 800;
+			camera.position.x = 2000;
+			camera.position.y = 1200;
+			camera.position.z = 1600;
 
 			// scene
 			scene = new THREE.Scene();
-			scene.background = new THREE.Color( 0x000000 );
-			scene.fog = new THREE.Fog( 0x000000, 900, 1200 );
+			scene.background = new THREE.Color( PaintData.colortheme['color-0'] );
+			// scene.fog = new THREE.Fog( PaintData.colortheme['color-0'], 900, 1200 );
 
 			// helper
 			var axesHelper = new THREE.AxesHelper( 25 );
-			scene.add( axesHelper );
+			// scene.add( axesHelper );
 			var gridHelper = new THREE.GridHelper( 100, 10 );
-			scene.add( gridHelper );
+			// scene.add( gridHelper );
 
 			// Renderer 
 			renderer = new THREE.WebGLRenderer( { antialias: true, preserveDrawingBuffer: true } );
@@ -234,25 +293,84 @@
 			// canvasMaterial = new THREE.MeshBasicMaterial( {
 			// 	map: new THREE.Texture( drawingcanvas ),
 			// } ); 
-			texture_mat = new THREE.ShaderMaterial( {
+			matRTT = new THREE.ShaderMaterial( {
 				uniforms: { 
 					u_time: { value: 0.0 },
 					u_resolution: { value: new THREE.Vector2( texture_size, texture_size ) }, 
+					u_color_0: { value: new THREE.Color( PaintData.colortheme['color-'+0] ) },
+					u_color_1: { value: new THREE.Color( PaintData.colortheme['color-'+1] ) },
+					u_color_2: { value: new THREE.Color( PaintData.colortheme['color-'+2] ) },
+					u_color_3: { value: new THREE.Color( PaintData.colortheme['color-'+3] ) },
 				},
 				vertexShader: document.getElementById( 'init_vertex_shader' ).textContent,
 				fragmentShader: document.getElementById( 'init_fragment_shader' ).textContent
 			} );
-			var texture_quad = new THREE.Mesh( new THREE.PlaneBufferGeometry( texture_size, texture_size ), texture_mat );
+			var quadRTT = new THREE.Mesh( new THREE.PlaneBufferGeometry( texture_size, texture_size ), matRTT );
 
-			sceneRTT.add( texture_quad );
+			sceneRTT.add( quadRTT );
 		}
 
 		function buildResources() {
 			// 将可复用的几何体、材质、贴图放在这里
+			// A Sprite Represents the Shader's Behaviour				
+			var spriteMaterial = new THREE.SpriteMaterial( { map: rtTexture.texture } );
+			shader_sprite = new THREE.Sprite( spriteMaterial );
+			shader_sprite.scale.set( 200, 200, 1 );
+			shader_sprite.position.set( 0, 0, 0 );
+			scene.add( shader_sprite );
 		}
 
 		function buildObjects() {
-			
+			rawshaderMat = new THREE.RawShaderMaterial( {
+
+				uniforms: { 
+					u_time: { value: 0.0 },
+					map: { value: rtTexture.texture },
+				},
+
+				vertexShader: document.getElementById( 'vert_scene' ).textContent,
+				fragmentShader: document.getElementById( 'frag_scene' ).textContent
+			} );
+
+			var loader = new THREE.ColladaLoader();
+
+			loader.load( '../geometries/money_dollar.dae', function ( collada ) {
+
+				dae = collada.scene;
+
+				dae.traverse( function ( child ) {
+
+					if ( child instanceof THREE.Mesh ) {
+
+						// child.material = test_mat;
+						// child.scale.set( 120, 120, 120 );
+						// scene.add( child );
+						instanced_geo.index 				= child.geometry.index;
+						instanced_geo.attributes.position 	= child.geometry.attributes.position;
+						instanced_geo.attributes.uv 		= child.geometry.attributes.uv;
+
+						var offsets 		= [];
+
+						var grid = new Grid( 8, 1, 8, 4, 4, 4 ); //
+
+						for( var i=0; i<grid.totalNum; ++i ) {
+
+							offsets.push( grid.matrix[i].x, grid.matrix[i].y, grid.matrix[i].z );
+
+						}
+
+						offsetsAttribute = new THREE.InstancedBufferAttribute( new Float32Array( offsets ), 3 );
+
+						instanced_geo.addAttribute( 'offset', offsetsAttribute );
+
+
+						var mesh = new THREE.Mesh( instanced_geo, rawshaderMat );
+						mesh.scale.set( 120, 120, 120 );
+						scene.add( mesh );
+
+					}
+				} );
+			} );
 		}
 
 		function deleteObjects() {
@@ -262,7 +380,7 @@
 
 		function buildPostEFX() {
 			var renderPass = new THREE.RenderPass( scene, camera );
-			var effectFilmPass = new THREE.FilmPass( 6, 0.9, 648, false );
+			var effectFilmPass = new THREE.FilmPass( 0.2, 0.3, 1, false );
 
 			// define which pass is the final pass
 			effectFilmPass.renderToScreen = true;
@@ -347,8 +465,8 @@
 				composer.render( 0.1 );
 			}else{
 				// if using RTT texture, then use below
-				// renderer.clear();
-				// renderer.render( sceneRTT, cameraRTT, rtTexture, true );
+				renderer.clear();
+				renderer.render( sceneRTT, cameraRTT, rtTexture, true );
 				renderer.render( scene, camera );
 			}
 		}
