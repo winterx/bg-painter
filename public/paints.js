@@ -4,7 +4,8 @@ var paints = {
 
 		name : 'Colorful Gradients #00',
 		url : 'ColorGradients_00.html',
-		picurl : 'images/color-gradients-00.png'
+		picurl : 'images/color-gradients-00.png',
+		description : 'Irregular-flowing colorful shapes'
 
 	},
 

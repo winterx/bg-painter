@@ -18,7 +18,6 @@
 	],
 
 
-
 	"Colors" : {
 
 		"Fantasy": 
@@ -60,6 +59,10 @@
 			["ea285b","ff703f","ffb549","ffea7c"],
 			["f7f7f7","fcd69b","1ea8ce","2656c1"],
 			["f7aa26","f9c45b","fff7b5","21665e"]
+		],
+
+		"Scifi_Blue": [
+			[ "2B4FF0", "452DEF", "552FFF", "3AA4FA" ]
 		],
 
 		"Fresh": [

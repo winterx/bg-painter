@@ -3,6 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<meta name=”description” id="description" content="">
 	<title>Pattern::Color Gradients</title>
 
 	<script src="https://cdn.bootcss.com/lodash.js/4.17.11/lodash.min.js"></script>
@@ -368,7 +369,7 @@
 			} ); 
 			quadRTT = new THREE.Mesh( new THREE.PlaneBufferGeometry( canvasW, canvasH ), canvasMaterial );
 
-			sceneRTT.add( canvas );
+			sceneRTT.add( quadRTT );
 		}
 
 		function buildResources() {

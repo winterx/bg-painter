@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<meta name=”description” id="description" content="">
-	<title>Scaffold</title>
+	<title>Pattern::Color Gradients</title>
 	
 	<script src="../build/three.js"></script>
 
@@ -35,6 +35,7 @@
 
 	<link rel="stylesheet" type="text/css" href="./style/common.css">
 </head>
+
 <body>
 	<div id="container"></div>
 
@@ -51,6 +52,56 @@
 		}
 	</script>
 
+	<script id="vert_scene" type="x-shader/x-vertex">
+		precision highp float;
+
+		uniform mat4 modelViewMatrix;
+		uniform mat4 projectionMatrix;
+
+		attribute vec3 position;
+		attribute vec3 offset;
+		attribute vec2 uv;
+		// attribute vec4 orientation;
+		attribute float variation;
+
+		varying vec2 vUv;
+		varying float vVariation;
+
+		void main() {
+
+			// vec3 vPosition = position;
+			// vec3 vcV = cross( orientation.xyz, vPosition );
+			// vPosition = vcV * ( 2.0 * orientation.w ) + ( cross( orientation.xyz, vcV ) * 2.0 + vPosition ); 
+
+			vUv = uv; 
+
+			vVariation = variation;
+
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( offset + position, 1.0 ); 
+		}
+	</script>
+
+	<script id="frag_scene" type="x-shader/x-fragment">
+		precision highp float;
+
+		uniform sampler2D map;
+		uniform float u_time;
+
+		varying vec2 vUv;
+		varying float vVariation;
+
+		void main() {
+
+			vec2 uv = vUv;
+
+			// uv.y += vVariation;
+
+			// uv.y = sin( 3.1415926 * u_time / 314.0 ) + vVariation;
+
+			gl_FragColor = texture2D( map, uv );
+		}
+	</script>
+
 	<script>
 		// Common Template :: 
 		// -----------------------------------------------------------------------------------
@@ -58,7 +109,7 @@
 		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 		var camera, scene, renderer, composer, stats, controls, globalColors=[];
-		var cameraRTT, sceneRTT, rtTexture, quadRTT, matRTT, quad_geo, quad_mat, quad;
+		var cameraRTT, sceneRTT, rtTexture, texture_mat;
 		var ctx;
 
 		var frame = 0;
@@ -74,6 +125,10 @@
 
 		// Paint Data :: defines the pattern of every paint
 		// -----------------------------------------------------------------------------------
+		var quadRTT, matRTT, quad_geo, quad_mat, quad;
+		var basic_geo, instanced_geo, gridboxes;
+		var uv_array;
+
 		var PaintData = { 
 			// Colors
 			colorName: 'Fantasy',
@@ -85,7 +140,13 @@
 			},
 
 			// Pattern
-			pattern: {},
+			pattern: {
+				'box size': {
+					width: 32,
+					height: 230,
+					depth: 32
+				}
+			},
 
 			// PostEFX
 			postEFX: {
@@ -95,10 +156,15 @@
 				tiltBrightness: 0.65,
 			},
 
-			postprocessing: {},
+			postprocessing: {
+			},
 
 			// Methods
 			'Refresh pattern': function() {
+				this.pattern['box size'].width = 32 + Math.random()*200 - 100;
+				this.pattern['box size'].height = 230 + Math.random()*20 - 10;
+				this.pattern['box size'].depth = 32 + Math.random()*200 - 100;
+
 			 	deleteObjects();
 			 	buildObjects();
 			},
@@ -114,6 +180,7 @@
 					});
 				}).then( () => {
 					this.updateColors();
+					this.postEFX.Effects = false;
 					gui.updateDisplay();
 				});
 			},
@@ -128,15 +195,13 @@
 			}
 		}
 
-
-
 		// Color Data and Start initPaint
 		// -----------------------------------------------------------------------------------
 		fetch( './data/Color.json' ).then( res => {
 			return res.json().then( json => {
-				colorlist = json['Colors']["Fancy"][0];
+				colorlist = json['Colors']['Scifi_Blue'][0];
 				for( var i in colorlist ) {
-					PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[i];
+					PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[i];					
 				}
 			});
 		}).then( () => {
@@ -152,11 +217,6 @@
 			initRenderer(); // Scene | Camera | Renderer
 			initRendererToTexture(); // render texuture with shader
 
-			loadShaderFromFile( './scripts/shaping_01.glsl', function(text) {
-				texture_mat.fragmentShader = text;
-				texture_mat.needsUpdate = true;
-			});
-
 			// 
 			initUIFrameControlPanel();
 			initUIInfoPanel( renderer ); // Div 
@@ -166,6 +226,11 @@
 			buildObjects(); // Meshes | Sprites | Lights | Shaders
 			buildPostEFX(); // Post processings
 			buildControls(); // Dat.gui
+
+			loadShaderFromFile( './scripts/shaping_01.glsl', function(text) {
+				matRTT.fragmentShader = text;
+				matRTT.needsUpdate = true;
+			});
 		};
 
 
@@ -180,20 +245,22 @@
 
 		function initRenderer() {
 			// Camera 
-			camera = new THREE.OrthographicCamera( canvasW / - 2, canvasW / 2, canvasH / 2, canvasH / - 2, 1, 4000 );
+			camera = new THREE.OrthographicCamera( canvasW / - 2, canvasW / 2, canvasH / 2, canvasH / - 2, 0.1, 8000 );
 			// camera = new THREE.PerspectiveCamera( 50, canvasW / canvasH, 1, 10 );
-			camera.position.z = 800;
+			camera.position.x = 2000;
+			camera.position.y = 1200;
+			camera.position.z = 1600;
 
 			// scene
 			scene = new THREE.Scene();
-			scene.background = new THREE.Color( 0x000000 );
-			scene.fog = new THREE.Fog( 0x000000, 900, 1200 );
+			scene.background = new THREE.Color( PaintData.colortheme['color-'+0] );
+			// scene.fog = new THREE.Fog( 0x000000, 900, 1200 );
 
 			// helper
 			var axesHelper = new THREE.AxesHelper( 25 );
-			scene.add( axesHelper );
+			// scene.add( axesHelper );
 			var gridHelper = new THREE.GridHelper( 100, 10 );
-			scene.add( gridHelper );
+			// scene.add( gridHelper );
 
 			// Renderer 
 			renderer = new THREE.WebGLRenderer( { antialias: true, preserveDrawingBuffer: true } );
@@ -235,42 +302,113 @@
 			// canvasMaterial = new THREE.MeshBasicMaterial( {
 			// 	map: new THREE.Texture( drawingcanvas ),
 			// } ); 
-			texture_mat = new THREE.ShaderMaterial( {
+			matRTT = new THREE.ShaderMaterial( {
 				uniforms: { 
 					u_time: { value: 0.0 },
-					u_resolution: { value: new THREE.Vector2( texture_size, texture_size ) }, 
+					u_resolution: { value: new THREE.Vector2( texture_size, texture_size ) },
+					u_color_0: { value: new THREE.Color( PaintData.colortheme['color-'+0] ) },
+					u_color_1: { value: new THREE.Color( PaintData.colortheme['color-'+1] ) },
+					u_color_2: { value: new THREE.Color( PaintData.colortheme['color-'+2] ) },
+					u_color_3: { value: new THREE.Color( PaintData.colortheme['color-'+3] ) },
 				},
 				vertexShader: document.getElementById( 'init_vertex_shader' ).textContent,
 				fragmentShader: document.getElementById( 'init_fragment_shader' ).textContent
 			} );
-			var texture_quad = new THREE.Mesh( new THREE.PlaneBufferGeometry( texture_size, texture_size ), texture_mat );
+			var quadRTT = new THREE.Mesh( new THREE.PlaneBufferGeometry( texture_size, texture_size ), matRTT );
 
-			sceneRTT.add( texture_quad );
+			sceneRTT.add( quadRTT );
 		}
 
 		function buildResources() {
 			// 将可复用的几何体、材质、贴图放在这里
+			rawshaderMat = new THREE.RawShaderMaterial( {
+
+				uniforms: { 
+					u_time: { value: 0.0 },
+					map: { value: rtTexture.texture },
+				},
+
+				vertexShader: document.getElementById( 'vert_scene' ).textContent,
+				fragmentShader: document.getElementById( 'frag_scene' ).textContent
+
+			} );
 		}
 
 		function buildObjects() {
-			
+			// A Sprite Represents the Shader's Behaviour				
+			var spriteMaterial = new THREE.SpriteMaterial( { map: rtTexture.texture } );
+			shader_sprite = new THREE.Sprite( spriteMaterial );
+			shader_sprite.scale.set( 200, 200, 1 );
+			shader_sprite.position.set( -canvasW/2 + 100, -canvasH/2 + 100, 0 );
+			// scene.add( shader_sprite );
+
+			// 基础形态
+			var p = PaintData.pattern['box size'];
+			basic_geo = new THREE.BoxBufferGeometry( p.width, p.height, p.depth );
+
+			// 实例形态
+			instanced_geo = new THREE.InstancedBufferGeometry();
+			instanced_geo.index = basic_geo.index;
+			instanced_geo.attributes.position = basic_geo.attributes.position;
+			instanced_geo.attributes.uv = basic_geo.attributes.uv;
+			instanced_geo.attributes.uv.dynamic = true;
+
+			function modifyUV( index, u, v ) {
+				var array = instanced_geo.attributes.uv.array;
+				array[ index*2+0 ] = u;
+				array[ index*2+1 ] = v;
+			}
+
+			// modifyUV( 11, 2, 1.5 );
+
+			uv_array = instanced_geo.attributes.uv.array;
+
+			var offsets 		= [];
+			var variations 		= [];
+
+			var grid = new Grid( 12, 1, 12, 200, 200, 300 ); //
+
+			for( var i=0; i<grid.totalNum; ++i ) {
+
+				var progress = i/grid.totalNum;
+
+				offsets.push( grid.matrix[i].x, grid.matrix[i].y+Math.sin(progress*Math.PI)*120, grid.matrix[i].z );
+				variations.push( Math.random() );
+			}
+
+			offsetsAttribute = new THREE.InstancedBufferAttribute( new Float32Array( offsets ), 3 );
+			variationsAttribute = new THREE.InstancedBufferAttribute( new Float32Array( variations ), 1 );
+
+			instanced_geo.addAttribute( 'offset', offsetsAttribute );
+			instanced_geo.addAttribute( 'variation', variationsAttribute );
+
+			instanced_geo.attributes.uv.array[1] = 1;
+
+			gridboxes = new THREE.Mesh( instanced_geo, rawshaderMat );
+
+			scene.add( gridboxes );
 		}
 
 		function deleteObjects() {
 			// scene.remove()
 			// dispose geometry | material | texture
+			scene.remove( gridboxes );
 		}
 
 		function buildPostEFX() {
 			var renderPass = new THREE.RenderPass( scene, camera );
-			var effectFilmPass = new THREE.FilmPass( 6, 0.9, 648, false );
+			var tiltShiftPass = new THREE.ShaderPass( THREE.VerticalTiltShiftShader );
+			var effectFilmPass = new THREE.FilmPass( 0.2, 0.2, 1000, false );
 
 			// define which pass is the final pass
-			effectFilmPass.renderToScreen = true;
+			tiltShiftPass.renderToScreen = true;
 
 			composer = new THREE.EffectComposer( renderer );
 			composer.addPass( renderPass );
+			composer.addPass( tiltShiftPass );
 			composer.addPass( effectFilmPass );
+
+			PaintData.postprocessing.tilt = tiltShiftPass;
 		}
 
 		function buildControls() {
@@ -314,6 +452,10 @@
 		}
 
 		function onParamsChange () {
+			PaintData.postprocessing.tilt.uniforms.focusPos.value = PaintData.postEFX.tiltFocus;
+			PaintData.postprocessing.tilt.uniforms.amount.value = PaintData.postEFX.tiltAmount;
+			PaintData.postprocessing.tilt.uniforms.brightness.value = PaintData.postEFX.tiltBrightness;
+
 			camera.updateProjectionMatrix();
 		}
 
@@ -344,12 +486,24 @@
 				if( frame == 314 ) frame = 0;
 			}
 
+			matRTT.uniforms.u_time.value = frame/314;
+			rawshaderMat.uniforms.u_time.value = frame;
+
+			// 
+			var delta = Math.sin( frame/100 );
+			uv_array[8*2+1] 	= delta+0.1;
+			uv_array[9*2+1] 	= delta+0.2;
+			uv_array[10*2+1] 	= delta+0.3;
+			uv_array[11*2+1] 	= delta+0.4;
+			instanced_geo.attributes.uv.needsUpdate = true;
+
+
 			if( PaintData.postEFX.Effects ) {
 				composer.render( 0.1 );
 			}else{
 				// if using RTT texture, then use below
-				// renderer.clear();
-				// renderer.render( sceneRTT, cameraRTT, rtTexture, true );
+				renderer.clear();
+				renderer.render( sceneRTT, cameraRTT, rtTexture, true );
 				renderer.render( scene, camera );
 			}
 		}

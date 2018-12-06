@@ -216,10 +216,10 @@
 		// 创建一个对象，用来封装当前选中的paint的信息
 
 		var CurrentPainterInfo = {
-			name: '',
+			name: 'Colorful Gradients #00',
 			url: '',
 			picurl: '',
-			description: ''
+			description: 'Irregular-flowing colorful shapes'
 		}
 
 
@@ -268,10 +268,8 @@
 		}
 
 		function setIframeInfo() {
-			if( painterview.window.document.getElementById("panel") ) {
-				painterview.window.document.getElementById("info_title").innerHTML = CurrentPainterInfo.name;
-				painterview.window.document.getElementById("info_description").innerHTML = CurrentPainterInfo.description;
-			}
+			painterview.window.document.title = CurrentPainterInfo.name;
+			painterview.window.document.getElementById('description').content = CurrentPainterInfo.description;
 		}
 
 		function selectFile(file) {

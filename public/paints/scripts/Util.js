@@ -44,17 +44,17 @@ function initUIInfoPanel ( renderer ) {
 	var infoTitle = document.createElement('H1');
 	infoTitle.setAttribute('class','info-title');
 	infoTitle.setAttribute('id','info_title');
+	infoTitle.textContent = document.title;
 	// 描述
 	var infoDescription = document.createElement('P');
 	infoDescription.setAttribute('class','info-description');
 	infoDescription.setAttribute('id','info_description');
+	infoDescription.textContent = document.getElementById('description').content;
 
 	var infoWrapper = document.createElement('DIV');
 	infoWrapper.setAttribute('class','info-wrapper');
 	infoWrapper.appendChild(infoTitle);
 	infoWrapper.appendChild(infoDescription);
-
-
 
 	// 操作组 -----------------------------------
 	// 下载功能
