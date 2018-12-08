@@ -31,13 +31,16 @@ function loadShaderFromFile( filename, onLoadShader ) {
 
 }
 
-// 初始化主信息面板，功能包括显示标题、简介，控制下载和刷新
-function initUIInfoPanel ( renderer ) {
+function initUI( renderer ) {
 	renderer.domElement.setAttribute('id','canvas_painter');
-	// canvas_painter.style.height = 
 
+	initUIInfoPanel();
+	initUIControlPanel();
+}
+
+// 初始化主信息面板，功能包括显示标题、简介，控制下载和刷新
+function initUIInfoPanel ( ) {
 	var title = document.title.replace('_',' #');
-
 
 	// 说明信息 -----------------------------------
 	// 主标题
@@ -45,6 +48,13 @@ function initUIInfoPanel ( renderer ) {
 	infoTitle.setAttribute('class','info-title');
 	infoTitle.setAttribute('id','info_title');
 	infoTitle.textContent = document.title;
+	// 作品类别序号
+	var infoSerial = document.createElement('SPAN');
+	infoSerial.setAttribute('class','info-serial');
+	infoSerial.setAttribute('id','info_serial');
+	infoSerial.textContent = document.getElementById('serial').content;
+	infoTitle.appendChild(infoSerial);
+
 	// 描述
 	var infoDescription = document.createElement('P');
 	infoDescription.setAttribute('class','info-description');
@@ -60,7 +70,6 @@ function initUIInfoPanel ( renderer ) {
 	// 下载功能
 	var btn_download = document.createElement('DIV');
 	btn_download.setAttribute('class','btn btn-download');
-	btn_download.innerHTML = '下载';
 	btn_download.addEventListener('click', function(e){
 	    // 基本数据
 	    var _id = new Date().getTime();
@@ -113,7 +122,7 @@ function initUIInfoPanel ( renderer ) {
 	var btnWrapper = document.createElement('DIV');
 	btnWrapper.setAttribute('class','btn-wrapper');
 	btnWrapper.appendChild(btn_download);
-	btnWrapper.appendChild(btn_refresh);
+	// btnWrapper.appendChild(btn_refresh);
 
 
 
@@ -127,35 +136,50 @@ function initUIInfoPanel ( renderer ) {
 	document.getElementsByTagName("body")[0].appendChild(panel);	
 }
 
+function initUIControlPanel() {
+	var resetPattern = document.createElement('DIV');
+	resetPattern.setAttribute('id','reset_pattern');
+	resetPattern.addEventListener('click',function(){
+		PaintData.reset();
+	},false);
 
-function initUIFrameControlPanel() {
+
+
+	// frame controling
 	var frameControlSwitch = document.createElement('INPUT');
 	frameControlSwitch.setAttribute('type','button');
 	frameControlSwitch.setAttribute('id','frame_control_switch');
+	frameControlSwitch.addEventListener('click',function(){
+		frameControlSwitch.classList.toggle('pause');
+	},false);
 
 	var frameControlSlider = document.createElement('INPUT');
 	frameControlSlider.setAttribute('type','range');
 	frameControlSlider.setAttribute('id','frame_control_slider');
-
-	var frameControl = document.createElement('DIV');
-	frameControl.setAttribute('id','frame_control');
-	frameControl.appendChild(frameControlSwitch);
-	frameControl.appendChild(frameControlSlider);
-
-	document.getElementById('container').appendChild(frameControl);	
-
 	frameControlSlider.min = 0;
 	frameControlSlider.max = 100;
-
-	frame_control_switch.addEventListener('click',function(){
+	frameControlSwitch.addEventListener('click',function(){
 		if( isFrameControlling ) {
 			isFrameControlling = false;
 		}else{
 			isFrameControlling = true;
 		}
 	},false);
-}
 
+	var frameControl = document.createElement('DIV');
+	frameControl.setAttribute('id','frame_control');
+	frameControl.appendChild(frameControlSwitch);
+	frameControl.appendChild(frameControlSlider);
+
+
+	// control panel
+	var controlWrapper = document.createElement('DIV');
+	controlWrapper.setAttribute('id','control_wrapper');
+	controlWrapper.appendChild(frameControl);
+	controlWrapper.appendChild(resetPattern);
+
+	document.getElementById('container').appendChild(controlWrapper);	
+}
 
 
 

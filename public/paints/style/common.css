@@ -9,7 +9,7 @@ body {
 	font-family:Monospace;
 	font-size: 0px;
 
-	background-color: #fff;
+	background-color: #000009;
 	margin: 0px;
 	padding: 0px;
 	overflow: hidden;
@@ -22,7 +22,7 @@ body {
 
 
 /*
-主控制面板
+信息面板
 包括：paint标题 | 下载按钮 | 刷新按钮 
 */
 #panel {
@@ -30,6 +30,7 @@ body {
 	margin: 0 auto;
 	width: 900px;
 	height: 120px;
+	border-bottom: 1px dotted rgba( 255, 255, 255, 0.3);
 }
 #panel .info-wrapper {
 	position: relative;
@@ -38,17 +39,35 @@ body {
 	width: 60%;
 }
 #panel .info-wrapper .info-title {
-	margin: 12px 0 6px;
-	color: #112233;
-	font-size: 48px;
-	font-family: 'Helvetica Neue';
+	margin: 22px 0 0px;
+	color: #fff;
+	font-size: 32px;
+	font-family: 'Helvetica Neue', sans-serif;
+	font-weight: 400;
+	line-height: 52px;
+	letter-spacing: 0.2px;
+}
+#panel .info-wrapper .info-serial {
+	display: inline-block;
+	vertical-align: top;
+	margin-top: 13px;
+	margin-left: 10px;
+	padding: 1px 6px;
+	height: 20px;
+	color: #000;
+	font-size: 12px;
 	font-weight: 700;
-	line-height: 64px;
-	letter-spacing: -1.2px;
+	font-family: 'Menlo', sans-serif;
+	line-height: 20px;
+	background-color: #f7ad09;
+	border-radius: 3px;
 }
 #panel .info-wrapper .info-description {
-	color: #556666;
-	font-size: 12px;
+	color: #80808a;
+	font-size: 14px;
+	font-style: italic;
+	font-family: 'Helvetica Neue', sans-serif;
+	letter-spacing: 1.4px;
 }
 
 
@@ -63,16 +82,16 @@ body {
 #panel .btn-wrapper .btn-download {
 	display: inline-block;
 	vertical-align: top;
-	margin-top: 30px;
+	margin-top: 36px;
 	margin-right: 40px;
-	width: 60px;
-	height: 60px;
-	color: #fff;
+	width: 160px;
+	height: 48px;
+	color: #000;
 	font-size: 18px;
-	background-color: #000;
-	border-radius: 30px;
+	background-color: #fff;
+    background-image: url( ../../images/ui/btn_download.png);
+	border-radius: 6px;
 	text-align: center;
-	line-height: 60px;
 }
 
 
@@ -80,26 +99,126 @@ body {
 
 
 
-/* 时间帧控制 */
+/* 控制面板 */
+#control_wrapper {
+	position: absolute;
+	bottom: 24px;
+	left: calc( 50% - 130px );
+	width: 260px;
+	height: 40px;
+	border-radius: 20px;	
+}
+
 #frame_control {
-	position: absolute;
-	bottom: 0;
-	left: 30%;
-	width: 40%;
-	height: 30px;
-	background: #000;
+	display: inline-block;
+	vertical-align: top;
+	position: relative;
+	width: 200px;
+	height: 40px;
+	background-color: rgba( 0, 0, 10, 0.9 );
+	border-radius: 20px;
 }
-#frame_control .slider {
+#frame_control input[type="button"] {
+	-webkit-appearance: none;
+
+	display: block;
 	position: absolute;
-	width: 10px;
-	height: 10px;
-	background-color: #f90;
+	top: 4px;
+	left: 8px;
+	width: 32px;
+	height: 32px;
+	background-color: rgba( 0, 0, 0, 0.1 );
+    background-image: url( ../../images/ui/btn_pause.png);
+    background-size: cover;
+	border-radius: 50%;
+	border: none;
+	outline: none;
+	opacity: 0.9;
+	cursor: pointer;
+}
+#frame_control input[type="button"].pause {
+    background-image: url( ../../images/ui/btn_play.png);
+}
+#frame_control input[type="button"]:hover {
+	opacity: 1.0;
+}
+#frame_control input[type="range"] {   
+    -moz-appearance: none;
+    -webkit-appearance: none;
+
+    display: block;
+    position: absolute;
+    top: 18px;
+    left: calc( 50% - 60px );
+    width: 120px;
+    height: 2px;
+    background-color: #000;
+    border-radius: 15px;
+    outline: none; 
+}
+#frame_control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+
+    top: 1px;
+    height: 27px;
+    width: 1px;
+    background: none repeat scroll 0 0 #fff;
+    border-radius: 12px;
+
+    -webkit-transition: ease 0.4s;
+} 
+#frame_control input[type="range"]::-moz-range-thumb {
+    cursor: default;
+    top: 1px;
+    height: 12px;
+    width: 12px;
+    border: none;
+    outline: none;
+    background: none repeat scroll 0 0 #09e8bb;
+    border-radius: 12px;
+    cursor: pointer;
+    appearance: none;
+    -moz-appearance: none;
+    -moz-transition: ease 0.4s;
+}
+#frame_control input[type="range"]::-moz-range-track {  
+    appearance: none;
+    -moz-appearance: none; 
+    background: none;
+}  
+
+#reset_pattern {
+	display: inline-block;
+	vertical-align: top;
+	margin-left: 20px;
+	width: 40px;
+	height: 40px;
+	background-color: rgba( 0, 0, 10, 1.0 );
+    background-image: url( ../../images/ui/btn_refresh.png);
+    background-size: cover;
+	border-radius: 50%;
+	opacity: 0.9;
+	cursor: pointer;
+}
+#reset_pattern:hover {
+	opacity: 1.0;
 }
 
 
-
-
-
+/* moniter inspector */
+#monitor_panel {
+	display: none;
+}
+#canvas2d_wrapper {
+	position: absolute;
+	top: 0; left: 0;
+	width: 400px;
+	height: 200px;
+}
+#drawingcanvas {
+	/*display: none;*/
+	width: 100%;
+}
 
 
 

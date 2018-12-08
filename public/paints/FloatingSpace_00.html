@@ -3,6 +3,8 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<meta name=”description” id="description" content="">
+	<meta name=”description” id="serial" content="">
 	<title>Pattern::Floating Objects</title>
 
 	<script src="../build/three.js"></script>
@@ -171,10 +173,10 @@
 
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
-			initUIInfoPanel( renderer ); // Div 
-			// initFrameControl();
-			buildObjects(); // Meshes | Sprites | Lights | Shaders
-			// buildPostEFX(); // Post processings
+
+			initUI( renderer ); 
+
+			buildObjects(); 
 			buildControls(); // Dat.gui
 		};
 

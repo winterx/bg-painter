@@ -16,7 +16,7 @@
 			}
 
 			body {
-				background-color: #fff;
+				background-color: #000009;
 				margin: 0px;
 				height: 100%;
 				color: #555;
@@ -34,7 +34,7 @@
 				position: relative;
 				width: 100%;
 				color: #fff;
-				background-color: #000;
+				background-color: #000009;
 				font-size: 32px;
 				font-weight: 100;
 				font-family: 'Helvetica Neue';
@@ -43,9 +43,10 @@
 			.header .logo {
 				display: inline-block;
 				vertical-align: middle;
+				margin: 12px 6px;
 				margin-right: 6px;
-				width: 40px;
-				height: 40px;
+				width: 176px;
+				height: 44px;
 				background-image: url(images/logo.png);
 				background-size: cover;
 			}
@@ -167,7 +168,6 @@
 	<div class="header">
 		<div class="wrapper">
 			<div class="logo"></div>
-			<span class="header-title">Bg-</span><span class="header-title spectial">Painter</span>
 		</div>
 	</div>
 
@@ -216,7 +216,8 @@
 		// 创建一个对象，用来封装当前选中的paint的信息
 
 		var CurrentPainterInfo = {
-			name: 'Colorful Gradients #00',
+			name: 'Colorful Gradient',
+			serial: 'No.1',
 			url: '',
 			picurl: '',
 			description: 'Irregular-flowing colorful shapes'
@@ -243,6 +244,7 @@
 				var targetItem = paints[ id ];
 				// main_title.innerHTML = event.currentTarget.name; 
 				CurrentPainterInfo.name = targetItem.name;
+				CurrentPainterInfo.serial = targetItem.serial;
 				CurrentPainterInfo.url = targetItem.url;
 				CurrentPainterInfo.description = targetItem.description;
 			},false);
@@ -269,6 +271,7 @@
 
 		function setIframeInfo() {
 			painterview.window.document.title = CurrentPainterInfo.name;
+			painterview.window.document.getElementById('serial').content = CurrentPainterInfo.serial;
 			painterview.window.document.getElementById('description').content = CurrentPainterInfo.description;
 		}
 

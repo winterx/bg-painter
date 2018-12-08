@@ -2,18 +2,21 @@ var paints = {
 
 	'ColorGradients_00' : {
 
-		name : 'Colorful Gradients #00',
-		url : 'ColorGradients_00.html',
-		picurl : 'images/color-gradients-00.png',
+		name 		: 'Colorful Gradient',
+		serial		: 'No.1',
+		url 		: 'ColorGradients_00.html',
+		picurl 		: 'images/color-gradients-00.png',
 		description : 'Irregular-flowing colorful shapes'
 
 	},
 
 	'ColorGradients_01' : {
 
-		name : 'Colorful Gradients #01',
-		url : 'ColorGradients_01.html',
-		picurl : 'images/color-gradients-01.png'
+		name 		: 'Colorful Gradient',
+		serial		: 'No.2',
+		url 		: 'ColorGradients_01.html',
+		picurl 		: 'images/color-gradients-01.png',
+		description : 'Irregular-flowing colorful shapes'
 
 	},
 

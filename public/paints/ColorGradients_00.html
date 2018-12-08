@@ -4,11 +4,30 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<meta name=”description” id="description" content="">
-	<title>Pattern::Color Gradients</title>
+	<meta name=”description” id="serial" content="">
+	<title>Color Gradient</title>
 
 	<script src="https://cdn.bootcss.com/lodash.js/4.17.11/lodash.min.js"></script>
 
 	<script src="../build/three.js"></script>
+
+	<script src="../js/shaders/CopyShader.js"></script>
+	<script src="../js/shaders/BokehShader.js"></script>
+	<script src="../js/shaders/FXAAShader.js"></script>
+	<script src="../js/shaders/SMAAShader.js"></script>
+	<script src="../js/shaders/TiltShiftShader.js"></script>
+	<script src="../js/shaders/FilmShader.js"></script>
+	<script src="../js/shaders/ConvolutionShader.js"></script>
+	<script src="../js/shaders/LuminosityHighPassShader.js"></script>
+
+	<script src="../js/postprocessing/EffectComposer.js"></script>
+	<script src="../js/postprocessing/RenderPass.js"></script>
+	<script src="../js/postprocessing/ShaderPass.js"></script>
+	<script src="../js/postprocessing/MaskPass.js"></script>
+	<script src="../js/postprocessing/BokehPass.js"></script>
+	<script src="../js/postprocessing/SMAAPass.js"></script>
+	<script src="../js/postprocessing/FilmPass.js"></script>
+	<script src="../js/postprocessing/UnrealBloomPass.js"></script>
 
 	<script src="../js/Detector.js"></script>
 	<script src="../js/libs/stats.min.js"></script>
@@ -19,43 +38,13 @@
 	<script src="./scripts/Util.js"></script>
 
 	<link rel="stylesheet" type="text/css" href="./style/common.css">
-	<style>
-		#canvas2d_wrapper {
-			position: absolute;
-			top: 0; left: 0;
-			width: 400px;
-			height: 200px;
-		}
-		#drawingcanvas {
-			/*display: none;*/
-			width: 100%;
-		}
-
-
-		#btn_resetColors {
-			position: relative;
-			top: 0;
-			right: 0;
-			width: 200px;
-			height: 30px;
-			background-color: #f30;
-			color: #000;
-		}
-		#btn_resetPattern {
-			position: relative;
-			top: 0;
-			right: 0;
-			width: 200px;
-			height: 30px;
-			background-color: #f90;
-			color: #000;
-		}
-	</style>
 </head>
 <body>
 	<div id="container"></div>
 
-	<div id="canvas2d_wrapper"><canvas id="drawingcanvas" width="1024" height="512" ></canvas></div>
+	<div id="monitor_panel">
+		<div id="canvas2d_wrapper"><canvas id="drawingcanvas" width="1024" height="512" ></canvas></div>
+	</div>
 
 	<script id="vertexShader" type="x-shader/x-vertex">
 		varying vec2 vUv;
@@ -108,6 +97,7 @@
 
 		var camera, scene, renderer, composer, stats, controls, globalColors=[];
 		var cameraRTT, sceneRTT, rtTexture, texture_mat;
+		var	postprocessing = {};
 		var ctx;
 
 		var frame = 0;
@@ -154,12 +144,21 @@
 				}
 			},
 
-			// Objects
-
 			// PostEFX
-			isPostEfxOn: true,
+			postEFX: {
+				Effects: true,
+				tiltFocus: 0.5,
+				tiltAmount: 0.006,
+				tiltBrightness: 0.25,
+			},
 
 			// Methods
+			reset: function () {
+				this.reset2dPattern();
+				this.drawCanvas2d();
+				this.refreshPattern();
+			},
+
 			resetColorScheme: function () {
 				this.colortheme = _.shuffle( this.colortheme );
 			},
@@ -194,6 +193,7 @@
 						});
 					}
 				}
+				this.drawCanvas2d();
 			},
 
 			drawCanvas2d: function() {
@@ -220,7 +220,7 @@
 				}
 			},
 
-			'Refresh pattern': function() {
+			refreshPattern: function() {
 				var index = 0;
 				for( var i=0; i<2; i++ ) {
 		 		for( var j=0; j<2; j++ ) {
@@ -302,12 +302,12 @@
 			PaintData.drawCanvas2d();
 
 			// init UI controls
-			initUIInfoPanel( renderer ); 
-			initUIFrameControlPanel();
+			initUI( renderer ); 
 
 			// build scene and controls
 			buildResources();
 			buildObjects(); 
+			buildPostEFX();
 			buildControls(); 
 		};
 
@@ -341,7 +341,7 @@
 			stats = new Stats();
 
 			// dom 
-			container.appendChild( stats.dom );
+			monitor_panel.appendChild( stats.dom );
 			container.appendChild( renderer.domElement );
 
 			// window
@@ -350,7 +350,6 @@
 
 		function initRendererToTexture() {
 			// camera rendering texture
-
 			cameraRTT = new THREE.OrthographicCamera( canvasW / - 2, canvasW / 2, canvasH / 2, canvasH / - 2, -10000, 10000 );
 			cameraRTT.position.z = 400;
 			
@@ -413,12 +412,26 @@
 			scene.remove(quad);
 		}
 
+		function buildPostEFX() {
+			var renderPass = new THREE.RenderPass( scene, camera );
+			var effect_bloom = new THREE.UnrealBloomPass( new THREE.Vector2( canvasW, canvasH ), 0.2, 0.17, 0.13 );
+
+			// define which pass is the final pass
+			effect_bloom.renderToScreen = true;
+
+			composer = new THREE.EffectComposer( renderer );
+			composer.addPass( renderPass );
+			composer.addPass( effect_bloom );
+		}
+
 		function buildControls() {
-			//init GUI				
-			gui.add( PaintData, 'isPostEfxOn' ).onChange( function (value) {
-				PaintData.isPostEfxOn = value;
+			var folder_effects = gui.addFolder('Brightness Enhance');	
+			folder_effects.close();	
+			folder_effects.add( PaintData.postEFX, 'Effects' ).onChange( function (value) {
+				PaintData.postEFX.Effects = value;
 			});
 
+			//init GUI				
 			gui.addColor( PaintData.colortheme, 'color-0' ).onChange( function (value) {
 				PaintData.colortheme[0] = value;
 				PaintData.drawCanvas2d();
@@ -459,8 +472,7 @@
 				PaintData.drawCanvas2d();
 			});
 
-			gui.add( PaintData, 'Refresh pattern' );
-
+			// gui.add( PaintData, 'reset2dPattern')
 			// gui.add()
 			gui.open();
 		}
@@ -480,7 +492,7 @@
 		}
 
 		function render() {
-
+			// frame control
 			if( !isFrameControlling ) {
 				frame++;
 				frame_control_slider.value = frame*100/314;
@@ -497,13 +509,18 @@
 
 			canvasMaterial.map.needsUpdate = true;
 
-			// render 
-			renderer.clear();
 
+
+			// render 
+			// ------------------------------------------------------------
+			renderer.clear();
 			renderer.render( sceneRTT, cameraRTT, rtTexture, true );
 
-			renderer.render( scene, camera );
-
+			if( PaintData.postEFX.Effects ) {
+				composer.render( 0.1 );
+			}else{
+				renderer.render( scene, camera );
+			}
 		}
 	</script>
 

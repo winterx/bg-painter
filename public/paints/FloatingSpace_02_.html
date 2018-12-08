@@ -4,6 +4,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<meta name=”description” id="description" content="">
+	<meta name=”description” id="serial" content="">
 	<title>Floating Signs</title>
 	
 	<script src="../build/three.js"></script>
@@ -70,15 +71,15 @@
 
 			void main() {
 
-				// vec3 vPosition = position;
-				// vec3 vcV = cross( orientation.xyz, vPosition );
-				// vPosition = vcV * ( 2.0 * orientation.w ) + ( cross( orientation.xyz, vcV ) * 2.0 + vPosition ); 
+				vec3 vPosition = position;
+				vec3 vcV = cross( orientation.xyz, vPosition );
+				vPosition = vcV * ( 2.0 * orientation.w ) + ( cross( orientation.xyz, vcV ) * 2.0 + vPosition ); 
 
 				vUv = uv; 
 
 				// vVariation = variation;
 
-				gl_Position = projectionMatrix * modelViewMatrix * vec4( offset + position, 1.0 ); 
+				gl_Position = projectionMatrix * modelViewMatrix * vec4( offset + vPosition, 1.0 ); 
 
 			}
 		</script>
@@ -130,10 +131,18 @@
 		// Paint Data :: defines the pattern of every paint
 		// -----------------------------------------------------------------------------------
 		var instanced_geo = new THREE.InstancedBufferGeometry();
+		var offsetAttribute, orientationAttribute;
+
+		var lastTime = 0;
+
+		var moveQ = new THREE.Quaternion( 0.5, 0.5, 0.5, 0.0 ).normalize();
+		var tmpQ = new THREE.Quaternion();
+		var currentQ = new THREE.Quaternion();
+
 
 		var PaintData = { 
 			// Colors
-			colorName: 'Luxury_Golden',
+			colorName: 'Highend',
 			colortheme: {
 				'color-0': '#ffffff',
 				'color-1': '#ffffff',
@@ -149,7 +158,7 @@
 				Effects: false,
 				tiltFocus: 0.5,
 				tiltAmount: 0.006,
-				tiltBrightness: 0.65,
+				tiltBrightness: 0.25,
 			},
 
 			// Methods
@@ -208,8 +217,7 @@
 			initRendererToTexture(); // render texuture with shader
 
 			// 
-			initUIFrameControlPanel();
-			initUIInfoPanel( renderer ); // Div 
+			initUI( renderer ); 
 
 			// build scene and controls
 			buildResources(); 
@@ -221,7 +229,6 @@
 				matRTT.fragmentShader = text;
 				matRTT.needsUpdate = true;
 			});
-
 		};
 
 
@@ -238,7 +245,7 @@
 			// Camera 
 			camera = new THREE.OrthographicCamera( canvasW / - 2, canvasW / 2, canvasH / 2, canvasH / - 2, 1, 10000 );
 			// camera = new THREE.PerspectiveCamera( 50, canvasW / canvasH, 1, 10 );
-			camera.position.x = 2000;
+			camera.position.x = 1000;
 			camera.position.y = 1200;
 			camera.position.z = 1600;
 
@@ -317,7 +324,7 @@
 			shader_sprite = new THREE.Sprite( spriteMaterial );
 			shader_sprite.scale.set( 200, 200, 1 );
 			shader_sprite.position.set( 0, 0, 0 );
-			scene.add( shader_sprite );
+			// scene.add( shader_sprite );
 		}
 
 		function buildObjects() {
@@ -350,6 +357,9 @@
 						instanced_geo.attributes.uv 		= child.geometry.attributes.uv;
 
 						var offsets 		= [];
+						var orientations	= [];
+						var vector = new THREE.Vector4();
+						var x, y, z, w;
 
 						var grid = new Grid( 8, 1, 8, 4, 4, 4 ); //
 
@@ -357,15 +367,25 @@
 
 							offsets.push( grid.matrix[i].x, grid.matrix[i].y, grid.matrix[i].z );
 
+							x = Math.random() * 2 - 1;
+							y = Math.random() * 2 - 1;
+							z = Math.random() * 2 - 1;
+							w = Math.random() * 2 - 1;
+
+							vector.set( x, y, z, w ).normalize();
+
+							orientations.push( vector.x, vector.y, vector.z, vector.w );
 						}
 
-						offsetsAttribute = new THREE.InstancedBufferAttribute( new Float32Array( offsets ), 3 );
+						offsetAttribute = new THREE.InstancedBufferAttribute( new Float32Array( offsets ), 3 );
+						orientationAttribute = new THREE.InstancedBufferAttribute( new Float32Array( orientations ), 4 ).setDynamic( true );
 
-						instanced_geo.addAttribute( 'offset', offsetsAttribute );
+						instanced_geo.addAttribute( 'offset', offsetAttribute );
+						instanced_geo.addAttribute( 'orientation', orientationAttribute );
 
 
 						var mesh = new THREE.Mesh( instanced_geo, rawshaderMat );
-						mesh.scale.set( 120, 120, 120 );
+						mesh.scale.set( 90, 90, 90 );
 						scene.add( mesh );
 
 					}
@@ -400,7 +420,7 @@
 			});
 			folder_effects.add( PaintData.postEFX, "tiltFocus", 0, 1, 0.5 ).onChange( onParamsChange ).step(0.05);
 			folder_effects.add( PaintData.postEFX, "tiltAmount", 0, 0.02, 0.005 ).onChange( onParamsChange ).step(0.001);
-			folder_effects.add( PaintData.postEFX, "tiltBrightness", 0, 1, 0.5 ).onChange( onParamsChange ).step(0.02);
+			folder_effects.add( PaintData.postEFX, "tiltBrightness", 0, 1, 0.2 ).onChange( onParamsChange ).step(0.02);
 
 			var folder_colors = gui.addFolder('Color Theme');	
 			folder_colors.open();
@@ -460,6 +480,32 @@
 
 				if( frame == 314 ) frame = 0;
 			}
+
+			var sinTime = Math.sin( frame/100 ); // 0 ~~ 1 ~~ 0 ~~ -1 ~~ 0
+
+			var sinDelta = sinTime/2;
+
+			var sinQ = new THREE.Quaternion( sinDelta, sinDelta+2.2, sinDelta+0.4, 1 ).normalize();
+
+			// specular
+			var time = performance.now();
+			var delta = ( time - lastTime ) / 5000;
+			// var delta = sinDelta;
+			tmpQ.set( moveQ.x * delta, moveQ.y * delta, moveQ.z * delta, 1 ).normalize();
+
+			for ( var i = 0, il = orientationAttribute.count; i < il; i ++ ) {
+
+				currentQ.fromArray( orientationAttribute.array, ( i * 4 ) );
+				currentQ.multiply( tmpQ );
+
+				// orientationAttribute.setXYZW( i, currentQ.x, currentQ.y, currentQ.z, currentQ.w );
+				orientationAttribute.setXYZW( i, sinQ.x, sinQ.y, sinQ.z, sinQ.w );
+			}
+
+			orientationAttribute.needsUpdate = true;
+			lastTime = time;
+
+
 
 			if( PaintData.postEFX.Effects ) {
 				composer.render( 0.1 );

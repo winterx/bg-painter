@@ -3,6 +3,8 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<meta name=”description” id="description" content="">
+	<meta name=”description” id="serial" content="">
 	<title>Floating Hearts</title>
 	
 	<script src="https://cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
@@ -176,7 +178,7 @@
 				texture_mat.fragmentShader = text;
 				texture_mat.needsUpdate = true;
 			});
-			initUIInfoPanel( renderer ); // Div 
+			initUI( renderer ); 
 			buildObjects(); // Meshes | Sprites | Lights | Shaders
 			buildPostEFX(); // Post processings
 			buildControls(); // Dat.gui
