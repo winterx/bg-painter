@@ -118,7 +118,6 @@ function initUIInfoPanel ( ) {
 		refreshPaint();
 	}, false);
 
-
 	var btnWrapper = document.createElement('DIV');
 	btnWrapper.setAttribute('class','btn-wrapper');
 	btnWrapper.appendChild(btn_download);
@@ -137,10 +136,31 @@ function initUIInfoPanel ( ) {
 }
 
 function initUIControlPanel() {
+	// 重建样式
 	var resetPattern = document.createElement('DIV');
 	resetPattern.setAttribute('id','reset_pattern');
+	resetPattern.setAttribute('class','dot-btn');
 	resetPattern.addEventListener('click',function(){
 		PaintData.reset();
+	},false);
+
+	// 随机更换颜色主题
+	var shuffleColor = document.createElement('DIV');
+	shuffleColor.setAttribute('id','shuffle_color');
+	shuffleColor.setAttribute('class','dot-btn');
+	shuffleColor.addEventListener('click',function(){
+		fetch( './data/Color.json' ).then( res => {
+			return res.json().then( json => {
+				var colorlist = json[ 'Colors' ][ 'Wild' ];
+				var random = Math.floor( Math.random() * colorlist.length );
+				for( var i in colorlist[random] ) {
+					PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[random][i];
+				}
+			});
+		}).then( () => {
+			PaintData.updateColors();
+			gui.updateDisplay();
+		});
 	},false);
 
 
@@ -177,6 +197,7 @@ function initUIControlPanel() {
 	controlWrapper.setAttribute('id','control_wrapper');
 	controlWrapper.appendChild(frameControl);
 	controlWrapper.appendChild(resetPattern);
+	controlWrapper.appendChild(shuffleColor);
 
 	document.getElementById('container').appendChild(controlWrapper);	
 }

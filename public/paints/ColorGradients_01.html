@@ -22,6 +22,8 @@
 <body>
 	<div id="container"></div>
 
+	<div id="monitor_panel"></div>
+
 	<script id="vertexShader" type="x-shader/x-vertex">
 
 		varying vec2 vUv;
@@ -134,6 +136,11 @@
 				}
 			},
 
+			// PostEFX
+			postEFX: {
+				Effects: false,
+			},
+
 			// Methods
 			reset: function () {
 				this.refreshPattern();
@@ -168,6 +175,14 @@
 
 			 	deleteObjects();
 			 	buildObjects();
+			},
+
+			updateColors: function () {
+				matRTT.uniforms.u_color_0.value.set( PaintData.colortheme['color-0'] );
+				matRTT.uniforms.u_color_1.value.set( PaintData.colortheme['color-1'] );
+				matRTT.uniforms.u_color_2.value.set( PaintData.colortheme['color-2'] );
+				matRTT.uniforms.u_color_3.value.set( PaintData.colortheme['color-3'] );
+				matRTT.needsUpdate = true;
 			}
 		}
 
@@ -248,12 +263,12 @@
 			// renderer.gammaOutput = true;
 
 			// control and monitor
-			controls = new THREE.OrbitControls( camera, renderer.domElement );
+			// controls = new THREE.OrbitControls( camera, renderer.domElement );
 			gui = new dat.GUI();
 			stats = new Stats();
 
 			// dom 
-			container.appendChild( stats.dom );
+			monitor_panel.appendChild( stats.dom );
 			container.appendChild( renderer.domElement );
 
 			// window
@@ -308,7 +323,7 @@
 			shader_sprite = new THREE.Sprite( spriteMaterial );
 			shader_sprite.scale.set( 200, 200, 1 );
 			shader_sprite.position.set( canvasW/2 - 100, canvasH/2 - 100, 340 );
-			scene.add( shader_sprite );
+			// scene.add( shader_sprite );
 
 			// ---- Step 3 : Morphing the quad by Influence
 			// ----
@@ -400,12 +415,15 @@
 
 
 			// render 
+			// ------------------------------------------------------------
 			renderer.clear();
-
 			renderer.render( sceneRTT, cameraRTT, rtTexture, true );
 
-			renderer.render( scene, camera );
-
+			if( PaintData.postEFX.Effects ) {
+				composer.render( 0.1 );
+			}else{
+				renderer.render( scene, camera );
+			}
 		}
 
 
