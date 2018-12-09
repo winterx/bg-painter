@@ -111,12 +111,12 @@ function initUIInfoPanel ( ) {
 
 
 	// 刷新功能
-	var btn_refresh = document.createElement('DIV');
-	btn_refresh.setAttribute('class','btn btn-download');
-	btn_refresh.innerHTML = '刷新';
-	btn_refresh.addEventListener('click', function (e) {
-		refreshPaint();
-	}, false);
+	// var btn_refresh = document.createElement('DIV');
+	// btn_refresh.setAttribute('class','btn btn-download');
+	// btn_refresh.innerHTML = '刷新';
+	// btn_refresh.addEventListener('click', function (e) {
+	// 	refreshPaint();
+	// }, false);
 
 	var btnWrapper = document.createElement('DIV');
 	btnWrapper.setAttribute('class','btn-wrapper');

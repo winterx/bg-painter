@@ -33,98 +33,55 @@
 </head>
 
 <body>
-	<div id="container">
-		<div id="frame_control">
-			<input type="button" name="" id="frame_control_switch">
-			<input type="range" name="" id="frame_control_slider">
-		</div>
-	</div>
+	<div id="container"></div>
 
-	<div id="canvas2d_wrapper">
-		<canvas class="texture-canvas" id="drawingcanvas_01" width="512" height="512" ></canvas>
-		<canvas class="texture-canvas" id="drawingcanvas_02" width="512" height="512" ></canvas>
-		<canvas class="texture-canvas" id="drawingcanvas_03" width="512" height="512" ></canvas>
-		<!-- <button id="addDraw" onclick="addCanvasDraw()"></button> -->
-	</div>
+	<div id="monitor_panel"></div>
 
-	<script type="text/javascript">
+	<script id="init_vertex_shader" type="x-shader/x-vertex">
+		varying vec2 vUv;
 
-		var canvasgroup = document.getElementsByClassName('texture-canvas');
+		void main() {
 
-		// 
-		var colors = Colors[ Math.floor( Math.random() * Colors.length ) ];
+			vUv = uv;
 
-		// 获取一个canvas的 drawing context
-		var ctx_01 = drawingcanvas_01.getContext( '2d' );
-		var ctx_02 = drawingcanvas_02.getContext( '2d' );
-		var ctx_03 = drawingcanvas_03.getContext( '2d' );
-
-		ctx_01.fillStyle = '#' + colors[1];
-		ctx_01.fillRect( 0, 0, 1024, 512 );
-
-		ctx_02.fillStyle = '#' + colors[2];
-		ctx_02.fillRect( 0, 0, 1024, 512 );
-
-		ctx_03.fillStyle = '#' + colors[3];
-		ctx_03.fillRect( 0, 0, 1024, 512 );
-
-
-		// for( var i=0; i<20; ++i ) {
-
-		// 	var x = Math.random() * 1024;
-		// 	var y = Math.random() * 512;
-		// 	var radius_inner = Math.random() * 50 + 50;
-		// 	var radius_outer = Math.random() * 100 + 400;
-
-		// 	var grd = ctx.createLinearGradient( 0, 0, 1024, 512 );
-
-		// 	var r1 = Math.floor( Math.random()*4 );
-		// 	var r2 = Math.floor( Math.random()*4 );
-		// 	var r3 = Math.floor( Math.random()*4 );
-
-		// 	grd.addColorStop( 0.0, '#' + colors[0] );
-		// 	grd.addColorStop( 0.2, '#' + colors[1] );
-		// 	grd.addColorStop( 0.4, '#' + colors[2] );
-		// 	grd.addColorStop( 0.5, '#' + colors[3] );
-		// 	grd.addColorStop( 0.6, '#' + colors[2] );
-		// 	grd.addColorStop( 0.8, '#' + colors[1] );
-		// 	grd.addColorStop( 1.0, '#' + colors[0] );
-
-
-		// 	ctx.fillStyle = grd;
-		// 	ctx.fillRect( 0, 0, 1024, 512 );
-
-		// }
-
-		function ctxdraw ( ctx ) {
-
-			// bg
-
-			ctx.fillStyle = '#' + colors[r1];
-			ctx.fillRect( 0, 0, 512, 512 );
-
-			// gradient
-
-			var grd = ctx.createLinearGradient( 0, 0, 0, 512 );
-
-			var r1 = Math.floor( Math.random()*3 ) + 1;
-			var r2 = Math.floor( Math.random()*3 ) + 1;
-
-			grd.addColorStop( 0.0, '#' + colors[r1] + 'ff' );
-			// grd.addColorStop( 0.5, '#' + colors[r2] );
-			grd.addColorStop( 1.0, '#' + colors[r2] + 'ff' );
-
-			ctx.fillStyle = grd;
-			ctx.fillRect( 0, 0, 512, 512 );
-
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 
 		}
+	</script>
 
-		ctxdraw( ctx_01 );
-		ctxdraw( ctx_02 );
-		ctxdraw( ctx_03 );
-		
+	<script id="init_fragment_shader" type="x-shader/x-fragment">
+		void main() {
+			gl_FragColor = vec4( 0.0 );
+		}
+	</script>
 
+	<script id="fragment_shader_screen" type="x-shader/x-fragment">
+		precision highp float;
+
+		uniform sampler2D tDiffuse;
+		uniform float u_time;
+
+		varying vec2 vUv;
+
+		const float speed = 15.0;
+		const float magnitude = 0.15;
+
+		void main() {
+
+			vec2 wavyCoord;
+
+			wavyCoord.s = vUv.s + (sin(u_time+vUv.t*speed) * magnitude);
+			wavyCoord.t = vUv.t + (cos(u_time+vUv.s*speed) * magnitude);
+
+			vec4 frameColor = texture2D(tDiffuse, wavyCoord);
+
+			gl_FragColor = frameColor;
+
+
+			// vec4 frameColor = texture2D(tDiffuse, vUv);
+		 //    float luminance = frameColor.r * 0.3 + frameColor.g * 0.59 + frameColor.b * 0.11;
+		 //    gl_FragColor = vec4(luminance, luminance, sin(u_time), frameColor.a);
+		}
 	</script>
 
 	<script>
@@ -133,9 +90,11 @@
 		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 		var camera, scene, renderer, composer, stats, controls, globalColors=[];
+		var cameraRTT, sceneRTT, rtTexture, texture_mat;
+		var ctx;
+
 		var frame = 0;
-		var grid, group;
-		var themeColor = 0xffffff;
+		var isFrameControlling = false;
 
 		var canvasW = window.innerWidth;
 		var canvasH = canvasW > 1400 ? 600 : 480;
@@ -146,24 +105,72 @@
 
 		// Paint Data :: defines the pattern of every paint
 		// -----------------------------------------------------------------------------------
-		var PaintData = { 
-			// Resources
+		var quadRTT, matRTT;
+		var grid, group;
+		var ambientLight, dirLight;
+		var ground_geo, ground_mat;
 
-			// Objects
+		var PaintData = { 
+			// Colors
+			colorName: 'Wild',
+			colortheme: {
+				'color-0': '#ffffff',
+				'color-1': '#ffffff',
+				'color-2': '#ffffff',
+				'color-3': '#ffffff',
+			},
+
+			// Pattern
+			pattern: {
+				useLight: true,
+				boxSize: {
+					width: 30,
+					height: 60,
+					depth: 100
+				}
+			},
 
 			// PostEFX
-			isPostEfxOn: false,
-			tiltFocus: 0.5,
-			tiltAmount: 0.006,
-			tiltBrightness: 0.65,
+			postEFX: {
+				Effects: false,
+			},
+
+			// Methods
+			reset: function () {
+				this.refreshPattern();
+			},
+
+			refreshPattern: function () {
+				var w = Math.random() * 200 + 3;
+				var h = Math.random() * 200 + 6;
+				var d = Math.random() * 300 + 10;
+
+				this.pattern.boxSize.width = w;
+				this.pattern.boxSize.height = h;
+				this.pattern.boxSize.depth = d;
+
+				deleteObjects();
+				buildObjects();
+			},
+
+			updateColors: function() {
+				matRTT.uniforms.u_color_0.value.set( PaintData.colortheme['color-0'] );
+				matRTT.uniforms.u_color_1.value.set( PaintData.colortheme['color-1'] );
+				matRTT.uniforms.u_color_2.value.set( PaintData.colortheme['color-2'] );
+				matRTT.uniforms.u_color_3.value.set( PaintData.colortheme['color-3'] );
+				matRTT.needsUpdate = true;	
+
+				ground_mat.color.set( PaintData.colortheme['color-0'] );
+			}
 		}
 
 		// get Colors and init
 		fetch( './data/Color.json' ).then( res => {
 			return res.json().then( json => {
-				datacolors = json['Color_red'][0].colors;
-				for( var i in datacolors ) {
-					globalColors.push( new THREE.Color( '#'+datacolors[i] ) );
+				var colorlist = json[ 'Colors' ][ 'Wild' ];
+				var random = Math.floor( Math.random() * colorlist.length );
+				for( var i in colorlist[random] ) {
+					PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[random][i];
 				}
 			});
 		}).then( () => {
@@ -173,9 +180,17 @@
 
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
+			initRendererToTexture(); // render texuture with shader, if use RTT texture
+
+			loadShaderFromFile( './scripts/FloatingSpace/color_modify.glsl', function(text) {
+				matRTT.fragmentShader = text;
+				matRTT.needsUpdate = true;
+			})
 
 			initUI( renderer ); 
 
+			// build scene and controls
+			buildResources();
 			buildObjects(); 
 			buildControls(); // Dat.gui
 		};
@@ -191,7 +206,7 @@
 			// scene
 			scene = new THREE.Scene();
 			scene.background = new THREE.Color( globalColors[0] );
-			scene.fog = new THREE.Fog( '#' + colors[0], 1, 2400 );
+			// scene.fog = new THREE.Fog( PaintData.colortheme['color-0'], 1, 1400 );
 
 			// helper
 			var axesHelper = new THREE.AxesHelper( 25 );
@@ -214,28 +229,57 @@
 			stats = new Stats();
 
 			// dom 
-			container.appendChild( stats.dom );
+			monitor_panel.appendChild( stats.dom );
 			container.appendChild( renderer.domElement );
 
 			// window
 			window.addEventListener( 'resize', onWindowResize, false );
 		}
 
-		function buildObjects() {
+		function initRendererToTexture() {
+			// camera rendering texture
+			var texture_size = 400;
 
-			grid = new Grid( 8, 1, 8, 300, 200, 300 );
+			// camera rendering texture
+			cameraRTT = new THREE.OrthographicCamera( texture_size / - 2, texture_size / 2, texture_size / 2, texture_size / - 2, -10000, 10000 );
+			cameraRTT.position.z = 400;
+			
+			sceneRTT = new THREE.Scene(); // scene rendered to texture
 
+			rtTexture = new THREE.WebGLRenderTarget( 
+				texture_size, texture_size, { 
+				minFilter: THREE.LinearFilter, 
+				magFilter: THREE.NearestFilter, 
+				format: THREE.RGBFormat 
+			} ); // render target texture
+
+			
+			matRTT = new THREE.ShaderMaterial( {
+				uniforms: { 
+					u_time: { value: 0.0 },
+					u_resolution: { value: new THREE.Vector2( texture_size, texture_size ) }, 
+					u_color_0: { value: new THREE.Color( PaintData.colortheme['color-'+0] ) },
+					u_color_1: { value: new THREE.Color( PaintData.colortheme['color-'+1] ) },
+					u_color_2: { value: new THREE.Color( PaintData.colortheme['color-'+2] ) },
+					u_color_3: { value: new THREE.Color( PaintData.colortheme['color-'+3] ) },
+				},
+				vertexShader: document.getElementById( 'init_vertex_shader' ).textContent,
+				fragmentShader: document.getElementById( 'init_fragment_shader' ).textContent
+			} );
+
+			quadRTT = new THREE.Mesh( new THREE.PlaneBufferGeometry( texture_size, texture_size ), matRTT );
+
+			sceneRTT.add( quadRTT );
+		}
+
+		function buildResources() {
 			// Lights 
-			var ambientLight = new THREE.AmbientLight( '#ffffff', 1 );
-			scene.add( ambientLight );
-
-			var dirLight = new THREE.DirectionalLight( 0xffffff, 0.3 );
+			ambientLight = new THREE.AmbientLight( '#ffffff', 1 );
+			dirLight = new THREE.DirectionalLight( 0xffffff, 0.3 );
 			dirLight.position.set( -200, 600, 500 );
 			dirLight.castShadow = true;
-
 			dirLight.shadow.mapSize.width = 4096;
 			dirLight.shadow.mapSize.height = 4096;
-
 			dirLight.shadow.camera.near = 0.1;
 			dirLight.shadow.camera.far = 2000;
 			d = 3000;
@@ -243,37 +287,49 @@
 			dirLight.shadow.camera.right = d;
 			dirLight.shadow.camera.top = d;
 			dirLight.shadow.camera.bottom = -d;
-
+			scene.add( ambientLight );
 			scene.add( dirLight );
 
-			var helper = new THREE.CameraHelper( dirLight.shadow.camera );
-			// scene.add( helper );
+			// material
+			realmaterial = new THREE.ShaderMaterial( {
+				uniforms: { 
+					tDiffuse: { value: rtTexture.texture },
+					u_time: { value: 0.0 }
+				},
+				vertexShader: document.getElementById( 'init_vertex_shader' ).textContent,
+				fragmentShader: document.getElementById( 'fragment_shader_screen' ).textContent,
+			} );
 
-			// Material
-			var MaterialGroup = [
-				new THREE.MeshLambertMaterial({ map : new THREE.Texture( drawingcanvas_01 ) }),
-				new THREE.MeshLambertMaterial({ map : new THREE.Texture( drawingcanvas_02 ) }),
-				new THREE.MeshLambertMaterial({ map : new THREE.Texture( drawingcanvas_03 ) }),
+			material = new THREE.MeshPhongMaterial({
+				map: rtTexture.texture
+			})
 
-			];
+			// A Sprite Represents the fragment Shader's image				
+			var spriteMaterial = new THREE.SpriteMaterial( { map: rtTexture.texture } );
+			shader_sprite = new THREE.Sprite( spriteMaterial );
+			shader_sprite.scale.set( 200, 200, 1 );
 
-			for( var i=0; i<3; ++i ) {
 
-				MaterialGroup[i].map.needsUpdate = true;
-				MaterialGroup[i].transparent = true;
-				MaterialGroup[i].side = THREE.DoubleSide;
+			grid = new Grid( 8, 1, 8, 300, 200, 300 );
 
-			}
+			// Ground
+			ground_geo = new THREE.PlaneBufferGeometry( 3000, 3000, 1 );
+			ground_mat = new THREE.MeshLambertMaterial( { color: PaintData.colortheme['color-0'], dithering: true } );
+			ground = new THREE.Mesh( ground_geo, ground_mat );
+			ground.position.y = -10;
+			ground.rotation.x = -Math.PI/2;
+			ground.receiveShadow = true;
+			scene.add( ground );
+		}
 
+		function buildObjects() {
 			group = new THREE.Object3D();
 
+			var p = PaintData.pattern.boxSize;
+
 			for( var i=0; i<grid.totalNum; ++i ) {
-
-				var rand = Math.floor( Math.random() * canvasgroup.length );
-
-				// material.map = new THREE.Texture( canvasgroup[rand] );
-
-				var object = new THREE.Mesh( new THREE.ConeBufferGeometry(  60, 140, 100 ), MaterialGroup[rand] );
+				var object = new THREE.Mesh( new THREE.BoxBufferGeometry(  p.width, p.height, p.depth ), material );
+				// var object = new THREE.Mesh( new THREE.ConeBufferGeometry(  20, 60, 100 ), new THREE.MeshNormalMaterial() );
 				object.rotation.y = Math.PI;
 				object.position.set( grid.matrix[i].x, grid.matrix[i].y, grid.matrix[i].z );
 				object.castShadow = true;
@@ -281,23 +337,34 @@
 			}
 
 			scene.add(group);
+		}
 
-
-			// Ground
-			var ground_geo = new THREE.PlaneBufferGeometry( 3000, 3000, 1 );
-			// var ground_mat = new THREE.MeshBasicMaterial( { color: 0xacacac	} );
-			var ground_mat = new THREE.MeshLambertMaterial( { color: '#'+colors[0], dithering: true } );
-			ground = new THREE.Mesh( ground_geo, ground_mat );
-			ground.position.y = -80;
-			ground.rotation.x = -Math.PI/2;
-			ground.receiveShadow = true;
-			scene.add( ground );
+		function deleteObjects() {
+			// clear scene
+			scene.remove(group);
 		}
 
 		function buildControls() {
 			//init GUI				
-			gui.add( PaintData, 'isPostEfxOn' ).onChange( function (value) {
-				PaintData.isPostEfxOn = value;
+			gui.addColor( PaintData.colortheme, 'color-0' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-0'] = value;
+				matRTT.uniforms.u_color_0.value = new THREE.Color( PaintData.colortheme['color-'+0] ) ;
+				ground_mat.color.set( PaintData.colortheme['color-0'] );
+			});
+
+			gui.addColor( PaintData.colortheme, 'color-1' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-1'] = value;
+				matRTT.uniforms.u_color_1.value = new THREE.Color( PaintData.colortheme['color-'+1] ) ;
+			});
+
+			gui.addColor( PaintData.colortheme, 'color-2' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-2'] = value;
+				matRTT.uniforms.u_color_2.value = new THREE.Color( PaintData.colortheme['color-'+2] ) ;
+			});
+
+			gui.addColor( PaintData.colortheme, 'color-3' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-3'] = value;
+				matRTT.uniforms.u_color_3.value = new THREE.Color( PaintData.colortheme['color-'+3] ) ;
 			});
 
 			gui.open();
@@ -329,8 +396,12 @@
 
 		function render() {
 
-			// var frame = Date.now() * 0.001;
-			frame++;
+			if( !isFrameControlling ) {
+				frame++;
+				frame_control_slider.value = frame*100/314;
+
+				if( frame == 314 ) frame = 0;
+			}
 
 			// camera.position.x = Math.cos( frame ) * 800;
 			// camera.position.z = Math.sin( frame ) * 800;
@@ -352,7 +423,7 @@
 
 			for( var i=0; i<group.children.length; ++i ) {
 
-				group.children[i].position.y = Math.abs( Math.sin( (frame + i)/20 ) * 140 );
+				group.children[i].position.y = Math.abs( Math.sin( (frame + i)/20 ) * 40 );
 
 				// group.children[i].rotation.x = Math.sin( (frame + i)/130 )*1;
 				// group.children[i].rotation.y = Math.cos( (frame + i)/30 )*1;
@@ -362,8 +433,16 @@
 				// group.children[i].scale.y = Math.cos( (frame + i)/50 ) + 1;
 			}
 
+			// render 
+			// ------------------------------------------------------------
+			renderer.clear();
+			renderer.render( sceneRTT, cameraRTT, rtTexture, true );
 
-			renderer.render( scene, camera );
+			if( PaintData.postEFX.Effects ) {
+				composer.render( 0.1 );
+			}else{
+				renderer.render( scene, camera );
+			}
 
 		}
 

@@ -96,7 +96,7 @@
 		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 		var camera, scene, renderer, composer, stats, controls, globalColors=[];
-		var cameraRTT, sceneRTT, rtTexture, texture_mat;
+		var cameraRTT, sceneRTT, rtTexture;
 		var	postprocessing = {};
 		var ctx;
 
@@ -112,7 +112,7 @@
 
 		// Paint Data :: defines the pattern of every paint
 		// -----------------------------------------------------------------------------------
-		var quadRTT, quad_geo, quad_mat, quad;
+		var quadRTT, matRTT, quad_geo, quad_mat, quad;
 
 		var PaintData = { 
 			// Colors
@@ -363,10 +363,10 @@
 			} ); // render target texture
 
 			// things on the texture
-			canvasMaterial = new THREE.MeshBasicMaterial( {
+			matRTT = new THREE.MeshBasicMaterial( {
 				map: new THREE.Texture( drawingcanvas ),
 			} ); 
-			quadRTT = new THREE.Mesh( new THREE.PlaneBufferGeometry( canvasW, canvasH ), canvasMaterial );
+			quadRTT = new THREE.Mesh( new THREE.PlaneBufferGeometry( canvasW, canvasH ), matRTT );
 
 			sceneRTT.add( quadRTT );
 		}
@@ -507,7 +507,7 @@
 
 			quad_geo.verticesNeedUpdate = true;
 
-			canvasMaterial.map.needsUpdate = true;
+			matRTT.map.needsUpdate = true;
 
 
 

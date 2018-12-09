@@ -24,7 +24,7 @@
 
 	<div id="monitor_panel"></div>
 
-	<script id="vertexShader" type="x-shader/x-vertex">
+	<script id="init_vertex_shader" type="x-shader/x-vertex">
 
 		varying vec2 vUv;
 
@@ -39,7 +39,7 @@
 		}
 	</script>
 
-	<script id="fragment_shader_init" type="x-shader/x-fragment">
+	<script id="init_fragment_shader" type="x-shader/x-fragment">
 
 		void main() {
 
@@ -100,7 +100,8 @@
 
 		// Paint Data :: defines the pattern of every paint
 		// -----------------------------------------------------------------------------------
-		var quadRTT, matRTT, quad_geo, quad_mat, quad;
+		var quadRTT, matRTT;
+		var quad_geo, quad_mat, quad;
 
 		var PaintData = { 
 			// Colors
@@ -189,7 +190,6 @@
 		// get Colors and init
 		fetch( './data/Color.json' ).then( res => {
 			return res.json().then( json => {
-
 				var colorlist = json[ 'Colors' ][ 'Wild' ];
 				var random = Math.floor( Math.random() * colorlist.length );
 				for( var i in colorlist[random] ) {
@@ -220,23 +220,6 @@
 			buildObjects(); 
 			buildControls(); 
 		};
-
-		function buildResources() {
-			// material
-			quad_mat = new THREE.ShaderMaterial( {
-
-				uniforms: { 
-					tDiffuse: { value: rtTexture.texture },
-					u_time: { value: 0.0 }
-				},
-				vertexShader: document.getElementById( 'vertexShader' ).textContent,
-				fragmentShader: document.getElementById( 'fragment_shader_screen' ).textContent,
-
-				depthWrite: false,
-				side: THREE.DoubleSide,
-				// wireframe: true
-			} );
-		}
 
 		function initRenderer() {
 			// Camera 
@@ -292,7 +275,6 @@
 			} ); // render target texture
 
 			matRTT = new THREE.ShaderMaterial( {
-
 				uniforms: { 
 					u_time: { value: 0.0 },
 					u_resolution: { value: new THREE.Vector2( texture_size, texture_size ) }, 
@@ -301,13 +283,30 @@
 					u_color_2: { value: new THREE.Color( PaintData.colortheme['color-'+2] ) },
 					u_color_3: { value: new THREE.Color( PaintData.colortheme['color-'+3] ) },
 				},
-				vertexShader: document.getElementById( 'vertexShader' ).textContent,
-				fragmentShader: document.getElementById( 'fragment_shader_init' ).textContent
+				vertexShader: document.getElementById( 'init_vertex_shader' ).textContent,
+				fragmentShader: document.getElementById( 'init_fragment_shader' ).textContent
 			} );
 
 			quadRTT = new THREE.Mesh( new THREE.PlaneBufferGeometry( texture_size, texture_size ), matRTT );
 
 			sceneRTT.add( quadRTT );
+		}
+
+		function buildResources() {
+			// material
+			quad_mat = new THREE.ShaderMaterial( {
+
+				uniforms: { 
+					tDiffuse: { value: rtTexture.texture },
+					u_time: { value: 0.0 }
+				},
+				vertexShader: document.getElementById( 'init_vertex_shader' ).textContent,
+				fragmentShader: document.getElementById( 'fragment_shader_screen' ).textContent,
+
+				depthWrite: false,
+				side: THREE.DoubleSide,
+				// wireframe: true
+			} );
 		}
 
 		function buildObjects() {
