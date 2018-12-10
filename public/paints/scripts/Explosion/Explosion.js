@@ -1,8 +1,9 @@
-var Explosion = function( size, instances, bounding, globalColors ) {
+var Explosion = function( size, instances, bounding, colortheme ) {
 	this.instances = instances;
 	this.size = size;
 	this.bounding = bounding;
-	this.globalColors = globalColors;
+	this.colortheme = colortheme;
+	this.colorsArr = [];
 };
 
 Explosion.prototype.make = function() {
@@ -19,6 +20,11 @@ Explosion.prototype.make = function() {
 
 	var vector = new THREE.Vector4();
 
+	// make colors in THREE.js way
+	for( var key in this.colortheme ) {
+		this.colorsArr.push( new THREE.Color( this.colortheme[key] ) );
+	}
+
 	for( var i =0; i<this.instances; i++ ) {
 
 		// offsets
@@ -29,7 +35,7 @@ Explosion.prototype.make = function() {
 
 		// colors.push( Math.random(), Math.random(), Math.random(), Math.random() );
 		var index = i%6;
-		colors.push( this.globalColors[index].r, this.globalColors[index].g, this.globalColors[index].b, 1.0 );
+		colors.push( this.colorsArr[index].r, this.colorsArr[index].g, this.colorsArr[index].b, 1.0 );
 
 		// orientation start
 

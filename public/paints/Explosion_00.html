@@ -15,22 +15,26 @@
 	<script src="../js/controls/OrbitControls.js"></script>
 
 	<!-- post processing EFX -->
-	<script src="../js/postprocessing/EffectComposer.js"></script>
-	<script src="../js/postprocessing/RenderPass.js"></script>
-	<script src="../js/postprocessing/MaskPass.js"></script>
-	<script src="../js/postprocessing/ShaderPass.js"></script>
-	<script src="../js/postprocessing/UnrealBloomPass.js"></script>
 	<script src="../js/shaders/CopyShader.js"></script>
 	<script src="../js/shaders/FXAAShader.js"></script>
 	<script src="../js/shaders/ConvolutionShader.js"></script>
 	<script src="../js/shaders/LuminosityHighPassShader.js"></script>
 
+	<script src="../js/postprocessing/EffectComposer.js"></script>
+	<script src="../js/postprocessing/RenderPass.js"></script>
+	<script src="../js/postprocessing/MaskPass.js"></script>
+	<script src="../js/postprocessing/ShaderPass.js"></script>
+	<script src="../js/postprocessing/UnrealBloomPass.js"></script>
+
+	<script src="./scripts/Util.js"></script>
+	<script src="./scripts/Explosion/Explosion.js"></script>
+
 	<link rel="stylesheet" type="text/css" href="./style/common.css">
 </head>
 <body>
 	<div id="container"></div>
-	<script src="./scripts/Util.js"></script>
-	<script src="./scripts/Explosion/Explosion.js"></script>
+
+	<div id="monitor_panel"></div>
 
 	<script type="x-shader/x-vertex" id="vertexShader">
 		precision highp float;
@@ -80,148 +84,217 @@
 			// color.r += sin( vPosition.x * 100.0 + time ) * 0.5;
 
 			gl_FragColor = color;
-
 		}
 	</script>
 
 	<script>
+		// Common Template :: 
+		// -----------------------------------------------------------------------------------
+			
 		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-		var camera, scene, renderer, composer, stats, gui, controls;
+		var camera, scene, renderer, composer, stats, controls, globalColors=[];
+		var cameraRTT, sceneRTT, rtTexture, quadRTT, matRTT, quad_geo, quad_mat, quad;
+		var	postprocessing = {};
+		var ctx;
+
+		var canvasW = window.innerWidth;
+		var canvasH = canvasW > 1400 ? 600 : 480;
+		var canvasD = 500;
+		var GLOBAL_SIZE_FACTOR = canvasW/1400;
+		var GLOBAL_SIZE_BOUNDING = canvasW/2;
+
 		var frame = 0;
-
-		var params = {
-			exposure: 0.9,
-			bloomStrength: 0.25,
-			bloomRadius: 0.67,
-			bloomThreshold: 0.43,
-			onPostProcess: true,
-		};
-
-		var globalColors = [];
+		var isFrameControlling = false;
 
 
+		// Paint Data :: defines the pattern of every paint
+		// -----------------------------------------------------------------------------------
+		var sphereGeo, colorMaterials = [], group;
+		var PaintData = { 
+			// Colors
+			colorName: 'Fantasy',
+			colortheme: {
+				'color-0': '#ffffff',
+				'color-1': '#ffffff',
+				'color-2': '#ffffff',
+				'color-3': '#ffffff',
+				'color-4': '#ffffff',
+				'color-5': '#ffffff',
+			},
 
+			// Pattern
+			pattern: {},
 
+			// PostEFX
+			postEFX: {
+				effects: true,
+				bloomStrength: 0.9,
+				bloomRadius: 0.67,
+				bloomThreshold: 0.2
+			},
+
+			// Controls
+			options: {
+				canColorShuffle: false,
+				canEffectsToggle: false
+			},
+
+			// Methods
+			reset: function() {
+			 	deleteObjects();
+			 	buildObjects();
+			},
+
+			updateColors: function () {
+			}
+		}
+
+		// Color Data and Start initPaint
+		// -----------------------------------------------------------------------------------
 		fetch( './data/Color.json' ).then( res => {
 			return res.json().then( json => {
-				colors = json['Color_fantasy'][0].colors;
-				for( var i in colors ) {
-					var color = new THREE.Color( '#' + colors[i] );
-					globalColors.push(color);
+				colorlist = json['Colors']['Fantasy'][0];
+				for( var i in colorlist ) {
+					PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[i];
 				}
 			});
 		}).then( () => {
-			init();
-			buildGui();
+			initPaint();
 			animate();
 		});
 
-		function init() {
-			var w = window.innerWidth;
-			var h = window.innerHeight;
-			var d = 100;
-			var GLOBAL_SIZE_FACTOR = w/1400;
-			var bounding = w/2;
+		function initPaint() {
+			initRenderer(); // Scene | Camera | Renderer
 
+			initUI( renderer ); 
+
+			buildResources(); 
+			buildObjects(); // Meshes | Sprites | Lights | Shaders
+			buildPostEFX(); // Post processings
+			buildControls(); // Dat.gui
+		};
+
+		function initRenderer() {
 			// Camera and Scene 
 			// -----------------------------------------------------------------------------------
-			camera = new THREE.OrthographicCamera( w / - 2, w / 2, h / 2, h / - 2, 0.01, 2000 );
+			camera = new THREE.OrthographicCamera( canvasW / - 2, canvasW / 2, canvasH / 2, canvasH / - 2, 0.01, 2000 );
 			// camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
-			camera.position.z = 100;
+			camera.position.z = 800;
 
 			scene = new THREE.Scene();
 			scene.background = new THREE.Color( 0x000000 );
 			// scene.fog = new THREE.Fog( 0x000000, 900, 1200 );
 
+			
+			// Renderer -----------------------------------------------------------------------------------
+			renderer = new THREE.WebGLRenderer( { antialias: true } );
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( canvasW, canvasH );
+			// renderer.gammaInput = true
+			// renderer.gammaOutput = true;
+
+			// Stats / Gui / Controls -----------------------------------------------------------------------------------
+			controls = new THREE.OrbitControls( camera, renderer.domElement );
+			stats = new Stats();
 
 
-			// Meshes and Sprites
-			// -----------------------------------------------------------------------------------
-			var explosion_0 = new Explosion( 14 * GLOBAL_SIZE_FACTOR, 40, bounding, globalColors ).make();
-			scene.add( explosion_0 );
+			// Dom Manipulation -----------------------------------------------------------------------------------
+			monitor_panel.appendChild( stats.dom );
+			container.appendChild( renderer.domElement );
 
-			var explosion_1 = new Explosion( 8 * GLOBAL_SIZE_FACTOR, 200, bounding, globalColors ).make();
-			scene.add( explosion_1 );
+			window.addEventListener( 'resize', onWindowResize, false ); 
+		}
 
-			var explosion_2 = new Explosion( 3 * GLOBAL_SIZE_FACTOR, 800, bounding, globalColors ).make();
-			scene.add( explosion_2 );
-
-
-
-			// Decrating Meshes
-			var textureLoader = new THREE.TextureLoader();
-
+		function buildResources() {
 			// Spheres -----------------------------------------------
-			light = new THREE.HemisphereLight( globalColors[0].getHex(), globalColors[1].getHex(), 2.0 );
+			light = new THREE.HemisphereLight( PaintData.colortheme['color-0'], PaintData.colortheme['color-1'], 2.0 );
 			light.position.set( 0, 100, 0 );
-			scene.add( light );
+			scene.add( light );	
 
-			var sphereGeo = new THREE.SphereBufferGeometry( 20, 32, 32 );
-			for( var i=0; i<30; ++i ) {
+			sphereGeo = new THREE.SphereBufferGeometry( 20, 32, 32 );
 
+			colorMaterials = [];
+
+			for( var i=0,il=6; i<il; i++ ) {
 				var sphereMat = new THREE.MeshPhongMaterial({
-					color: globalColors[i%6].getHex(),
+					color: PaintData.colortheme['color-'+i],
 					blending: THREE.AdditiveBlending,
 					transparent: true,
 					opacity: 0.7
 				});
-				var sphere = new THREE.Mesh( sphereGeo, sphereMat );
 
-				sphere.position.copy( randomWithinScreen(w,h,d) );
+				colorMaterials.push(sphereMat);
+			}
+		}
+
+		function buildObjects() {
+			group = new THREE.Object3D();
+
+			var explosion_0 = new Explosion( 14 * GLOBAL_SIZE_FACTOR, 40, GLOBAL_SIZE_BOUNDING, PaintData.colortheme ).make();
+			group.add( explosion_0 );
+
+			var explosion_1 = new Explosion( 8 * GLOBAL_SIZE_FACTOR, 200, GLOBAL_SIZE_BOUNDING, PaintData.colortheme ).make();
+			group.add( explosion_1 );
+
+			var explosion_2 = new Explosion( 3 * GLOBAL_SIZE_FACTOR, 800, GLOBAL_SIZE_BOUNDING, PaintData.colortheme ).make();
+			group.add( explosion_2 );
+
+
+			for( var i=0; i<30; ++i ) {		
+				var sphere = new THREE.Mesh( sphereGeo, colorMaterials[i%6] );
+
+				sphere.position.copy( randomWithinScreen( canvasW, canvasH, canvasD ) );
 
 				var scaleFactor = Math.random()*2.0;
 				sphere.scale.set( scaleFactor, scaleFactor, scaleFactor );
-				scene.add( sphere );
+				group.add( sphere );
 			}
 
+			scene.add( group );
+		}
 
+		function deleteObjects() {
+			scene.remove( group );
+		}
 
-
-
-			// ============= ============= ============= ============= ============= ============= =============
-			// Renderer -----------------------------------------------------------------------------------
-			renderer = new THREE.WebGLRenderer( { antialias: true } );
-			renderer.setPixelRatio( window.devicePixelRatio );
-			renderer.setSize( window.innerWidth, window.innerHeight );
-			// renderer.gammaInput = true
-			// renderer.gammaOutput = true;
-
-
-
-			// Post-processing EFX -----------------------------------------------------------------------------------
+		function buildPostEFX() {
 			effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
-			effectFXAA.uniforms[ 'resolution' ].value.set( 1 / window.innerWidth, 1 / window.innerHeight );
+			effectFXAA.uniforms[ 'resolution' ].value.set( 1 / canvasW, 1 / canvasH );
 
-			effect_bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 0.4, 0.67, 0.43 ); 
+			effect_bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( canvasW, canvasH ), 0.9, 0.67, 0.2 ); 
 			effect_bloomPass.renderToScreen = true;
 
 			composer = new THREE.EffectComposer( renderer );
 			composer.addPass( new THREE.RenderPass( scene, camera ) );
 			composer.addPass( effectFXAA );
 			composer.addPass( effect_bloomPass );
+		}
 
-			// Stats / Gui / Controls -----------------------------------------------------------------------------------
-			stats = new Stats();
-			controls = new THREE.OrbitControls( camera, renderer.domElement );
+		function buildControls() {
+			// gui = new dat.GUI();
 
+			// gui.add( PaintData.postEFX, 'bloomStrength', 0.0, 3.0 ).onChange( function (value) {
+			// 	effect_bloomPass.strength = Number(value);
+			// });
 
+			// gui.add( PaintData.postEFX, 'bloomRadius', 0.0, 1.0 ).onChange( function (value) {
+			// 	effect_bloomPass.radius = Number(value);
+			// });
 
-			// Dom Manipulation -----------------------------------------------------------------------------------
-			var container = document.getElementById( 'container' );
-			container.appendChild( stats.dom );
-			container.appendChild( renderer.domElement );
+			// gui.add( PaintData.postEFX, 'bloomThreshold', 0.0, 1.0 ).onChange( function(value){
+			// 	effect_bloomPass.threshold = Number(value);
+			// });
 
-			window.addEventListener( 'resize', onWindowResize, false ); 
+			// gui.open();
 		}
 
 		function onWindowResize() {
 
-			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.aspect = canvasW / canvasH;
 			camera.updateProjectionMatrix();
 
-			renderer.setSize( window.innerWidth, window.innerHeight );
-
+			renderer.setSize( canvasW, canvasH );
 		}
 
 		function animate() {
@@ -230,49 +303,32 @@
 
 			render();
 			stats.update();
-
 		}
 
 		function render() {
+			// frame control 
+			// ------------------------------------------------------------
+			if( !isFrameControlling ) {
+				// frame: 0 ~ 314
+				frame++;
+				// frame_slider: 0 ~ 100
+				frame_control_slider.value = frame*100/3140;
+				// sin frame: 0 ~ 1 ~ 0 ~ -1 ~ 0
+				sinframe = frame/500;
 
-			var time = performance.now();
+				if( frame == 3140 ) frame = 0;
+			}
 
-			var object = scene.children[ 1 ];
+			group.rotation.y = sinframe/10;
+			group.rotation.x = sinframe /10;
+			group.rotation.z = -sinframe /10;
 
-			// object.rotation.y = time * 0.0005;
-			// object.material.uniforms.time.value = time * 0.005;
-			// object.material.uniforms.sineTime.value = Math.sin( object.material.uniforms.time.value * 0.05 );
-
-			if( params.onPostProcess ) {
+			if( PaintData.postEFX.effects ) {
 				composer.render();
 			}else{
 				renderer.render( scene, camera );
 			}
 
-		}
-
-		function buildGui() {
-			gui = new dat.GUI();
-
-			gui.add( params, 'exposure', 0.1, 2 );
-
-			gui.add( params, 'bloomStrength', 0.0, 3.0 ).onChange( function (value) {
-				effect_bloomPass.strength = Number(value);
-			});
-
-			gui.add( params, 'bloomRadius', 0.0, 1.0 ).onChange( function (value) {
-				effect_bloomPass.radius = Number(value);
-			});
-
-			gui.add( params, 'bloomThreshold', 0.0, 1.0 ).onChange( function(value){
-				effect_bloomPass.threshold = Number(value);
-			});
-
-			gui.add( params, 'onPostProcess' ).onChange( function (value) {
-				params.onPostProcess = value;
-			})
-
-			gui.open();
 		}
 	</script>
 </body>

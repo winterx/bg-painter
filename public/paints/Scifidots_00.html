@@ -39,6 +39,8 @@
 <body>
 	<div id="container"></div>
 
+	<div id="monitor_panel"></div>
+
 	<script id="init_vertex_shader" type="x-shader/x-vertex">
 		// varying vec2 vUv;
 		void main() {
@@ -107,28 +109,14 @@
 
 			// Controls
 			options: {
-				canColorShuffle: false
+				canColorShuffle: false,
+				canEffectsToggle: false
 			},
 
 			// Methods
-			'Refresh pattern': function() {
+			reset: function() {
 			 	deleteObjects();
 			 	buildObjects();
-			},
-
-			'Shuffle colors': function() {
-				fetch( './data/Color.json' ).then( res => {
-					return res.json().then( json => {
-						var colorlist = json[ 'Colors' ][ 'Wild' ];
-						var random = Math.floor( Math.random() * colorlist.length );
-						for( var i in colorlist[random] ) {
-							PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[random][i];
-						}
-					});
-				}).then( () => {
-					this.updateColors();
-					gui.updateDisplay();
-				});
 			},
 
 			updateColors: function () {
@@ -210,11 +198,11 @@
 
 			// control and monitor
 			controls = new THREE.OrbitControls( camera, renderer.domElement );
-			gui = new dat.GUI();
+			// gui = new dat.GUI();
 			stats = new Stats();
 
 			// dom 
-			container.appendChild( stats.dom );
+			monitor_panel.appendChild( stats.dom );
 			container.appendChild( renderer.domElement );
 
 			// window
@@ -340,8 +328,9 @@
 		}
 
 		function deleteObjects() {
-			// scene.remove()
-			// dispose geometry | material | texture
+			for( var i = scene.children.length - 1; i >= 0; i--) { 
+				scene.remove( scene.children[i] );
+			}
 		}
 
 		function buildPostEFX() {
@@ -365,67 +354,39 @@
 		}
 
 		function buildControls() {
-			gui.width = 300;
+			// post processing effects -------------------------------
+			// var folder_effects = gui.addFolder('Post effects');	
+			// folder_effects.open();	
+			// folder_effects.add( PaintData.postEFX, 'effects' ).onChange( function (value) {
+			// 	PaintData.postEFX.effects = value;
+			// });
+			// folder_effects.add( PaintData.postEFX, "tiltFocus", 0, 1, 0.5 ).onChange( onParamsChange ).step(0.05);
+			// folder_effects.add( PaintData.postEFX, "tiltAmount", 0, 0.02, 0.005 ).onChange( onParamsChange ).step(0.001);
+			// folder_effects.add( PaintData.postEFX, "tiltBrightness", 0, 1, 0.5 ).onChange( onParamsChange ).step(0.02);
 
-			// post processing effects
-			var folder_effects = gui.addFolder('Post effects');	
-			folder_effects.open();	
-			folder_effects.add( PaintData.postEFX, 'effects' ).onChange( function (value) {
-				PaintData.postEFX.effects = value;
-			});
-			folder_effects.add( PaintData.postEFX, "tiltFocus", 0, 1, 0.5 ).onChange( onParamsChange ).step(0.05);
-			folder_effects.add( PaintData.postEFX, "tiltAmount", 0, 0.02, 0.005 ).onChange( onParamsChange ).step(0.001);
-			folder_effects.add( PaintData.postEFX, "tiltBrightness", 0, 1, 0.5 ).onChange( onParamsChange ).step(0.02);
+			// colors modification -------------------------------
+			// var folder_colors = gui.addFolder('Color Theme');	
+			// folder_colors.open();
+			// folder_colors.addColor( PaintData.colortheme, 'color-0' ).onFinishChange( function (value) {
+			// 	PaintData.colortheme['color-0'] = value;
+			// 	PaintData.updateColors();
+			// });
+			// folder_colors.addColor( PaintData.colortheme, 'color-1' ).onFinishChange( function (value) {
+			// 	PaintData.colortheme['color-1'] = value;
+			// 	PaintData.updateColors();
+			// });
+			// folder_colors.addColor( PaintData.colortheme, 'color-2' ).onFinishChange( function (value) {
+			// 	PaintData.colortheme['color-2'] = value;
+			// 	PaintData.updateColors();
+			// });
+			// folder_colors.addColor( PaintData.colortheme, 'color-3' ).onFinishChange( function (value) {
+			// 	PaintData.colortheme['color-3'] = value;
+			// 	PaintData.updateColors();
+			// });
 
-			// colors modification
-			var folder_colors = gui.addFolder('Color Theme');	
-			folder_colors.open();
-			folder_colors.addColor( PaintData.colortheme, 'color-0' ).onFinishChange( function (value) {
-				PaintData.colortheme['color-0'] = value;
-				PaintData.updateColors();
-			});
-			folder_colors.addColor( PaintData.colortheme, 'color-1' ).onFinishChange( function (value) {
-				PaintData.colortheme['color-1'] = value;
-				PaintData.updateColors();
-			});
-			folder_colors.addColor( PaintData.colortheme, 'color-2' ).onFinishChange( function (value) {
-				PaintData.colortheme['color-2'] = value;
-				PaintData.updateColors();
-			});
-			folder_colors.addColor( PaintData.colortheme, 'color-3' ).onFinishChange( function (value) {
-				PaintData.colortheme['color-3'] = value;
-				PaintData.updateColors();
-			});
-
-			// fog modification
-			var folder_fog = gui.addFolder('Fog');	
-			folder_fog.open();	
-
-			folder_fog.add( PaintData.pattern.fog, 'near', 0, 600, 400 ).onChange( function (value) {
-				PaintData.pattern.fog.near = value;
-				// scene.fog.needsUpdate = true;
-			scene.fog = new THREE.Fog( PaintData.colortheme['color-0'], PaintData.pattern.fog.near, PaintData.pattern.fog.far );
-			}).step(20);
-
-			folder_fog.add( PaintData.pattern.fog, 'far', 220, 600, 400 ).onChange( function (value) {
-				PaintData.pattern.fog.far = value;
-				scene.fog.needsUpdate = true;
-			}).step(20);
-
-
-			// randomize
-			gui.add( PaintData, 'Refresh pattern' );
-
-			gui.add( PaintData, 'Shuffle colors' );
-
-			gui.open();
-
-			onParamsChange();			
+			// gui.open();
 		}
 
-		function onParamsChange () {
-			camera.updateProjectionMatrix();
-		}
 
 		function onWindowResize() {
 
@@ -466,12 +427,14 @@
 			}
 
 
+			// render 
+			// ------------------------------------------------------------
+			// renderer.clear();
+			// renderer.render( sceneRTT, cameraRTT, rtTexture, true );
+
 			if( PaintData.postEFX.effects ) {
 				composer.render( 0.1 );
 			}else{
-				// if using RTT texture, then use below
-				// renderer.clear();
-				// renderer.render( sceneRTT, cameraRTT, rtTexture, true );
 				renderer.render( scene, camera );
 			}
 		}

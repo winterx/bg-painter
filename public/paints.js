@@ -3,11 +3,11 @@ var paints = {
 	// color gradients
 
 	'ColorGradients_00' : {
-		name 		: 'Colorful Liquids Flowing',
+		name 		: 'Flowing Rainbow',
 		serial		: 'No.1',
 		url 		: 'ColorGradients_00.html',
 		picurl 		: 'images/color-gradients-00.png',
-		description : 'Irregular-flowing colorful shapes'
+		description : '\"Try to be a rainbow in someone\'s cloud. \"'
 	},
 	'ColorGradients_01' : {
 		name 		: 'Dual Color Liquids',
@@ -55,11 +55,11 @@ var paints = {
 	// scifi dots
 
 	'Scifidots_00' : {
-
-		name : 'Sci-fi dots',
-		url : 'Scifidots_00.html',
-		picurl : 'images/scifi-dots-00.png'
-
+		name 		: 'Sci-fi Dots Nebula',
+		serial		: 'No.1',
+		url 		: 'Scifidots_00.html',
+		picurl 		: 'images/scifi-dots-00.png',
+		description : 'A matrix view of glinting dots'
 	},
 
 	'Scifidots_01' : {

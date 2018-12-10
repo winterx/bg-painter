@@ -39,6 +39,8 @@
 
 <body>
 	<div id="container"></div>
+
+	<div id="monitor_panel"></div>
 	
 	<script>
 		// Template Common :: 
@@ -47,12 +49,71 @@
 		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 		var camera, scene, renderer, composer, stats, gui, controls, globalColors=[];
+		var	postprocessing = {};
+
 		var frame = 0;
+		var sinframe = 0;
+		var isFrameControlling = false;
 
-		var w = window.innerWidth;
-		var h = w > 1400 ? 600 : 480;
 
-		// get Colors and init
+		var canvasW = window.innerWidth;
+		var canvasH = canvasW > 1400 ? 600 : 480;
+		var canvasD = 500;
+		var GLOBAL_SIZE_FACTOR = canvasW/1400;
+		var GLOBAL_SIZE_BOUNDING = canvasW/2;
+
+		// Paint Data :: defines the pattern of every paint
+		// -----------------------------------------------------------------------------------
+		var textureloader = new THREE.TextureLoader();
+		var line_mat, spriteMaterial;
+		var sphereGroup;
+
+		var PaintData = {
+			// Colors
+			colorName: 'Fantasy',
+			colortheme: {
+				'color-0': '#ffffff',
+				'color-1': '#ffffff',
+				'color-2': '#ffffff',
+				'color-3': '#ffffff'
+			},
+
+			// Pattern
+			pattern: {},
+
+			// PostEFX
+			postEFX: {
+				effects: true,
+				tiltFocus: 0.5,
+				tiltAmount: 0.006,
+				tiltBrightness: 0.65,
+			},
+
+			// Controls
+			options: {
+				canColorShuffle: false,
+				canEffectsToggle: false
+			},
+
+			// Methods
+			reset: function() {
+			 	deleteObjects();
+			 	buildObjects();
+			},
+
+			updateColors: function () {
+				scene.background.set( PaintData.colortheme['color-0'] );
+				matRTT.uniforms.u_color_0.value.set( PaintData.colortheme['color-0'] );
+				matRTT.uniforms.u_color_1.value.set( PaintData.colortheme['color-1'] );
+				matRTT.uniforms.u_color_2.value.set( PaintData.colortheme['color-2'] );
+				matRTT.uniforms.u_color_3.value.set( PaintData.colortheme['color-3'] );
+				matRTT.needsUpdate = true;
+			}
+		}
+
+
+		// Color Data and Start initPaint
+		// -----------------------------------------------------------------------------------
 		fetch( './data/Color.json' ).then( res => {
 			return res.json().then( json => {
 				colors = json['Color_fantasy'][0].colors;
@@ -66,44 +127,25 @@
 			animate();
 		});
 
+
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
 
 			initUI( renderer ); 
 			
+			buildResources(); 
 			buildObjects(); // Meshes | Sprites | Lights | Shaders
 			buildPostEFX(); // Post processings
 			buildControls(); // Dat.gui
 		};
 
-		var PaintData = {
-			// Objects
-
-			// PostEFX
-			isPostEfxOn: true,
-			tiltFocus: 0.5,
-			tiltAmount: 0.006,
-			tiltBrightness: 0.65,
-		}
-
-		var postprocessing = {};
-
 
 		// Paint Specific :: 
 		// -----------------------------------------------------------------------------------
 
-		function refreshPaint() {
-			// 删除Scene中的所有物体
-			while (scene.children.length) {
-			    scene.remove(scene.children[0]);
-			}
-
-			buildObjects();
-		}
-
 		function initRenderer() {
 			// camera
-			camera = new THREE.PerspectiveCamera( 70, w / h, 1, 5000 );
+			camera = new THREE.PerspectiveCamera( 70, canvasW / canvasH, 1, 5000 );
 			camera.position.z = 200;
 
 			// scene
@@ -112,44 +154,47 @@
 			// renderer
 			renderer = new THREE.WebGLRenderer( { antialias: true, preserveDrawingBuffer: true } );
 			renderer.setPixelRatio( window.devicePixelRatio );
-			renderer.setSize( w, h );
-			renderer.autoClear = false;
+			renderer.setSize( canvasW, canvasH );
+			// renderer.autoClear = false;
 
 			// control and monitor
 			controls = new THREE.OrbitControls( camera, renderer.domElement );
-			gui = new dat.GUI();
+			// gui = new dat.GUI();
 			stats = new Stats();
 
 			// dom 
-			container.appendChild( stats.dom );
+			monitor_panel.appendChild( stats.dom );
 			container.appendChild( renderer.domElement );
 
 			// window
 			window.addEventListener( 'resize', onWindowResize, false );
 		}
 
-		function buildObjects() {
-
-			var loader = new THREE.TextureLoader();
-
-			var line_mat = new THREE.LineDashedMaterial( { 
+		function buildResources() {
+			line_mat = new THREE.LineDashedMaterial( { 
 				color : 0x00aaff,
 				opacity: 0.3,
 				transparent: true,
 				blending: THREE['AdditiveBlending']
 			} );
 
-
-			var sphereGroup = new THREE.Group;
-
-			var spriteMaterial = new THREE.SpriteMaterial( { 
-				map: loader.load('../textures/lensflare_cyan.png'),
+			spriteMaterial = new THREE.SpriteMaterial( { 
+				map: textureloader.load('../textures/lensflare_cyan.png'),
 				color: 0xffffff,
 				opacity: 0.7,
 				transparent: true,
 				blending: THREE['AdditiveBlending']
 			} );
+		}
 
+		function deleteObjects() {
+			for( var i = scene.children.length - 1; i >= 0; i--) { 
+				scene.remove( scene.children[i] );
+			}
+		}
+
+		function buildObjects() {
+			sphereGroup = new THREE.Group;
 
 			for( var i=0; i<500; ++i ) {
 				
@@ -195,53 +240,43 @@
 			var renderPass = new THREE.RenderPass( scene, camera );
 			var effectFilmPass = new THREE.FilmPass( 6, 0.9, 648, false );
 			var effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
-			effectFXAA.uniforms[ 'resolution' ].value.set( 1 / w, 1 / h );
+			effectFXAA.uniforms[ 'resolution' ].value.set( 1 / canvasW, 1 / canvasH );
 			var tiltShiftPass = new THREE.ShaderPass( THREE.VerticalTiltShiftShader );
-			var effect_bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( w, h ), 2.8, 0.67, 0.23 ); 
+			var effect_bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( canvasW, canvasH ), 2.8, 0.67, 0.23 ); 
 
 			// which pass is the final pass
 			effectFXAA.renderToScreen = true;
 
-			var composer = new THREE.EffectComposer( renderer );
+			composer = new THREE.EffectComposer( renderer );
 			composer.addPass( renderPass );
 			composer.addPass( effectFilmPass );
 			composer.addPass( tiltShiftPass );
 			composer.addPass( effectFXAA );
 			// composer.addPass( effect_bloomPass );
 		
-			postprocessing.composer = composer;
+			composer = composer;
 			postprocessing.tilt = tiltShiftPass;
 		}
 
 		function buildControls() {
-			//init GUI				
-			gui.add( PaintData, 'isPostEfxOn' ).onChange( function (value) {
-				PaintData.isPostEfxOn = value;
-			})
-			gui.add( PaintData, "tiltFocus", 0, 1, 0.5 ).onChange( onParamsChange ).step(0.05);
-			gui.add( PaintData, "tiltAmount", 0, 0.02, 0.005 ).onChange( onParamsChange ).step(0.001);
-			gui.add( PaintData, "tiltBrightness", 0, 2, 0.5 ).onChange( onParamsChange );
-			gui.open();
 
 			onParamsChange();			
 		}
 
 		function onParamsChange () {
-			postprocessing.tilt.uniforms.focusPos.value = PaintData.tiltFocus;
-			postprocessing.tilt.uniforms.amount.value = PaintData.tiltAmount;
-			postprocessing.tilt.uniforms.brightness.value = PaintData.tiltBrightness;
+			postprocessing.tilt.uniforms.focusPos.value = PaintData.postEFX.tiltFocus;
+			postprocessing.tilt.uniforms.amount.value = PaintData.postEFX.tiltAmount;
+			postprocessing.tilt.uniforms.brightness.value = PaintData.postEFX.tiltBrightness;
 
 			camera.updateProjectionMatrix();
-
 		}
 
-
 		function onWindowResize() {
-			camera.aspect = w / h;
+			camera.aspect = canvasW / canvasH;
 			camera.updateProjectionMatrix();
 
-			renderer.setSize( w, h );
-			postprocessing.composer.setSize( w, h );
+			renderer.setSize( canvasW, canvasH );
+			composer.setSize( canvasW, canvasH );
 		}
 
 		function animate() {
@@ -251,33 +286,40 @@
 			stats.begin();
 			render();
 			stats.end();
-
 		}
 
 		function render() {
+			// frame control 
+			// ------------------------------------------------------------
+			if( !isFrameControlling ) {
+				// frame: 0 ~ 314
+				frame++;
+				// frame_slider: 0 ~ 100
+				frame_control_slider.value = frame*100/314;
+				// sin frame: 0 ~ 1 ~ 0 ~ -1 ~ 0
+				// sinframe = Math.sin( frame/50 );
 
-			frame++;
+				if( frame == 314 ) frame = 0;
+			}
 
-			var factor = frame*Math.PI/180;
+			// custom animation loop 
+			// ------------------------------------------------------------
+			for( var i=0; i<sphereGroup.children.length; ++i ) {
+				// sphereGroup.children[i].scale.set( Math.sin(factor)*2, Math.sin(factor)*2, Math.sin(factor)*1 );
+				sphereGroup.children[i].scale.addScalar( Math.sin( (frame+i)/50 )/10 );
+			}
 
+			
+			// render 
+			// ------------------------------------------------------------
+			// renderer.clear();
+			// renderer.render( sceneRTT, cameraRTT, rtTexture, true );
 
-			// for( var i=0; i<sphereGroup.children.length; ++i ) {
-
-			// 		var factor = ( frame + i*2 )*Math.PI/180;
-
-			// 		// sphereGroup.children[i].scale.set( Math.sin(factor)*2, Math.sin(factor)*2, Math.sin(factor)*1 );
-
-
-			// }
-
-
-			if( PaintData.isPostEfxOn ) {
-				postprocessing.composer.render( 0.1 );
+			if( PaintData.postEFX.effects ) {
+				composer.render( 0.1 );
 			}else{
 				renderer.render( scene, camera );
 			}
-
-
 		}
 
 	</script>

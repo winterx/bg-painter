@@ -89,7 +89,7 @@
 		// -----------------------------------------------------------------------------------
 		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-		var camera, scene, renderer, composer, stats, controls, globalColors=[];
+		var camera, scene, renderer, composer, stats, gui, controls, globalColors=[];
 		var cameraRTT, sceneRTT, rtTexture, texture_mat;
 		var ctx;
 
@@ -231,7 +231,6 @@
 
 			// control and monitor
 			controls = new THREE.OrbitControls( camera, renderer.domElement );
-			gui = new dat.GUI();
 			stats = new Stats();
 
 			// dom 
@@ -351,7 +350,8 @@
 		}
 
 		function buildControls() {
-			//init GUI				
+			gui = new dat.GUI();
+	
 			gui.addColor( PaintData.colortheme, 'color-0' ).onFinishChange( function (value) {
 				PaintData.colortheme['color-0'] = value;
 				matRTT.uniforms.u_color_0.value = new THREE.Color( PaintData.colortheme['color-'+0] ) ;

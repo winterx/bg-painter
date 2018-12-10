@@ -135,10 +135,6 @@
 			animate();
 		});
 
-
-
-
-
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
 			initRendererToTexture(); // render texuture with shader
@@ -311,13 +307,19 @@
 		}
 
 		function render() {
-
+			// frame control 
+			// ------------------------------------------------------------
 			if( !isFrameControlling ) {
+				// frame: 0 ~ 314
 				frame++;
+				// frame_slider: 0 ~ 100
 				frame_control_slider.value = frame*100/314;
+				// sin frame: 0 ~ 1 ~ 0 ~ -1 ~ 0
+				// sinframe = Math.sin( frame/50 );
 
 				if( frame == 314 ) frame = 0;
 			}
+
 			
 			// render 
 			// ------------------------------------------------------------

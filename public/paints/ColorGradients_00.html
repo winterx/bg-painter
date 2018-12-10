@@ -95,7 +95,7 @@
 			
 		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-		var camera, scene, renderer, composer, stats, controls, globalColors=[];
+		var camera, scene, renderer, composer, stats, gui, controls, globalColors=[];
 		var cameraRTT, sceneRTT, rtTexture;
 		var	postprocessing = {};
 		var ctx;
@@ -356,7 +356,6 @@
 
 			// control and monitor
 			// controls = new THREE.OrbitControls( camera, renderer.domElement );
-			gui = new dat.GUI();
 			stats = new Stats();
 
 			// dom 
@@ -444,6 +443,8 @@
 		}
 
 		function buildControls() {
+			gui = new dat.GUI();
+
 			var folder_effects = gui.addFolder('Brightness Enhance');	
 			folder_effects.close();	
 			folder_effects.add( PaintData.postEFX, 'effects' ).onChange( function (value) {
