@@ -10,7 +10,7 @@
 				"anchorRadius": 900,
 				"moveToX": 260,
 				"moveToY": 160,
-				"moveToZ": 400,
+				"moveToZ": 400
 			}
 		},
 		{
@@ -22,7 +22,7 @@
 				"anchorRadius": 900,
 				"moveToX": -260,
 				"moveToY": -160,
-				"moveToZ": 400,
+				"moveToZ": 400
 			}
 		}
 	],
@@ -31,8 +31,38 @@
 		"colorName": "Fantasy",
 		"colortheme": [],
 		"pattern": {
-			"sprays" : [],
+			"sprays" : [
+				{ 
+					"x": 244, 
+					"y": 279, 
+					"radius_inner": 63, 
+					"radius_outer": 419, 
+					"color_indices": [1,5,0]
+				},
+				{ 
+					"x": 285, 
+					"y": 60, 
+					"radius_inner": 93, 
+					"radius_outer": 405, 
+					"color_indices": [0,5,7]
+				},
+				{ 
+					"x": 436, 
+					"y": 3, 
+					"radius_inner": 89, 
+					"radius_outer": 422, 
+					"color_indices": [3,4,0]
+				},
+				{ 
+					"x": 227, 
+					"y": 127, 
+					"radius_inner": 78, 
+					"radius_outer": 496, 
+					"color_indices": [7,6,0]
+				}				
+			],
 			"influences" : []
 		}
 	}
 }
+

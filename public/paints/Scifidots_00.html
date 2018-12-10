@@ -99,10 +99,15 @@
 
 			// PostEFX
 			postEFX: {
-				Effects: true,
+				effects: true,
 				tiltFocus: 0.5,
 				tiltAmount: 0.006,
 				tiltBrightness: 0.65,
+			},
+
+			// Controls
+			options: {
+				canColorShuffle: false
 			},
 
 			// Methods
@@ -363,10 +368,10 @@
 			gui.width = 300;
 
 			// post processing effects
-			var folder_effects = gui.addFolder('Post Effects');	
+			var folder_effects = gui.addFolder('Post effects');	
 			folder_effects.open();	
-			folder_effects.add( PaintData.postEFX, 'Effects' ).onChange( function (value) {
-				PaintData.postEFX.Effects = value;
+			folder_effects.add( PaintData.postEFX, 'effects' ).onChange( function (value) {
+				PaintData.postEFX.effects = value;
 			});
 			folder_effects.add( PaintData.postEFX, "tiltFocus", 0, 1, 0.5 ).onChange( onParamsChange ).step(0.05);
 			folder_effects.add( PaintData.postEFX, "tiltAmount", 0, 0.02, 0.005 ).onChange( onParamsChange ).step(0.001);
@@ -461,7 +466,7 @@
 			}
 
 
-			if( PaintData.postEFX.Effects ) {
+			if( PaintData.postEFX.effects ) {
 				composer.render( 0.1 );
 			}else{
 				// if using RTT texture, then use below

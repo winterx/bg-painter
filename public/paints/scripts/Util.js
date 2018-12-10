@@ -163,6 +163,20 @@ function initUIControlPanel() {
 		});
 	},false);
 
+	// 后期处理特效开关
+	var btnPostEFX = document.createElement('DIV');
+	btnPostEFX.setAttribute('id','toggle_PostEfx');
+	btnPostEFX.setAttribute('class','dot-btn');
+	if( PaintData.postEFX.effects === false ) btnPostEFX.classList.add('off');
+	btnPostEFX.addEventListener('click',function () {
+		if( PaintData.postEFX.effects === false ) {
+			PaintData.postEFX.effects = true;
+			btnPostEFX.classList.toggle('off');
+		}else{
+			PaintData.postEFX.effects = false;
+			btnPostEFX.classList.toggle('off');
+		}
+	},false);
 
 
 	// frame controling
@@ -197,7 +211,12 @@ function initUIControlPanel() {
 	controlWrapper.setAttribute('id','control_wrapper');
 	controlWrapper.appendChild(frameControl);
 	controlWrapper.appendChild(resetPattern);
-	controlWrapper.appendChild(shuffleColor);
+	if( PaintData.options.canColorShuffle ) {
+		controlWrapper.appendChild(shuffleColor);
+	}
+	if( PaintData.options.canEffectsToggle ) {
+		controlWrapper.appendChild(btnPostEFX);
+	}
 
 	document.getElementById('container').appendChild(controlWrapper);	
 }

@@ -139,7 +139,12 @@
 
 			// PostEFX
 			postEFX: {
-				Effects: false,
+				effects: false,
+			},
+
+			// Controls
+			options: {
+				canColorShuffle: true
 			},
 
 			// Methods
@@ -418,7 +423,7 @@
 			renderer.clear();
 			renderer.render( sceneRTT, cameraRTT, rtTexture, true );
 
-			if( PaintData.postEFX.Effects ) {
+			if( PaintData.postEFX.effects ) {
 				composer.render( 0.1 );
 			}else{
 				renderer.render( scene, camera );

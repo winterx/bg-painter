@@ -132,7 +132,13 @@
 
 			// PostEFX
 			postEFX: {
-				Effects: false,
+				effects: false,
+			},
+
+			// Controls
+			options: {
+				canColorShuffle: true,
+				canEffectsToggle: false
 			},
 
 			// Methods
@@ -205,7 +211,7 @@
 
 			// scene
 			scene = new THREE.Scene();
-			scene.background = new THREE.Color( globalColors[0] );
+			scene.background = new THREE.Color('#f90');
 			// scene.fog = new THREE.Fog( PaintData.colortheme['color-0'], 1, 1400 );
 
 			// helper
@@ -438,7 +444,7 @@
 			renderer.clear();
 			renderer.render( sceneRTT, cameraRTT, rtTexture, true );
 
-			if( PaintData.postEFX.Effects ) {
+			if( PaintData.postEFX.effects ) {
 				composer.render( 0.1 );
 			}else{
 				renderer.render( scene, camera );

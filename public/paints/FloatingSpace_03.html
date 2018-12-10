@@ -43,6 +43,8 @@
 <body>
 	<div id="container"></div>
 
+	<div id="monitor_panel"></div>
+
 	<script id="init_vertex_shader" type="x-shader/x-vertex">
 		// varying vec2 vUv;
 		void main() {
@@ -83,7 +85,6 @@
 			// vVariation = variation;
 
 			gl_Position = projectionMatrix * modelViewMatrix * vec4( offset + position, 1.0 ); 
-
 		}
 	</script>
 
@@ -105,7 +106,6 @@
 			// uv.y += sin( u_time + uv.x*1.0 );
 
 			gl_FragColor = texture2D( map, uv );
-
 		}
 	</script>
 
@@ -117,7 +117,7 @@
 		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 		var camera, scene, renderer, composer, stats, controls, globalColors=[];
-		var cameraRTT, sceneRTT, rtTexture, texture_mat;
+		var cameraRTT, sceneRTT, rtTexture, matRTT;
 		var frame = 0;
 
 		var canvasW = window.innerWidth;
@@ -129,36 +129,56 @@
 
 		// Paint Data :: defines the pattern of every paint
 		// -----------------------------------------------------------------------------------
-		var PaintData = { 
-			// Resources
-			modelpath:  GeometryPath + 'heart.dae',
+		var instanced_geo = new THREE.InstancedBufferGeometry();
+		var loader;
 
-			// Objects
-			'Heart number' : 64,
+		var PaintData = { 
+			// Colors
+			colorName: 'Red',
+			colortheme: {
+				'color-0': '#FFF1F4',
+				'color-1': '#FF560D',
+				'color-2': '#FF4463',
+				'color-3': '#FF865E'
+			},
+
+			// Pattern
+			pattern: {
+
+			},
 
 			// PostEFX
-			isPostEfxOn: false,
-			tiltFocus: 0.5,
-			tiltAmount: 0.006,
-			tiltBrightness: 0.65,
+			postEFX: {
+				effects: false,
+			},
+
+			// Controls
+			options: {
+				canColorShuffle: true,
+				// canEffectsToggle: true
+			},
+
+			// methods
+			reset: function() {
+				
+			},
+
+			updateColors: function () {
+				scene.background.set( PaintData.colortheme['color-0'] );
+				matRTT.uniforms.u_color_0.value.set( PaintData.colortheme['color-0'] );
+				matRTT.uniforms.u_color_1.value.set( PaintData.colortheme['color-1'] );
+				matRTT.uniforms.u_color_2.value.set( PaintData.colortheme['color-2'] );
+				matRTT.uniforms.u_color_3.value.set( PaintData.colortheme['color-3'] );
+				matRTT.needsUpdate = true;
+			}
 		}
 		
-		var instanced_geo = new THREE.InstancedBufferGeometry();
-
-		// var loadGeometry = new Promise( function( resolve, reject ) {
-		// 	var loader = new THREE.ColladaLoader();
-		// 	loader.load( PaintData.modelpath, function(object) {
-		// 		// console.log(object)
-		// 		resolve();
-		// 	});
-		// });
-
 		// get Colors and init
 		fetch( './data/Color.json' ).then( res => {
 			return res.json().then( json => {
-				colors = json['Color_red'][0].colors;
-				for( var i in colors ) {
-					globalColors.push( new THREE.Color( '#'+colors[i] ) );
+				colorlist = json['Colors'][PaintData.colorName][0];
+				for( var i in colorlist ) {
+					PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[i];
 				}
 			});
 		}).then( () => {
@@ -167,18 +187,17 @@
 		});
 
 
-
-
-
-
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
 			initRendererToTexture(); // render texuture with shader
 			loadShaderFromFile( './scripts/shaping_01.glsl', function(text) {
-				texture_mat.fragmentShader = text;
-				texture_mat.needsUpdate = true;
+				matRTT.fragmentShader = text;
+				matRTT.needsUpdate = true;
 			});
+
 			initUI( renderer ); 
+
+			buildResouces();
 			buildObjects(); // Meshes | Sprites | Lights | Shaders
 			buildPostEFX(); // Post processings
 			buildControls(); // Dat.gui
@@ -206,7 +225,7 @@
 
 			// scene
 			scene = new THREE.Scene();
-			scene.background = new THREE.Color( globalColors[0] );
+			scene.background = new THREE.Color( PaintData.colortheme['color-0'] );
 			// scene.fog = new THREE.Fog( 0x000000, 900, 1200 );
 
 			// helper
@@ -228,7 +247,7 @@
 			stats = new Stats();
 
 			// dom 
-			container.appendChild( stats.dom );
+			monitor_panel.appendChild( stats.dom );
 			container.appendChild( renderer.domElement );
 
 			// window
@@ -251,30 +270,25 @@
 				format: THREE.RGBFormat 
 			} ); // render target texture
 
-			// things on the texture
-			// canvasMaterial = new THREE.MeshBasicMaterial( {
-			// 	map: new THREE.Texture( drawingcanvas ),
-			// } ); 
-			texture_mat = new THREE.ShaderMaterial( {
-
+			matRTT = new THREE.ShaderMaterial( {
 				uniforms: { 
 					u_time: { value: 0.0 },
 					u_resolution: { value: new THREE.Vector2( texture_size, texture_size ) }, 
-					u_color_0: { value: globalColors[0] },
-					u_color_1: { value: globalColors[1] },
-					u_color_2: { value: globalColors[2] },
-					u_color_3: { value: globalColors[3] },
+					u_color_0: { value: new THREE.Color( PaintData.colortheme['color-'+0] ) },
+					u_color_1: { value: new THREE.Color( PaintData.colortheme['color-'+1] ) },
+					u_color_2: { value: new THREE.Color( PaintData.colortheme['color-'+2] ) },
+					u_color_3: { value: new THREE.Color( PaintData.colortheme['color-'+3] ) },
 				},
 				vertexShader: document.getElementById( 'init_vertex_shader' ).textContent,
 				fragmentShader: document.getElementById( 'init_fragment_shader' ).textContent
 
 			} );
-			var texture_quad = new THREE.Mesh( new THREE.PlaneBufferGeometry( texture_size, texture_size ), texture_mat );
+			var quadRTT = new THREE.Mesh( new THREE.PlaneBufferGeometry( texture_size, texture_size ), matRTT );
 
-			sceneRTT.add( texture_quad );
+			sceneRTT.add( quadRTT );
 		}
 
-		function buildObjects() {
+		function buildResouces() {
 			// A Sprite Represents the Shader's Behaviour				
 			var spriteMaterial = new THREE.SpriteMaterial( { map: rtTexture.texture } );
 			shader_sprite = new THREE.Sprite( spriteMaterial );
@@ -282,15 +296,8 @@
 			shader_sprite.position.set( -canvasW/2 + 100, -canvasH/2 + 100, 340 );
 			// scene.add( shader_sprite );
 
-
-			// var testgeo = new THREE.BoxBufferGeometry( 30, 30, 30 );
-			// var testmat = new THREE.MeshNormalMaterial();
-			// scene.add( new THREE.Mesh( testgeo, testmat ) );
-
-
-
 			// Main Object
-			var loader = new THREE.ColladaLoader();
+			loader = new THREE.ColladaLoader();
 
 			rawshaderMat = new THREE.RawShaderMaterial( {
 				uniforms: { 
@@ -300,8 +307,9 @@
 				vertexShader: document.getElementById( 'vert_scene' ).textContent,
 				fragmentShader: document.getElementById( 'frag_scene' ).textContent
 			} );
+		}
 
-
+		function buildObjects() {
 			loader.load( '../geometries/heart.dae', function ( collada ) {
 
 				var dae = collada.scene;
@@ -336,7 +344,6 @@
 						mesh.scale.set( 2, 2, 2 )
 						scene.add( mesh );
 					}
-
 				});
 			});
 		}
@@ -355,16 +362,26 @@
 			composer.addPass( effectFXAA );
 		}
 
-		function buildControls() {
-			//init GUI				
-			gui.add( PaintData, 'isPostEfxOn' ).onChange( function (value) {
-				PaintData.isPostEfxOn = value;
-			})
-
-			gui.add( PaintData, 'Heart number', 0, 64 ).onChange( function(value){
-				var num = Math.floor( value );
-				instanced_geo.maxInstancedCount = num;
+		function buildControls() {	
+			//init GUI			
+			var folder_colors = gui.addFolder('Color Theme');	
+			folder_colors.open();
+			folder_colors.addColor( PaintData.colortheme, 'color-0' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-0'] = value;
+				PaintData.updateColors();
 			});
+			folder_colors.addColor( PaintData.colortheme, 'color-1' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-1'] = value;
+				PaintData.updateColors();
+			});
+			folder_colors.addColor( PaintData.colortheme, 'color-2' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-2'] = value;
+				PaintData.updateColors();
+			});
+			folder_colors.addColor( PaintData.colortheme, 'color-3' ).onFinishChange( function (value) {
+				PaintData.colortheme['color-3'] = value;
+				PaintData.updateColors();
+			});	
 
 			gui.open();
 
@@ -399,13 +416,14 @@
 			// time 
 			frame++;
 
-			if( PaintData.isPostEfxOn ) {
+			// render 
+			// ------------------------------------------------------------
+			renderer.clear();
+			renderer.render( sceneRTT, cameraRTT, rtTexture, true );
+
+			if( PaintData.postEFX.effects ) {
 				composer.render( 0.1 );
 			}else{
-				renderer.clear();
-
-				renderer.render( sceneRTT, cameraRTT, rtTexture, true );
-
 				renderer.render( scene, camera );
 			}
 		}

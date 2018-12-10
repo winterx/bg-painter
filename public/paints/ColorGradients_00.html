@@ -146,10 +146,12 @@
 
 			// PostEFX
 			postEFX: {
-				Effects: true,
-				tiltFocus: 0.5,
-				tiltAmount: 0.006,
-				tiltBrightness: 0.25,
+				effects: true
+			},
+
+			// Controls
+			options: {
+				canColorShuffle: false
 			},
 
 			// Methods
@@ -161,6 +163,24 @@
 
 			resetColorScheme: function () {
 				this.colortheme = _.shuffle( this.colortheme );
+			},
+
+			load2dPattern: function () {
+				fetch('./data/ColorGradients/data.json').then( res => {
+					return res.json().then( json => {
+						var sprays = json.standard.pattern.sprays;
+						sprays.forEach(function(item,index){
+							PaintData.pattern.sprays[index] = {};
+							PaintData.pattern.sprays[index].x = item.x;
+							PaintData.pattern.sprays[index].y = item.y;
+							PaintData.pattern.sprays[index].radius_inner = item.radius_inner;
+							PaintData.pattern.sprays[index].radius_outer = item.radius_outer;
+							PaintData.pattern.sprays[index].color_indices = item.color_indices;
+						});
+					})
+				}).then( () => {
+					this.drawCanvas2d();
+				});
 			},
 
 			reset2dPattern: function() {
@@ -193,7 +213,6 @@
 						});
 					}
 				}
-				this.drawCanvas2d();
 			},
 
 			drawCanvas2d: function() {
@@ -259,7 +278,6 @@
 				array.splice( rand, 1 );
 
 				return result;
-
 			}
 		}
 
@@ -298,8 +316,9 @@
 			initRendererToTexture(); // render texuture with shader, if use RTT texture
 
 			// PaintData.resetColorScheme();
-			PaintData.reset2dPattern();
-			PaintData.drawCanvas2d();
+			// PaintData.reset2dPattern();
+			// PaintData.drawCanvas2d();
+			PaintData.load2dPattern();
 
 			// init UI controls
 			initUI( renderer ); 
@@ -336,7 +355,7 @@
 			// renderer.gammaOutput = true;
 
 			// control and monitor
-			controls = new THREE.OrbitControls( camera, renderer.domElement );
+			// controls = new THREE.OrbitControls( camera, renderer.domElement );
 			gui = new dat.GUI();
 			stats = new Stats();
 
@@ -427,8 +446,8 @@
 		function buildControls() {
 			var folder_effects = gui.addFolder('Brightness Enhance');	
 			folder_effects.close();	
-			folder_effects.add( PaintData.postEFX, 'Effects' ).onChange( function (value) {
-				PaintData.postEFX.Effects = value;
+			folder_effects.add( PaintData.postEFX, 'effects' ).onChange( function (value) {
+				PaintData.postEFX.effects = value;
 			});
 
 			//init GUI				
@@ -472,8 +491,6 @@
 				PaintData.drawCanvas2d();
 			});
 
-			// gui.add( PaintData, 'reset2dPattern')
-			// gui.add()
 			gui.open();
 		}
 
@@ -516,7 +533,7 @@
 			renderer.clear();
 			renderer.render( sceneRTT, cameraRTT, rtTexture, true );
 
-			if( PaintData.postEFX.Effects ) {
+			if( PaintData.postEFX.effects ) {
 				composer.render( 0.1 );
 			}else{
 				renderer.render( scene, camera );

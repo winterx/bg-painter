@@ -63,11 +63,12 @@ body {
 	border-radius: 3px;
 }
 #panel .info-wrapper .info-description {
-	color: #80808a;
+	color: #aab;
 	font-size: 14px;
 	font-style: italic;
+	font-weight: 100;
 	font-family: 'Helvetica Neue', sans-serif;
-	letter-spacing: 1.4px;
+	letter-spacing: 2.4px;
 }
 
 
@@ -209,7 +210,12 @@ body {
 #shuffle_color {
     background-image: url( ../../images/ui/btn_shuffle_color.png);
 }
-
+#toggle_PostEfx {
+    background-image: url( ../../images/ui/btn_postefx_on.png);
+}
+#toggle_PostEfx.off {
+    background-image: url( ../../images/ui/btn_postefx_off.png);
+}
 
 
 
