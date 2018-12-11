@@ -1,32 +1,4 @@
 {
-	"old" : 
-	[
-		{
-			"influence_01": 
-			{
-				"anchorX": 240,
-				"anchorY": -200,
-				"anchorZ": 0,
-				"anchorRadius": 900,
-				"moveToX": 260,
-				"moveToY": 160,
-				"moveToZ": 400
-			}
-		},
-		{
-			"influence_02": 
-			{
-				"anchorX": -240,
-				"anchorY": 200,
-				"anchorZ": 0,
-				"anchorRadius": 900,
-				"moveToX": -260,
-				"moveToY": -160,
-				"moveToZ": 400
-			}
-		}
-	],
-
 	"standard": {
 		"colorName": "Fantasy",
 		"colortheme": [],
@@ -61,7 +33,26 @@
 					"color_indices": [7,6,0]
 				}				
 			],
-			"influences" : []
+			"morphdata": {
+				"1": {
+					"anchorX": 240,
+					"anchorY": -200,
+					"anchorZ": 0,
+					"anchorRadius": 900,
+					"moveToX": 260,
+					"moveToY": 160,
+					"moveToZ": 400
+				},
+				"2": {
+					"anchorX": -240,
+					"anchorY": 200,
+					"anchorZ": 0,
+					"anchorRadius": 900,
+					"moveToX": -260,
+					"moveToY": -160,
+					"moveToZ": 400
+				}
+			}
 		}
 	}
 }

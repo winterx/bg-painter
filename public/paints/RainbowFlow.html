@@ -8,6 +8,7 @@
 	<title>Color Gradient</title>
 
 	<script src="https://cdn.bootcss.com/lodash.js/4.17.11/lodash.min.js"></script>
+	<script src="https://cdn.bootcss.com/jquery/2.0.0/jquery.min.js"></script>
 
 	<script src="../build/three.js"></script>
 
@@ -109,7 +110,6 @@
 		var GLOBAL_SIZE_FACTOR = canvasW/1400;
 		var GLOBAL_SIZE_BOUNDING = canvasW/2;
 
-
 		// Paint Data :: defines the pattern of every paint
 		// -----------------------------------------------------------------------------------
 		var quadRTT, matRTT, quad_geo, quad_mat, quad;
@@ -151,7 +151,7 @@
 
 			// Controls
 			options: {
-				canColorShuffle: false
+				canColorShuffle: false,
 			},
 
 			// Methods
@@ -161,12 +161,8 @@
 				this.refreshPattern();
 			},
 
-			resetColorScheme: function () {
-				this.colortheme = _.shuffle( this.colortheme );
-			},
-
 			load2dPattern: function () {
-				fetch('./data/ColorGradients/data.json').then( res => {
+				fetch('./data/RainbowFlow/data.json').then( res => {
 					return res.json().then( json => {
 						var sprays = json.standard.pattern.sprays;
 						sprays.forEach(function(item,index){
@@ -309,15 +305,10 @@
 			animate();
 		});
 
-
-
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
 			initRendererToTexture(); // render texuture with shader, if use RTT texture
 
-			// PaintData.resetColorScheme();
-			// PaintData.reset2dPattern();
-			// PaintData.drawCanvas2d();
 			PaintData.load2dPattern();
 
 			// init UI controls

@@ -40,8 +40,11 @@
 	</script>
 
 	<script id="init_fragment_shader" type="x-shader/x-fragment">
+		varying vec2 vUv;
 
 		void main() {
+
+			vec2 uv = vUv;
 
 			gl_FragColor = vec4( 0.0 );
 
@@ -193,19 +196,20 @@
 		}
 
 		// get Colors and init
-		fetch( './data/Color.json' ).then( res => {
-			return res.json().then( json => {
-				var colorlist = json[ 'Colors' ][ 'Wild' ];
-				var random = Math.floor( Math.random() * colorlist.length );
-				for( var i in colorlist[random] ) {
-					PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[random][i];
-				}
-			});
-		}).then( () => {
-			initPaint();
-			animate();
-		});
+		// fetch( './data/Color.json' ).then( res => {
+		// 	return res.json().then( json => {
+		// 		var colorlist = json[ 'Colors' ][ 'Wild' ];
+		// 		var random = Math.floor( Math.random() * colorlist.length );
+		// 		for( var i in colorlist[random] ) {
+		// 			PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[random][i];
+		// 		}
+		// 	});
+		// }).then( () => {
+		// 	initPaint();
+		// 	animate();
+		// });
 
+		loadPaintData( initPaint, animate );
 
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
@@ -311,6 +315,13 @@
 				side: THREE.DoubleSide,
 				// wireframe: true
 			} );
+
+			// A Sprite Represents the Shader's Behaviour	-----------------------------			
+			var spriteMaterial = new THREE.SpriteMaterial( { map: rtTexture.texture } );
+			shader_sprite = new THREE.Sprite( spriteMaterial );
+			shader_sprite.scale.set( 200, 200, 1 );
+			shader_sprite.position.set( canvasW/2 - 100, canvasH/2 - 100, 340 );
+			// scene.add( shader_sprite );
 		}
 
 		function buildObjects() {
@@ -320,23 +331,6 @@
 			// Mesh
 			quad = new THREE.Mesh( quad_geo, quad_mat );
 			scene.add( quad );
-
-			// A Sprite Represents the Shader's Behaviour				
-			var spriteMaterial = new THREE.SpriteMaterial( { map: rtTexture.texture } );
-			shader_sprite = new THREE.Sprite( spriteMaterial );
-			shader_sprite.scale.set( 200, 200, 1 );
-			shader_sprite.position.set( canvasW/2 - 100, canvasH/2 - 100, 340 );
-			// scene.add( shader_sprite );
-
-			// ---- Step 3 : Morphing the quad by Influence
-			// ----
-			// ifl_01 = new Influence( 240, -200, 0, 900 );
-			// ifl_01.surround( quad_geo );
-		 // 	ifl_01.moveTo( 260, 160, 400 );
-
-		 // 	ifl_02 = new Influence( -240, 200, 0, 900 );
-			// ifl_02.surround( quad_geo );
-		 // 	ifl_02.moveTo( -260, -160, 400 );
 
 		 	// morph the quad
 		 	var morphdata = PaintData.pattern.morphdata;

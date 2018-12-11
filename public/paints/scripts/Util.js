@@ -9,6 +9,30 @@ function randomWithinScreen ( width, height, depth ) {
 	return new THREE.Vector3( _x, _y, _z );
 }
 
+// 加载颜色和样式数据: color | paint data
+function loadPaintData ( init, animate ) {
+	// 首先获取颜色数据
+	fetch( './data/Color.json' ).then( res => {
+		return res.json().then( json => {
+			var colorlist = json[ 'Colors' ][ 'Wild' ];
+			var random = Math.floor( Math.random() * colorlist.length );
+			for( var i in colorlist[random] ) {
+				PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[random][i];
+			}
+		});
+	}).then( function(){
+		fetch( './data/ColorLiquids/data.json' ).then( res => {
+			return res.json().then( json => {
+				// PaintData.pattern = 
+				// console.log(json.standard);
+				PaintData.pattern = json.standard.pattern;
+			})
+		}).then( () => {
+			init();
+			animate();
+		});
+	});
+}
 
 
 // 加载外部文件

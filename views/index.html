@@ -174,7 +174,7 @@
 	<!-- main view -->
 	<section id="viewer">
 		<iframe id="painterview" 
-				src="./paints/ColorGradients_00.html" 
+				src="./paints/RainbowFlow.html" 
 				name="painterview" 
 				onload="setIframeInfo()" 
 				frameborder="0" 
@@ -218,14 +218,14 @@
 		var CurrentPainterInfo = {
 			name: 'Flowing Rainbow',
 			serial: 'No.1',
-			url: 'ColorGradients_00.html',
+			url: 'RainbowFlow.html',
 			picurl: '',
 			description: '\"Try to be a rainbow in someone\'s cloud. \"'
 		}
 
 
 
-		var selected = 'ColorGradients_00';
+		var selected = 'RainbowFlow';
 
 		main_title.textContent = paints[selected].name;
 
@@ -235,7 +235,7 @@
 
 			var linkItem = document.createElement('a');
 			linkItem.className = 'link';
-			linkItem.href = './paints/' + item.url;
+			linkItem.href = './paints/' + item.url +'#s';
 			linkItem.setAttribute( 'target', 'painterview' ); // 点击后切换至对应的iframe
 			linkItem.setAttribute( 'name', item.name );
 			linkItem.setAttribute( 'id', key );

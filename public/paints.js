@@ -2,19 +2,19 @@ var paints = {
 
 	// color gradients
 
-	'ColorGradients_00' : {
+	'RainbowFlow' : {
 		name 		: 'Flowing Rainbow',
 		serial		: 'No.1',
-		url 		: 'ColorGradients_00.html',
-		picurl 		: 'images/color-gradients-00.png',
+		url 		: 'RainbowFlow.html',
+		picurl 		: 'images/rainbow-flow.png',
 		description : '\"Try to be a rainbow in someone\'s cloud. \"'
 	},
-	'ColorGradients_01' : {
+	'ColorLiquids' : {
 		name 		: 'Dual Color Liquids',
-		serial		: 'No.2',
-		url 		: 'ColorGradients_01.html',
-		picurl 		: 'images/color-gradients-01.png',
-		description : 'Irregular-flowing colorful shapes'
+		serial		: 'No.1',
+		url 		: 'ColorLiquids.html',
+		picurl 		: 'images/color-liquids.png',
+		description : 'Try to be water, my friend --Bruce Lee'
 	},
 
 	
@@ -61,24 +61,23 @@ var paints = {
 		picurl 		: 'images/scifi-dots-00.png',
 		description : 'A matrix view of glinting dots'
 	},
-
 	'Scifidots_01' : {
-
-		name : 'Sci-fi dots #01',
-		url : 'Scifidots_01.html',
-		picurl : 'images/scifi-dots-01.png',
-		description: 'This is a sci-fi style dots, you could use it as a background appears in the data visualization'
-
+		name 		: 'Sci-fi Dots Connections',
+		serial		: 'No.2',
+		url 		: 'Scifidots_01.html',
+		picurl 		: 'images/scifi-dots-01.png',
+		description	: 'This is a sci-fi style dots, you could use it as a background appears in the data visualization'
 	},
+
 
 	// explosion
 
 	'Explosion_00' : {
-
-		name : 'Explosion #00',
-		url : 'Explosion_00.html',
-		picurl : 'images/explosion-00.png'
-
+		name 		: 'Fireworks Explosion',
+		serial		: 'No.1',
+		url 		: 'Explosion_00.html',
+		picurl 		: 'images/explosion-00.png',
+		description	: 'An explosion scenery'
 	},
 
 
