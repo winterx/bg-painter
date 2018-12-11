@@ -1,0 +1,28 @@
+{
+	"standard": {
+		"colorName": "Scifi_Blue",
+		"colortheme": [],
+		"pattern": {
+            "grid": {
+                "xnum": 8,
+                "ynum": 1,
+                "znum": 8,
+                "size_w": 3.3,
+                "size_h": 3.3,
+                "size_d": 3.3
+            }
+		}
+    },
+    
+    "instances": {
+        "00" : {
+            "model" : "money_dollar.dae",
+            "theme" : "Highend"
+        },
+        "01" : {
+            "model" : "money_rmb.dae",
+            "theme" : "Luxury_Golden"
+        }
+    }
+}
+

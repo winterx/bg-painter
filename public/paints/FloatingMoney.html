@@ -62,6 +62,8 @@
 			uniform mat4 modelViewMatrix;
 			uniform mat4 projectionMatrix;
 
+			uniform bool u_isRotating;
+
 			attribute vec3 position;
 			attribute vec3 offset;
 			attribute vec2 uv;
@@ -72,14 +74,14 @@
 			// varying float vVariation;
 
 			void main() {
-
 				vec3 vPosition = position;
-				vec3 vcV = cross( orientation.xyz, vPosition );
-				vPosition = vcV * ( 2.0 * orientation.w ) + ( cross( orientation.xyz, vcV ) * 2.0 + vPosition ); 
+
+				if( u_isRotating ) {
+					vec3 vcV = cross( orientation.xyz, vPosition );
+					vPosition = vcV * ( 2.0 * orientation.w ) + ( cross( orientation.xyz, vcV ) * 2.0 + vPosition ); 
+				}
 
 				vUv = uv; 
-
-				// vVariation = variation;
 
 				gl_Position = projectionMatrix * modelViewMatrix * vec4( offset + vPosition, 1.0 ); 
 
@@ -114,7 +116,7 @@
 			
 		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-		var camera, scene, renderer, composer, stats, controls, globalColors=[];
+		var camera, scene, renderer, composer, stats, controls, globalColors;
 		var cameraRTT, sceneRTT, rtTexture, quadRTT, matRTT, quad_geo, quad_mat, quad;
 		var	postprocessing = {};
 		var ctx;
@@ -133,14 +135,14 @@
 		// Paint Data :: defines the pattern of every paint
 		// -----------------------------------------------------------------------------------
 		var instanced_geo = new THREE.InstancedBufferGeometry();
-		var offsetAttribute, orientationAttribute;
+		var offsetAttribute, orientationAttribute=[];
+		var rawshaderMat;
 
 		var lastTime = 0;
 
 		var moveQ = new THREE.Quaternion( 0.5, 0.5, 0.5, 0.0 ).normalize();
 		var tmpQ = new THREE.Quaternion();
 		var currentQ = new THREE.Quaternion();
-
 
 		var PaintData = { 
 			// Colors
@@ -152,17 +154,11 @@
 				'color-3': '#ffffff'
 			},
 
+			// model path
+			modelPath: '',
+
 			// Pattern
-			pattern: {
-				grid: {
-					xnum: 8,
-					ynum: 1,
-					znum: 8,
-					size_w: 4,
-					size_h: 4,
-					size_d: 4
-				}
-			},
+			pattern: {},
 
 			// PostEFX
 			postEFX: {
@@ -204,24 +200,9 @@
 		}
 
 
-
 		// Color Data and Start initPaint
 		// -----------------------------------------------------------------------------------
-		fetch( './data/Color.json' ).then( res => {
-			return res.json().then( json => {
-				colorlist = json['Colors'][PaintData.colorName][0];
-				for( var i in colorlist ) {
-					PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[i];
-				}
-			});
-		}).then( () => {
-			initPaint();
-			animate();
-		});
-
-
-
-
+		loadPaintData( './data/FloatingMoney/data.json', initPaint, animate );
 
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
@@ -280,7 +261,7 @@
 
 			// control and monitor
 			controls = new THREE.OrbitControls( camera, renderer.domElement );
-			gui = new dat.GUI();
+			controls.enabled = false;
 			stats = new Stats();
 
 			// dom 
@@ -341,6 +322,7 @@
 
 				uniforms: { 
 					u_time: { value: 0.0 },
+					u_isRotating: { value: true },
 					map: { value: rtTexture.texture },
 				},
 
@@ -353,7 +335,7 @@
 
 			var loader = new THREE.ColladaLoader();
 
-			loader.load( '../geometries/money_dollar.dae', function ( collada ) {
+			loader.load( '../geometries/' + PaintData.modelPath, function ( collada ) {
 
 				dae = collada.scene;
 
@@ -424,8 +406,8 @@
 		}
 
 		function buildControls() {
-			gui.width = 300;
-			//init GUI			
+			gui = new dat.GUI();
+
 			var folder_colors = gui.addFolder('Color Theme');	
 			folder_colors.open();
 			folder_colors.addColor( PaintData.colortheme, 'color-0' ).onFinishChange( function (value) {
@@ -481,16 +463,14 @@
 				if( frame == 314 ) frame = 0;
 			}
 
-			var sinTime = Math.sin( frame/100 ); // 0 ~~ 1 ~~ 0 ~~ -1 ~~ 0
+			if( !isFrameControlling ) {
+				rawshaderMat.uniforms.u_isRotating.value = true;
+			}else{
+				rawshaderMat.uniforms.u_isRotating.value = false;
+			}
 
-			var sinDelta = sinTime/2;
-
-			var sinQ = new THREE.Quaternion( sinDelta, sinDelta+2.2, sinDelta+0.4, 1 ).normalize();
-
-			// specular
 			var time = performance.now();
-			var delta = ( time - lastTime ) / 5000;
-			// var delta = sinDelta;
+			var delta = ( frame - lastTime ) / 50;
 			tmpQ.set( moveQ.x * delta, moveQ.y * delta, moveQ.z * delta, 1 ).normalize();
 
 			for ( var i = 0, il = orientationAttribute.count; i < il; i ++ ) {
@@ -499,11 +479,13 @@
 				currentQ.multiply( tmpQ );
 
 				orientationAttribute.setXYZW( i, currentQ.x, currentQ.y, currentQ.z, currentQ.w );
-				// orientationAttribute.setXYZW( i, sinQ.x, sinQ.y, sinQ.z, sinQ.w );
 			}
 
 			orientationAttribute.needsUpdate = true;
-			lastTime = time;
+			lastTime = frame;
+		
+
+
 
 
 			// render 

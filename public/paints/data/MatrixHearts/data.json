@@ -1,0 +1,13 @@
+{
+	"standard": {
+		"colorName": "Red",
+		"colortheme": [],
+		"pattern": {
+            "box size": {
+                "width": 32,
+                "height": 230,
+                "depth": 32
+            }
+		}
+	}
+}

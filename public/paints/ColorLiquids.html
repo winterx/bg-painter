@@ -87,7 +87,7 @@
 			
 		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-		var camera, scene, renderer, composer, stats, gui, controls, globalColors=[];
+		var camera, scene, renderer, composer, stats, gui, controls, globalColors;
 		var cameraRTT, sceneRTT, rtTexture, texture_mat;
 		var ctx;
 
@@ -117,28 +117,7 @@
 			},
 
 			// Pattern
-			pattern: {
-				morphdata: {
-					"0": {
-						"anchorX": 240,
-						"anchorY": -200,
-						"anchorZ": 0,
-						"anchorRadius": 900,
-						"moveToX": 260,
-						"moveToY": 160,
-						"moveToZ": 400,
-					},
-					"1": {
-						"anchorX": -240,
-						"anchorY": 200,
-						"anchorZ": 0,
-						"anchorRadius": 900,
-						"moveToX": -260,
-						"moveToY": -160,
-						"moveToZ": 400,
-					}
-				}
-			},
+			pattern: {},
 
 			// PostEFX
 			postEFX: {
@@ -195,21 +174,9 @@
 			}
 		}
 
-		// get Colors and init
-		// fetch( './data/Color.json' ).then( res => {
-		// 	return res.json().then( json => {
-		// 		var colorlist = json[ 'Colors' ][ 'Wild' ];
-		// 		var random = Math.floor( Math.random() * colorlist.length );
-		// 		for( var i in colorlist[random] ) {
-		// 			PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[random][i];
-		// 		}
-		// 	});
-		// }).then( () => {
-		// 	initPaint();
-		// 	animate();
-		// });
-
-		loadPaintData( initPaint, animate );
+		// Color Data and Start initPaint
+		// -----------------------------------------------------------------------------------
+		loadPaintData( './data/ColorLiquids/data.json', initPaint, animate );
 
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
@@ -219,7 +186,6 @@
 				matRTT.fragmentShader = text;
 				matRTT.needsUpdate = true;
 			})
-
 
 			// init UI controls
 			initUI( renderer ); 

@@ -10,24 +10,35 @@ function randomWithinScreen ( width, height, depth ) {
 }
 
 // 加载颜色和样式数据: color | paint data
-function loadPaintData ( init, animate ) {
+function loadPaintData ( dataPath, init, animate ) {
 	// 首先获取颜色数据
 	fetch( './data/Color.json' ).then( res => {
 		return res.json().then( json => {
-			var colorlist = json[ 'Colors' ][ 'Wild' ];
-			var random = Math.floor( Math.random() * colorlist.length );
-			for( var i in colorlist[random] ) {
-				PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[random][i];
-			}
+			globalColors = json['Colors'];
 		});
 	}).then( function(){
-		fetch( './data/ColorLiquids/data.json' ).then( res => {
+		fetch( dataPath ).then( res => {
 			return res.json().then( json => {
-				// PaintData.pattern = 
-				// console.log(json.standard);
+				// set paint data 
 				PaintData.pattern = json.standard.pattern;
+				// set model path if it exists
+				if( json.hasOwnProperty('instances') ) {
+					var key = window.location.href.split( '#' )[1];
+					PaintData.modelPath = json.instances[ key ].model;
+					PaintData.colorName = json.instances[ key ].theme;
+				}
 			})
 		}).then( () => {
+
+			var colorList = globalColors[ PaintData.colorName ];
+
+			var random = Math.floor( Math.random() * colorList.length );
+
+			for( var i in colorList[random] ) {
+				// set color theme
+				PaintData.colortheme[ 'color-' + i ] = '#' + colorList[random][i];
+			}
+
 			init();
 			animate();
 		});
@@ -173,18 +184,16 @@ function initUIControlPanel() {
 	shuffleColor.setAttribute('id','shuffle_color');
 	shuffleColor.setAttribute('class','dot-btn');
 	shuffleColor.addEventListener('click',function(){
-		fetch( './data/Color.json' ).then( res => {
-			return res.json().then( json => {
-				var colorlist = json[ 'Colors' ][ 'Wild' ];
-				var random = Math.floor( Math.random() * colorlist.length );
-				for( var i in colorlist[random] ) {
-					PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[random][i];
-				}
-			});
-		}).then( () => {
-			PaintData.updateColors();
-			gui.updateDisplay();
-		});
+
+		var colorList = globalColors[ 'Wild' ];
+		var random = Math.floor( Math.random() * colorList.length );
+
+		for( var i in colorList[random] ) {
+			PaintData.colortheme[ 'color-' + i ] = '#' + colorList[random][i];
+		}
+
+		PaintData.updateColors();
+		gui.updateDisplay();
 	},false);
 
 	// 后期处理特效开关

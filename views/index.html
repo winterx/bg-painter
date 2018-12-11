@@ -235,11 +235,12 @@
 
 			var linkItem = document.createElement('a');
 			linkItem.className = 'link';
-			linkItem.href = './paints/' + item.url +'#s';
+			linkItem.href = './paints/' + item.url;
 			linkItem.setAttribute( 'target', 'painterview' ); // 点击后切换至对应的iframe
 			linkItem.setAttribute( 'name', item.name );
 			linkItem.setAttribute( 'id', key );
 			linkItem.addEventListener( 'click', function(event){
+				painterview.window.location.reload();
 				var id = event.currentTarget.id;
 				var targetItem = paints[ id ];
 				// main_title.innerHTML = event.currentTarget.name; 

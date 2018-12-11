@@ -1,30 +1,13 @@
-{
-	"Color_fantasy" : [
-		{
-			"id": 0,
-			"colors": [ "9B50ED", "69D5FF", "FFBD6E", "FF77BC", "43FFB3", "5E71FF" ]
-		},
-		{
-			"id": 1,
-			"colors": [ "8E00FF", "FF0087", "FFBD6E", "FF3333", "FF7939", "FF00E1" ]
-		}
-	],
-
-	"Color_red" : [
-		{
-			"id": 0,
-			"colors": [ "FFF1F4", "FF560D", "FF4463", "FF865E", "FF0D93", "FF2828" ]
-		}
-	],
-
-
+{	
 	"Colors" : {
 
 		"Fantasy": 
 		[
 			[ "9B50ED", "69D5FF", "FFBD6E", "FF77BC", "ff434b", "5E71FF" ],
-			[ "8E00FF", "FF0087", "FFBD6E", "FF3333", "FF7939", "FF00E1" ]
+			[ "70e8db", "FF0087", "FFBD6E", "FF3333", "69D5FF", "FF00E1" ]
 		],
+
+
 
 		"Fancy": [
 			["b7f7d3","70e8db","7fa5ed","8259f2"],
@@ -63,6 +46,10 @@
 
 		"Scifi_Blue": [
 			[ "2B4FF0", "452DEF", "552FFF", "3AA4FA" ]
+		],
+
+		"Scifi_Dark": [
+			[ "00050A", "0099ff", "00ffff", "3AA4FA" ]
 		],
 
 		"Fresh": [

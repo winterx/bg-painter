@@ -4,14 +4,14 @@ var paints = {
 
 	'RainbowFlow' : {
 		name 		: 'Flowing Rainbow',
-		serial		: 'No.1',
+		serial		: 'No.0',
 		url 		: 'RainbowFlow.html',
 		picurl 		: 'images/rainbow-flow.png',
 		description : '\"Try to be a rainbow in someone\'s cloud. \"'
 	},
 	'ColorLiquids' : {
 		name 		: 'Dual Color Liquids',
-		serial		: 'No.1',
+		serial		: 'No.0',
 		url 		: 'ColorLiquids.html',
 		picurl 		: 'images/color-liquids.png',
 		description : 'Try to be water, my friend --Bruce Lee'
@@ -21,31 +21,41 @@ var paints = {
 
 	// floating space
 
-	'FloatingSpace_00' : {
-		name		: 'Floating Boxes',
-		serial		: 'No.1',
-		url 		: 'FloatingSpace_00.html',
-		picurl 		: 'images/floating-space-00.png',
-		description : 'Many boxes floating on the ground, color theme can be shuffled'
+	'FloatingObjects' : {
+		name		: 'Floating Objects',
+		serial		: 'No.0',
+		url 		: 'FloatingObjects.html',
+		picurl 		: 'images/floating-objects.png',
+		description : 'Objects floating on the ground, color theme can be shuffled'
 	},
-	'FloatingSpace_01' : {
-		name		: 'Floating Blocks',
-		serial		: 'No.2',
-		url 		: 'FloatingSpace_01.html',
-		picurl 		: 'images/floating-space-01.png',
-		description : 'Blocks floating in the space'
+	'MatrixCubes' : {
+		name		: 'Cube Matrix',
+		serial		: 'No.0',
+		url 		: 'MatrixCubes.html',
+		picurl 		: 'images/matrix-cube.png',
+		description : 'Cubes distributed in the space in a matrix way'
 	},
-	'FloatingSpace_02' : {
+
+	// floating money
+	'FloatingMoney#00' : {
 		name		: 'Floating Money Signs',
-		serial		: 'No.3',
-		url 		: 'FloatingSpace_02.html',
-		picurl 		: 'images/floating-space-02.png',
+		serial		: 'No.0',
+		url 		: 'FloatingMoney.html#00',
+		picurl 		: 'images/floating-money-00.png',
 		description : 'Dollar signs are floating in the space'
 	},
-	'FloatingSpace_03' : {
-		name		: 'Floating Hearts',
-		serial		: 'No.4',
-		url 		: 'FloatingSpace_03.html',
+	'FloatingMoney#01' : {
+		name		: 'Floating Money Signs',
+		serial		: 'No.1',
+		url 		: 'FloatingMoney.html#01',
+		picurl 		: 'images/floating-money-01.png',
+		description : 'RMB signs are floating in the space'
+	},
+
+	'MatrixHearts' : {
+		name		: 'Heart Matrix',
+		serial		: 'No.0',
+		url 		: 'MatrixHearts.html',
 		picurl 		: 'images/floating-space-03.png',
 		description : 'It is only with the heart that one can see rightly'
 	},

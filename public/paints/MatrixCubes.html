@@ -111,7 +111,7 @@
 			
 		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-		var camera, scene, renderer, composer, stats, controls, globalColors=[];
+		var camera, scene, renderer, composer, stats, controls, globalColors;
 		var cameraRTT, sceneRTT, rtTexture, texture_mat;
 		var	postprocessing = {};
 		var ctx;
@@ -135,7 +135,7 @@
 
 		var PaintData = { 
 			// Colors
-			colorName: 'Fantasy',
+			colorName: 'Scifi_Blue',
 			colortheme: {
 				'color-0': '#ffffff',
 				'color-1': '#ffffff',
@@ -188,21 +188,7 @@
 
 		// Color Data and Start initPaint
 		// -----------------------------------------------------------------------------------
-		fetch( './data/Color.json' ).then( res => {
-			return res.json().then( json => {
-				colorlist = json['Colors']['Scifi_Blue'][0];
-				for( var i in colorlist ) {
-					PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[i];					
-				}
-			});
-		}).then( () => {
-			initPaint();
-			animate();
-		});
-
-
-
-
+		loadPaintData( './data/MatrixCubes/data.json', initPaint, animate );
 
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
@@ -261,7 +247,7 @@
 
 			// control and monitor
 			controls = new THREE.OrbitControls( camera, renderer.domElement );
-			gui = new dat.GUI();
+			controls.enabled = false;
 			stats = new Stats();
 
 			// dom 
@@ -402,8 +388,8 @@
 		}
 
 		function buildControls() {
-			gui.width = 300;
-			//init GUI		
+			gui = new dat.GUI();
+
 			var folder_colors = gui.addFolder('Color Theme');	
 			folder_colors.open();
 			folder_colors.addColor( PaintData.colortheme, 'color-0' ).onFinishChange( function (value) {

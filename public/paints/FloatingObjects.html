@@ -89,7 +89,7 @@
 		// -----------------------------------------------------------------------------------
 		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-		var camera, scene, renderer, composer, stats, gui, controls, globalColors=[];
+		var camera, scene, renderer, composer, stats, gui, controls, globalColors;
 		var cameraRTT, sceneRTT, rtTexture, texture_mat;
 		var ctx;
 
@@ -170,19 +170,10 @@
 			}
 		}
 
-		// get Colors and init
-		fetch( './data/Color.json' ).then( res => {
-			return res.json().then( json => {
-				var colorlist = json[ 'Colors' ][ 'Wild' ];
-				var random = Math.floor( Math.random() * colorlist.length );
-				for( var i in colorlist[random] ) {
-					PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[random][i];
-				}
-			});
-		}).then( () => {
-			initPaint();
-			animate();
-		});
+
+		// Color Data and Start initPaint
+		// -----------------------------------------------------------------------------------
+		loadPaintData( './data/FloatingObjects/data.json', initPaint, animate );
 
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
@@ -231,6 +222,7 @@
 
 			// control and monitor
 			controls = new THREE.OrbitControls( camera, renderer.domElement );
+			controls.enabled = false;
 			stats = new Stats();
 
 			// dom 

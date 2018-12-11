@@ -143,9 +143,7 @@
 			},
 
 			// Pattern
-			pattern: {
-
-			},
+			pattern: {},
 
 			// PostEFX
 			postEFX: {
@@ -172,19 +170,11 @@
 				matRTT.needsUpdate = true;
 			}
 		}
-		
-		// get Colors and init
-		fetch( './data/Color.json' ).then( res => {
-			return res.json().then( json => {
-				colorlist = json['Colors'][PaintData.colorName][0];
-				for( var i in colorlist ) {
-					PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[i];
-				}
-			});
-		}).then( () => {
-			initPaint();
-			animate();
-		});
+
+
+		// Color Data and Start initPaint
+		// -----------------------------------------------------------------------------------
+		loadPaintData( './data/MatrixHearts/data.json', initPaint, animate );
 
 
 		function initPaint() {
@@ -243,7 +233,7 @@
 
 			// control and monitor
 			controls = new THREE.OrbitControls( camera, renderer.domElement );
-			gui = new dat.GUI();
+			controls.enabled = false;
 			stats = new Stats();
 
 			// dom 
@@ -310,7 +300,7 @@
 		}
 
 		function buildObjects() {
-			loader.load( '../geometries/heart.dae', function ( collada ) {
+			loader.load( '../geometries/heart_full.dae', function ( collada ) {
 
 				var dae = collada.scene;
 
@@ -328,7 +318,7 @@
 
 						var offsets = [];
 
-						var grid = new Grid( 8, 1, 8, 140, 140, 140 ); //
+						var grid = new Grid( 8, 1, 8, 210, 100, 200 ); //
 
 						for( var i=0; i<grid.totalNum; ++i ) {
 
@@ -341,7 +331,7 @@
 						instanced_geo.addAttribute( 'offset', offsetsAttribute );
 
 						var mesh = new THREE.Mesh( instanced_geo, rawshaderMat );
-						mesh.scale.set( 2, 2, 2 )
+						mesh.scale.set( 1.5, 1.5, 1.5 )
 						scene.add( mesh );
 					}
 				});
@@ -363,6 +353,7 @@
 		}
 
 		function buildControls() {	
+			gui = new dat.GUI();
 			//init GUI			
 			var folder_colors = gui.addFolder('Color Theme');	
 			folder_colors.open();

@@ -1,0 +1,13 @@
+{
+	"standard": {
+		"colorName": "Scifi_Dark",
+		"colortheme": [],
+		"pattern": {
+			"fog": {
+				"near": 400,
+				"far": 1000
+			}
+		}
+	}
+}
+

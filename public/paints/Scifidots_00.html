@@ -83,7 +83,7 @@
 
 		var PaintData = { 
 			// Colors
-			colorName: 'Fantasy',
+			colorName: 'Scifi_Dark',
 			colortheme: {
 				'color-0': '#00050A',
 				'color-1': '#ffffff',
@@ -93,10 +93,6 @@
 
 			// Pattern
 			pattern: {
-				fog: {
-					near: 400,
-					far: 1000
-				}
 			},
 
 			// PostEFX
@@ -120,32 +116,13 @@
 			},
 
 			updateColors: function () {
-				scene.background.set( PaintData.colortheme['color-0'] );
-				matRTT.uniforms.u_color_0.value.set( PaintData.colortheme['color-0'] );
-				matRTT.uniforms.u_color_1.value.set( PaintData.colortheme['color-1'] );
-				matRTT.uniforms.u_color_2.value.set( PaintData.colortheme['color-2'] );
-				matRTT.uniforms.u_color_3.value.set( PaintData.colortheme['color-3'] );
-				matRTT.needsUpdate = true;
 			}
 		}
 
 
 		// Color Data and Start initPaint
 		// -----------------------------------------------------------------------------------
-		fetch( './data/Color.json' ).then( res => {
-			return res.json().then( json => {
-				colorlist = json['Colors']["Fancy"][0];
-				for( var i in colorlist ) {
-					// PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[i];
-				}
-			});
-		}).then( () => {
-			initPaint();
-			animate();
-		});
-
-
-
+		loadPaintData( './data/Scifidots_00/data.json', initPaint, animate );
 
 
 		function initPaint() {
@@ -198,6 +175,7 @@
 
 			// control and monitor
 			controls = new THREE.OrbitControls( camera, renderer.domElement );
+			controls.enabled = false;
 			// gui = new dat.GUI();
 			stats = new Stats();
 
@@ -245,7 +223,7 @@
 		function buildResources() {
 			// 将可复用的几何体、材质、贴图放在这里
 			lineMaterial = new THREE.LineDashedMaterial( { 
-				color : 0x0099ff, 
+				color : new THREE.Color( PaintData.colortheme['color-1'] ), 
 				transparent: true,
 				opacity: 0.3,
 				blending: THREE['AdditiveBlending'],
@@ -256,7 +234,7 @@
 			});
 
 			dotMaterial = new THREE.MeshBasicMaterial( { 
-				color:0x00ffff,
+				color: new THREE.Color( PaintData.colortheme['color-2'] ),
 				transparent: true,
 				blending: THREE['AdditiveBlending']
 			});

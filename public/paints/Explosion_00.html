@@ -150,19 +150,11 @@
 			}
 		}
 
+
 		// Color Data and Start initPaint
 		// -----------------------------------------------------------------------------------
-		fetch( './data/Color.json' ).then( res => {
-			return res.json().then( json => {
-				colorlist = json['Colors']['Fantasy'][0];
-				for( var i in colorlist ) {
-					PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[i];
-				}
-			});
-		}).then( () => {
-			initPaint();
-			animate();
-		});
+		loadPaintData( './data/MatrixHearts/data.json', initPaint, animate );
+		
 
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
@@ -196,6 +188,7 @@
 
 			// Stats / Gui / Controls -----------------------------------------------------------------------------------
 			controls = new THREE.OrbitControls( camera, renderer.domElement );
+			controls.enabled = false;
 			stats = new Stats();
 
 

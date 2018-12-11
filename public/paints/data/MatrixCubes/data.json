@@ -1,0 +1,14 @@
+{
+	"standard": {
+		"colorName": "Scifi_Blue",
+		"colortheme": [],
+		"pattern": {
+            "box size": {
+                "width": 32,
+                "height": 230,
+                "depth": 32
+            }
+		}
+	}
+}
+

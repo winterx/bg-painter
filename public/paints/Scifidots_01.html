@@ -114,18 +114,7 @@
 
 		// Color Data and Start initPaint
 		// -----------------------------------------------------------------------------------
-		fetch( './data/Color.json' ).then( res => {
-			return res.json().then( json => {
-				colors = json['Color_fantasy'][0].colors;
-				for( var i in colors ) {
-					var color = new THREE.Color( '#' + colors[i] );
-					globalColors.push(color);
-				}
-			});
-		}).then( () => {
-			initPaint();
-			animate();
-		});
+		loadPaintData( './data/Scifidots_01/data.json', initPaint, animate );
 
 
 		function initPaint() {
@@ -159,7 +148,7 @@
 
 			// control and monitor
 			controls = new THREE.OrbitControls( camera, renderer.domElement );
-			// gui = new dat.GUI();
+			controls.enabled = false;
 			stats = new Stats();
 
 			// dom 
@@ -304,9 +293,11 @@
 
 			// custom animation loop 
 			// ------------------------------------------------------------
-			for( var i=0; i<sphereGroup.children.length; ++i ) {
-				// sphereGroup.children[i].scale.set( Math.sin(factor)*2, Math.sin(factor)*2, Math.sin(factor)*1 );
-				sphereGroup.children[i].scale.addScalar( Math.sin( (frame+i)/50 )/10 );
+			if( !isFrameControlling ) {
+				for( var i=0; i<sphereGroup.children.length; ++i ) {
+					// sphereGroup.children[i].scale.set( Math.sin(factor)*2, Math.sin(factor)*2, Math.sin(factor)*1 );
+					sphereGroup.children[i].scale.addScalar( Math.sin( (frame+i)/50 )/10 );
+				}
 			}
 
 			

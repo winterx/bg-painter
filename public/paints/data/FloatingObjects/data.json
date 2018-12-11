@@ -1,0 +1,15 @@
+{
+	"standard": {
+		"colorName": "Wild",
+		"colortheme": [],
+		"pattern": {
+            "useLight": true,
+            "boxSize": {
+                "width": 30,
+                "height": 60,
+                "depth": 100
+            }
+		}
+	}
+}
+
