@@ -3,7 +3,7 @@ var paints = {
 	// color gradients
 
 	'RainbowFlow' : {
-		name 		: 'Flowing Rainbow',
+		name 		: 'Flowing Chromatic Liquids',
 		serial		: 'No.0',
 		url 		: 'RainbowFlow.html',
 		picurl 		: 'images/rainbow-flow.png',
