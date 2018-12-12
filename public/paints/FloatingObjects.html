@@ -112,8 +112,8 @@
 
 		var PaintData = { 
 			// Colors
-			colorName: 'Wild',
-			colortheme: {
+			colorTheme: 'Wild',
+			palette: {
 				'color-0': '#ffffff',
 				'color-1': '#ffffff',
 				'color-2': '#ffffff',
@@ -160,13 +160,13 @@
 			},
 
 			updateColors: function() {
-				matRTT.uniforms.u_color_0.value.set( PaintData.colortheme['color-0'] );
-				matRTT.uniforms.u_color_1.value.set( PaintData.colortheme['color-1'] );
-				matRTT.uniforms.u_color_2.value.set( PaintData.colortheme['color-2'] );
-				matRTT.uniforms.u_color_3.value.set( PaintData.colortheme['color-3'] );
+				matRTT.uniforms.u_color_0.value.set( PaintData.palette['color-0'] );
+				matRTT.uniforms.u_color_1.value.set( PaintData.palette['color-1'] );
+				matRTT.uniforms.u_color_2.value.set( PaintData.palette['color-2'] );
+				matRTT.uniforms.u_color_3.value.set( PaintData.palette['color-3'] );
 				matRTT.needsUpdate = true;	
 
-				ground_mat.color.set( PaintData.colortheme['color-0'] );
+				ground_mat.color.set( PaintData.palette['color-0'] );
 			}
 		}
 
@@ -203,7 +203,7 @@
 			// scene
 			scene = new THREE.Scene();
 			scene.background = new THREE.Color('#f90');
-			// scene.fog = new THREE.Fog( PaintData.colortheme['color-0'], 1, 1400 );
+			// scene.fog = new THREE.Fog( PaintData.palette['color-0'], 1, 1400 );
 
 			// helper
 			var axesHelper = new THREE.AxesHelper( 25 );
@@ -255,10 +255,10 @@
 				uniforms: { 
 					u_time: { value: 0.0 },
 					u_resolution: { value: new THREE.Vector2( texture_size, texture_size ) }, 
-					u_color_0: { value: new THREE.Color( PaintData.colortheme['color-'+0] ) },
-					u_color_1: { value: new THREE.Color( PaintData.colortheme['color-'+1] ) },
-					u_color_2: { value: new THREE.Color( PaintData.colortheme['color-'+2] ) },
-					u_color_3: { value: new THREE.Color( PaintData.colortheme['color-'+3] ) },
+					u_color_0: { value: new THREE.Color( PaintData.palette['color-'+0] ) },
+					u_color_1: { value: new THREE.Color( PaintData.palette['color-'+1] ) },
+					u_color_2: { value: new THREE.Color( PaintData.palette['color-'+2] ) },
+					u_color_3: { value: new THREE.Color( PaintData.palette['color-'+3] ) },
 				},
 				vertexShader: document.getElementById( 'init_vertex_shader' ).textContent,
 				fragmentShader: document.getElementById( 'init_fragment_shader' ).textContent
@@ -311,7 +311,7 @@
 
 			// Ground
 			ground_geo = new THREE.PlaneBufferGeometry( 3000, 3000, 1 );
-			ground_mat = new THREE.MeshLambertMaterial( { color: PaintData.colortheme['color-0'], dithering: true } );
+			ground_mat = new THREE.MeshLambertMaterial( { color: PaintData.palette['color-0'], dithering: true } );
 			ground = new THREE.Mesh( ground_geo, ground_mat );
 			ground.position.y = -10;
 			ground.rotation.x = -Math.PI/2;
@@ -344,25 +344,25 @@
 		function buildControls() {
 			gui = new dat.GUI();
 	
-			gui.addColor( PaintData.colortheme, 'color-0' ).onFinishChange( function (value) {
-				PaintData.colortheme['color-0'] = value;
-				matRTT.uniforms.u_color_0.value = new THREE.Color( PaintData.colortheme['color-'+0] ) ;
-				ground_mat.color.set( PaintData.colortheme['color-0'] );
+			gui.addColor( PaintData.palette, 'color-0' ).onFinishChange( function (value) {
+				PaintData.palette['color-0'] = value;
+				matRTT.uniforms.u_color_0.value = new THREE.Color( PaintData.palette['color-'+0] ) ;
+				ground_mat.color.set( PaintData.palette['color-0'] );
 			});
 
-			gui.addColor( PaintData.colortheme, 'color-1' ).onFinishChange( function (value) {
-				PaintData.colortheme['color-1'] = value;
-				matRTT.uniforms.u_color_1.value = new THREE.Color( PaintData.colortheme['color-'+1] ) ;
+			gui.addColor( PaintData.palette, 'color-1' ).onFinishChange( function (value) {
+				PaintData.palette['color-1'] = value;
+				matRTT.uniforms.u_color_1.value = new THREE.Color( PaintData.palette['color-'+1] ) ;
 			});
 
-			gui.addColor( PaintData.colortheme, 'color-2' ).onFinishChange( function (value) {
-				PaintData.colortheme['color-2'] = value;
-				matRTT.uniforms.u_color_2.value = new THREE.Color( PaintData.colortheme['color-'+2] ) ;
+			gui.addColor( PaintData.palette, 'color-2' ).onFinishChange( function (value) {
+				PaintData.palette['color-2'] = value;
+				matRTT.uniforms.u_color_2.value = new THREE.Color( PaintData.palette['color-'+2] ) ;
 			});
 
-			gui.addColor( PaintData.colortheme, 'color-3' ).onFinishChange( function (value) {
-				PaintData.colortheme['color-3'] = value;
-				matRTT.uniforms.u_color_3.value = new THREE.Color( PaintData.colortheme['color-'+3] ) ;
+			gui.addColor( PaintData.palette, 'color-3' ).onFinishChange( function (value) {
+				PaintData.palette['color-3'] = value;
+				matRTT.uniforms.u_color_3.value = new THREE.Color( PaintData.palette['color-'+3] ) ;
 			});
 
 			gui.open();

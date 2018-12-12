@@ -2,18 +2,18 @@ var paints = {
 
 	// color gradients
 
-	'RainbowFlow' : {
+	'LiquidsChromatic' : {
 		name 		: 'Flowing Chromatic Liquids',
 		serial		: 'No.0',
-		url 		: 'RainbowFlow.html',
-		picurl 		: 'images/rainbow-flow.png',
+		url 		: 'LiquidsChromatic.html',
+		picurl 		: 'images/liquids-chromatic.png',
 		description : '\"Try to be a rainbow in someone\'s cloud. \"'
 	},
-	'ColorLiquids' : {
+	'LiquidsDual' : {
 		name 		: 'Dual Color Liquids',
 		serial		: 'No.0',
-		url 		: 'ColorLiquids.html',
-		picurl 		: 'images/color-liquids.png',
+		url 		: 'LiquidsDual.html',
+		picurl 		: 'images/liquids-dual.png',
 		description : 'Try to be water, my friend --Bruce Lee'
 	},
 

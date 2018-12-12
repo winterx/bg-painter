@@ -16,7 +16,7 @@
 					"y": 60, 
 					"radius_inner": 93, 
 					"radius_outer": 405, 
-					"color_indices": [0,5,7]
+					"color_indices": [0,5,2]
 				},
 				{ 
 					"x": 436, 
@@ -30,7 +30,7 @@
 					"y": 127, 
 					"radius_inner": 78, 
 					"radius_outer": 496, 
-					"color_indices": [7,6,0]
+					"color_indices": [2,3,0]
 				}				
 			],
 			"morphdata": {

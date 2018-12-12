@@ -113,8 +113,8 @@
 		var sphereGeo, colorMaterials = [], group;
 		var PaintData = { 
 			// Colors
-			colorName: 'Fantasy',
-			colortheme: {
+			colorTheme: 'Fantasy',
+			palette: {
 				'color-0': '#ffffff',
 				'color-1': '#ffffff',
 				'color-2': '#ffffff',
@@ -201,7 +201,7 @@
 
 		function buildResources() {
 			// Spheres -----------------------------------------------
-			light = new THREE.HemisphereLight( PaintData.colortheme['color-0'], PaintData.colortheme['color-1'], 2.0 );
+			light = new THREE.HemisphereLight( PaintData.palette['color-0'], PaintData.palette['color-1'], 2.0 );
 			light.position.set( 0, 100, 0 );
 			scene.add( light );	
 
@@ -211,7 +211,7 @@
 
 			for( var i=0,il=6; i<il; i++ ) {
 				var sphereMat = new THREE.MeshPhongMaterial({
-					color: PaintData.colortheme['color-'+i],
+					color: PaintData.palette['color-'+i],
 					blending: THREE.AdditiveBlending,
 					transparent: true,
 					opacity: 0.7
@@ -224,13 +224,13 @@
 		function buildObjects() {
 			group = new THREE.Object3D();
 
-			var explosion_0 = new Explosion( 14 * GLOBAL_SIZE_FACTOR, 40, GLOBAL_SIZE_BOUNDING, PaintData.colortheme ).make();
+			var explosion_0 = new Explosion( 14 * GLOBAL_SIZE_FACTOR, 40, GLOBAL_SIZE_BOUNDING, PaintData.palette ).make();
 			group.add( explosion_0 );
 
-			var explosion_1 = new Explosion( 8 * GLOBAL_SIZE_FACTOR, 200, GLOBAL_SIZE_BOUNDING, PaintData.colortheme ).make();
+			var explosion_1 = new Explosion( 8 * GLOBAL_SIZE_FACTOR, 200, GLOBAL_SIZE_BOUNDING, PaintData.palette ).make();
 			group.add( explosion_1 );
 
-			var explosion_2 = new Explosion( 3 * GLOBAL_SIZE_FACTOR, 800, GLOBAL_SIZE_BOUNDING, PaintData.colortheme ).make();
+			var explosion_2 = new Explosion( 3 * GLOBAL_SIZE_FACTOR, 800, GLOBAL_SIZE_BOUNDING, PaintData.palette ).make();
 			group.add( explosion_2 );
 
 

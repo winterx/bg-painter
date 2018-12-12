@@ -25,18 +25,18 @@ function loadPaintData ( dataPath, init, animate ) {
 				if( json.hasOwnProperty('instances') ) {
 					var key = window.location.href.split( '#' )[1];
 					PaintData.modelPath = json.instances[ key ].model;
-					PaintData.colorName = json.instances[ key ].theme;
+					PaintData.colorTheme = json.instances[ key ].theme;
 				}
 			})
 		}).then( () => {
 
-			var colorList = globalColors[ PaintData.colorName ];
+			var colorList = globalColors[ PaintData.colorTheme ];
 
 			var random = Math.floor( Math.random() * colorList.length );
 
 			for( var i in colorList[random] ) {
 				// set color theme
-				PaintData.colortheme[ 'color-' + i ] = '#' + colorList[random][i];
+				PaintData.palette[ 'color-' + i ] = '#' + colorList[random][i];
 			}
 
 			init();
@@ -71,6 +71,7 @@ function initUI( renderer ) {
 
 	initUIInfoPanel();
 	initUIControlPanel();
+	initUITips();
 }
 
 // 初始化主信息面板，功能包括显示标题、简介，控制下载和刷新
@@ -185,11 +186,16 @@ function initUIControlPanel() {
 	shuffleColor.setAttribute('class','dot-btn');
 	shuffleColor.addEventListener('click',function(){
 
-		var colorList = globalColors[ 'Wild' ];
+		if( PaintData.colorShuffleTheme ) {
+			var colorList = globalColors[ PaintData.colorShuffleTheme ];
+		}else{
+			var colorList = globalColors[ 'Wild' ];
+		}
+
 		var random = Math.floor( Math.random() * colorList.length );
 
 		for( var i in colorList[random] ) {
-			PaintData.colortheme[ 'color-' + i ] = '#' + colorList[random][i];
+			PaintData.palette[ 'color-' + i ] = '#' + colorList[random][i];
 		}
 
 		PaintData.updateColors();
@@ -199,7 +205,6 @@ function initUIControlPanel() {
 	// 后期处理特效开关
 	var btnPostEFX = document.createElement('DIV');
 	btnPostEFX.setAttribute('id','toggle_PostEfx');
-	btnPostEFX.setAttribute('class','dot-btn');
 	if( PaintData.postEFX.effects === false ) btnPostEFX.classList.add('off');
 	btnPostEFX.addEventListener('click',function () {
 		if( PaintData.postEFX.effects === false ) {
@@ -248,13 +253,18 @@ function initUIControlPanel() {
 		controlWrapper.appendChild(shuffleColor);
 	}
 	if( PaintData.options.canEffectsToggle ) {
-		controlWrapper.appendChild(btnPostEFX);
+		container.appendChild(btnPostEFX);
 	}
 
 	document.getElementById('container').appendChild(controlWrapper);	
 }
 
-
+function initUITips() {
+	var tipsResetPattern = document.createElement('DIV');
+	tipsResetPattern.setAttribute('id','tip_resetPattern');
+	tipsResetPattern.textContent = 'Refresh pattern'
+	reset_pattern.appendChild(tipsResetPattern);
+}
 
 
 

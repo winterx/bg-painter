@@ -190,6 +190,7 @@ body {
 }  
 
 .dot-btn {
+	position: relative;
 	display: inline-block;
 	vertical-align: top;
 	margin-left: 20px;
@@ -207,11 +208,27 @@ body {
 #reset_pattern {
     background-image: url( ../../images/ui/btn_refresh.png);
 }
+#reset_pattern:hover #tip_resetPattern {
+	display: block;
+}
+
 #shuffle_color {
     background-image: url( ../../images/ui/btn_shuffle_color.png);
 }
+
 #toggle_PostEfx {
+	display: block;
+	position: absolute;
+	top: 20px;
+	left: 20px;
+	width: 40px;
+	height: 40px;
+	background-color: rgba( 0, 0, 10, 1.0 );
+    background-size: cover;
+	border-radius: 50%;
     background-image: url( ../../images/ui/btn_postefx_on.png);
+	opacity: 0.9;
+	cursor: pointer;
 }
 #toggle_PostEfx.off {
     background-image: url( ../../images/ui/btn_postefx_off.png);
@@ -219,6 +236,36 @@ body {
 
 
 
+/* UI Tips */
+#tip_resetPattern {
+	display: none;
+	position: absolute;
+	top: 34px;
+    left: calc( 50% - 50px );
+	width: 100px;
+	height: 32px;
+	color: #000;
+	font-size: 10px;
+	font-family: sans-serif;
+	font-style: italic;
+	text-align: center;
+	line-height: 32px;
+	border-radius: 6px;
+	/*background-color: #000;*/
+
+	transition: 200ms ease-out;
+}
+/*#tip_resetPattern:after {
+	content: '';
+    display: block;
+    position: absolute;
+    width: 0;
+    height: 0;
+    top: 32px;
+    left: calc( 50% - 8px );
+    border: 8px solid transparent;
+    border-top: 8px solid #000;
+}*/
 
 
 

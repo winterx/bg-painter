@@ -116,8 +116,16 @@
 
 		var PaintData = { 
 			// Colors
-			colorName: 'Fantasy',
-			colortheme: [],
+			colorTheme: 'Fantasy',
+			colorShuffleTheme: 'Fantasy',
+			palette: {
+				'color-0': '#ffffff',
+				'color-1': '#ffffff',
+				'color-2': '#ffffff',
+				'color-3': '#ffffff',
+				'color-4': '#ffffff',
+				'color-5': '#ffffff',
+			},
 
 			// Pattern
 			pattern: {
@@ -151,7 +159,7 @@
 
 			// Controls
 			options: {
-				canColorShuffle: false,
+				canColorShuffle: true,
 			},
 
 			// Methods
@@ -159,24 +167,6 @@
 				this.reset2dPattern();
 				this.drawCanvas2d();
 				this.refreshPattern();
-			},
-
-			load2dPattern: function () {
-				fetch('./data/RainbowFlow/data.json').then( res => {
-					return res.json().then( json => {
-						var sprays = json.standard.pattern.sprays;
-						sprays.forEach(function(item,index){
-							PaintData.pattern.sprays[index] = {};
-							PaintData.pattern.sprays[index].x = item.x;
-							PaintData.pattern.sprays[index].y = item.y;
-							PaintData.pattern.sprays[index].radius_inner = item.radius_inner;
-							PaintData.pattern.sprays[index].radius_outer = item.radius_outer;
-							PaintData.pattern.sprays[index].color_indices = item.color_indices;
-						});
-					})
-				}).then( () => {
-					this.drawCanvas2d();
-				});
 			},
 
 			reset2dPattern: function() {
@@ -190,11 +180,11 @@
 						var y = Math.random()*cHeight;
 						
 						// 随机设定喷圈尺寸
-						var radius_inner = Math.random() * 50 + 50;
-						var radius_outer = Math.random() * 300 + 200;
+						var radius_inner = Math.random() * 50 + 40;
+						var radius_outer = Math.random() * 300 + 170;
 
 						// 随机设定喷圈颜色索引
-						var indices = [ 0, 1, 2, 3, 4, 5, 6, 7 ];
+						var indices = [ 0, 1, 2, 3, 4, 5 ];
 						var color_index_0 = this.pick(indices);
 						var color_index_1 = this.pick(indices);
 						var color_index_2 = this.pick(indices);
@@ -215,10 +205,10 @@
 				// 先绘制出背景底色
 				ctx = drawingcanvas.getContext( '2d' );
 				var grd = ctx.createLinearGradient( 0, 0, 0, 512 );
-				grd.addColorStop( 0.0, this.colortheme['color-'+0] + 'ff' );
-				grd.addColorStop( 0.3, this.colortheme['color-'+1] + 'ff' );
-				grd.addColorStop( 0.7, this.colortheme['color-'+2] + 'ff' );
-				grd.addColorStop( 1.0, this.colortheme['color-'+3] + 'ff' );
+				grd.addColorStop( 0.0, this.palette['color-'+0] + 'ff' );
+				grd.addColorStop( 0.3, this.palette['color-'+1] + 'ff' );
+				grd.addColorStop( 0.7, this.palette['color-'+2] + 'ff' );
+				grd.addColorStop( 1.0, this.palette['color-'+3] + 'ff' );
 				ctx.fillStyle = grd;
 				ctx.fillRect( 0, 0, 1024, 512 );
 
@@ -226,9 +216,10 @@
 				for( var i=0; i<this.pattern.sprays.length; ++i ) {
 					var spray = this.pattern.sprays[i];
 					var grd = ctx.createRadialGradient( spray.x, spray.y, spray.radius_inner, spray.x, spray.y, spray.radius_outer);
-					grd.addColorStop( 0.0, this.colortheme[ 'color-' + spray.color_indices[0] ] );
-					grd.addColorStop( 0.2, this.colortheme[ 'color-' + spray.color_indices[1] ] );
-					grd.addColorStop( 1.0,  this.colortheme[ 'color-' + spray.color_indices[2] ] + '00' );
+
+					grd.addColorStop( 0.0, this.palette[ 'color-' + spray.color_indices[0] ] );
+					grd.addColorStop( 0.2, this.palette[ 'color-' + spray.color_indices[1] ] );
+					grd.addColorStop( 1.0,  this.palette[ 'color-' + spray.color_indices[2] ] + '00' );
 
 					ctx.fillStyle = grd;
 					ctx.fillRect( 0, 0, 1024, 512 );
@@ -265,6 +256,10 @@
 			 	buildObjects();
 			},
 
+			updateColors: function() {
+				this.drawCanvas2d();
+			},
+
 			pick: function( array ) {
 
 				var rand = Math.floor( Math.random()*array.length );
@@ -278,38 +273,44 @@
 		}
 
 		// get Colors and init
-		fetch( './data/Color.json' ).then( res => {
-			return res.json().then( json => {
+		// fetch( './data/Color.json' ).then( res => {
+		// 	return res.json().then( json => {
 
-				var name = PaintData.colorName;
-				var colors = json['Colors'][ name ];
-				var tempColors = [];
+		// 		var theme = PaintData.colorTheme;
+		// 		var colors = json['Colors'][ theme ];
+		// 		var tempColors = [];
 
-				// 从Colors -> Fantasy 中获取2组16个颜色，随机地放8个颜色在color_scheme中
-				for( var i in colors ) {
-					colors[i].forEach( function( item, index ) {
-						tempColors.push( '#'+item );
-					})
-				}
+		// 		// 从Colors -> Fantasy 中获取2组16个颜色，随机地放8个颜色在color_scheme中
+		// 		for( var i in colors ) {
+		// 			colors[i].forEach( function( item, index ) {
+		// 				tempColors.push( '#'+item );
+		// 			})
+		// 		}
 
-				// 随机打乱排序
-				tempColors = _.shuffle(tempColors);
+		// 		// 随机打乱排序
+		// 		tempColors = _.shuffle(tempColors);
 
-				// 装填入colortheme中
-				for( var i=0; i<8; i++ ){
-					PaintData.colortheme[ 'color-' + i ]= tempColors[i];
-				}
-			});
-		}).then( () => {
-			initPaint();
-			animate();
-		});
+		// 		// 装填入colortheme中
+		// 		for( var i=0; i<8; i++ ){
+		// 			PaintData.palette[ 'color-' + i ]= tempColors[i];
+		// 		}
+		// 	});
+		// }).then( () => {
+		// 	initPaint();
+		// 	animate();
+		// });
+
+
+		// Color Data and Start initPaint
+		// -----------------------------------------------------------------------------------
+		loadPaintData( './data/LiquidsChromatic/data.json', initPaint, animate );
 
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
 			initRendererToTexture(); // render texuture with shader, if use RTT texture
 
-			PaintData.load2dPattern();
+			PaintData.reset2dPattern();
+			PaintData.drawCanvas2d();
 
 			// init UI controls
 			initUI( renderer ); 
@@ -443,43 +444,33 @@
 			});
 
 			//init GUI				
-			gui.addColor( PaintData.colortheme, 'color-0' ).onChange( function (value) {
-				PaintData.colortheme[0] = value;
+			gui.addColor( PaintData.palette, 'color-0' ).onChange( function (value) {
+				PaintData.palette['color-' + 0] = value;
 				PaintData.drawCanvas2d();
 			});
 
-			gui.addColor( PaintData.colortheme, 'color-1' ).onChange( function (value) {
-				PaintData.colortheme[2] = value;
+			gui.addColor( PaintData.palette, 'color-1' ).onChange( function (value) {
+				PaintData.palette['color-' + 1] = value;
 				PaintData.drawCanvas2d();
 			});
 
-			gui.addColor( PaintData.colortheme, 'color-2' ).onChange( function (value) {
-				PaintData.colortheme[2] = value;
+			gui.addColor( PaintData.palette, 'color-2' ).onChange( function (value) {
+				PaintData.palette['color-' + 2] = value;
 				PaintData.drawCanvas2d();
 			});
 
-			gui.addColor( PaintData.colortheme, 'color-3' ).onChange( function (value) {
-				PaintData.colortheme[3] = value;
+			gui.addColor( PaintData.palette, 'color-3' ).onChange( function (value) {
+				PaintData.palette['color-' + 3] = value;
 				PaintData.drawCanvas2d();
 			});
 
-			gui.addColor( PaintData.colortheme, 'color-4' ).onChange( function (value) {
-				PaintData.colortheme[4] = value;
+			gui.addColor( PaintData.palette, 'color-4' ).onChange( function (value) {
+				PaintData.palette['color-' + 4] = value;
 				PaintData.drawCanvas2d();
 			});
 
-			gui.addColor( PaintData.colortheme, 'color-5' ).onChange( function (value) {
-				PaintData.colortheme[5] = value;
-				PaintData.drawCanvas2d();
-			});
-
-			gui.addColor( PaintData.colortheme, 'color-6' ).onChange( function (value) {
-				PaintData.colortheme[6] = value;
-				PaintData.drawCanvas2d();
-			});
-
-			gui.addColor( PaintData.colortheme, 'color-7' ).onChange( function (value) {
-				PaintData.colortheme[7] = value;
+			gui.addColor( PaintData.palette, 'color-5' ).onChange( function (value) {
+				PaintData.palette['color-' + 5] = value;
 				PaintData.drawCanvas2d();
 			});
 

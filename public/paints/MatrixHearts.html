@@ -134,8 +134,8 @@
 
 		var PaintData = { 
 			// Colors
-			colorName: 'Red',
-			colortheme: {
+			colorTheme: 'Red',
+			palette: {
 				'color-0': '#FFF1F4',
 				'color-1': '#FF560D',
 				'color-2': '#FF4463',
@@ -162,11 +162,11 @@
 			},
 
 			updateColors: function () {
-				scene.background.set( PaintData.colortheme['color-0'] );
-				matRTT.uniforms.u_color_0.value.set( PaintData.colortheme['color-0'] );
-				matRTT.uniforms.u_color_1.value.set( PaintData.colortheme['color-1'] );
-				matRTT.uniforms.u_color_2.value.set( PaintData.colortheme['color-2'] );
-				matRTT.uniforms.u_color_3.value.set( PaintData.colortheme['color-3'] );
+				scene.background.set( PaintData.palette['color-0'] );
+				matRTT.uniforms.u_color_0.value.set( PaintData.palette['color-0'] );
+				matRTT.uniforms.u_color_1.value.set( PaintData.palette['color-1'] );
+				matRTT.uniforms.u_color_2.value.set( PaintData.palette['color-2'] );
+				matRTT.uniforms.u_color_3.value.set( PaintData.palette['color-3'] );
 				matRTT.needsUpdate = true;
 			}
 		}
@@ -215,7 +215,7 @@
 
 			// scene
 			scene = new THREE.Scene();
-			scene.background = new THREE.Color( PaintData.colortheme['color-0'] );
+			scene.background = new THREE.Color( PaintData.palette['color-0'] );
 			// scene.fog = new THREE.Fog( 0x000000, 900, 1200 );
 
 			// helper
@@ -264,10 +264,10 @@
 				uniforms: { 
 					u_time: { value: 0.0 },
 					u_resolution: { value: new THREE.Vector2( texture_size, texture_size ) }, 
-					u_color_0: { value: new THREE.Color( PaintData.colortheme['color-'+0] ) },
-					u_color_1: { value: new THREE.Color( PaintData.colortheme['color-'+1] ) },
-					u_color_2: { value: new THREE.Color( PaintData.colortheme['color-'+2] ) },
-					u_color_3: { value: new THREE.Color( PaintData.colortheme['color-'+3] ) },
+					u_color_0: { value: new THREE.Color( PaintData.palette['color-'+0] ) },
+					u_color_1: { value: new THREE.Color( PaintData.palette['color-'+1] ) },
+					u_color_2: { value: new THREE.Color( PaintData.palette['color-'+2] ) },
+					u_color_3: { value: new THREE.Color( PaintData.palette['color-'+3] ) },
 				},
 				vertexShader: document.getElementById( 'init_vertex_shader' ).textContent,
 				fragmentShader: document.getElementById( 'init_fragment_shader' ).textContent
@@ -357,20 +357,20 @@
 			//init GUI			
 			var folder_colors = gui.addFolder('Color Theme');	
 			folder_colors.open();
-			folder_colors.addColor( PaintData.colortheme, 'color-0' ).onFinishChange( function (value) {
-				PaintData.colortheme['color-0'] = value;
+			folder_colors.addColor( PaintData.palette, 'color-0' ).onFinishChange( function (value) {
+				PaintData.palette['color-0'] = value;
 				PaintData.updateColors();
 			});
-			folder_colors.addColor( PaintData.colortheme, 'color-1' ).onFinishChange( function (value) {
-				PaintData.colortheme['color-1'] = value;
+			folder_colors.addColor( PaintData.palette, 'color-1' ).onFinishChange( function (value) {
+				PaintData.palette['color-1'] = value;
 				PaintData.updateColors();
 			});
-			folder_colors.addColor( PaintData.colortheme, 'color-2' ).onFinishChange( function (value) {
-				PaintData.colortheme['color-2'] = value;
+			folder_colors.addColor( PaintData.palette, 'color-2' ).onFinishChange( function (value) {
+				PaintData.palette['color-2'] = value;
 				PaintData.updateColors();
 			});
-			folder_colors.addColor( PaintData.colortheme, 'color-3' ).onFinishChange( function (value) {
-				PaintData.colortheme['color-3'] = value;
+			folder_colors.addColor( PaintData.palette, 'color-3' ).onFinishChange( function (value) {
+				PaintData.palette['color-3'] = value;
 				PaintData.updateColors();
 			});	
 

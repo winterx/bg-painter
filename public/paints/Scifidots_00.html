@@ -83,8 +83,8 @@
 
 		var PaintData = { 
 			// Colors
-			colorName: 'Scifi_Dark',
-			colortheme: {
+			colorTheme: 'Scifi_Dark',
+			palette: {
 				'color-0': '#00050A',
 				'color-1': '#ffffff',
 				'color-2': '#ffffff',
@@ -157,8 +157,8 @@
 
 			// scene
 			scene = new THREE.Scene();
-			scene.background = new THREE.Color( PaintData.colortheme['color-0'] );
-			scene.fog = new THREE.Fog( PaintData.colortheme['color-0'], PaintData.pattern.fog.near, PaintData.pattern.fog.far );
+			scene.background = new THREE.Color( PaintData.palette['color-0'] );
+			scene.fog = new THREE.Fog( PaintData.palette['color-0'], PaintData.pattern.fog.near, PaintData.pattern.fog.far );
 
 			// helper
 			var axesHelper = new THREE.AxesHelper( 25 );
@@ -223,7 +223,7 @@
 		function buildResources() {
 			// 将可复用的几何体、材质、贴图放在这里
 			lineMaterial = new THREE.LineDashedMaterial( { 
-				color : new THREE.Color( PaintData.colortheme['color-1'] ), 
+				color : new THREE.Color( PaintData.palette['color-1'] ), 
 				transparent: true,
 				opacity: 0.3,
 				blending: THREE['AdditiveBlending'],
@@ -234,7 +234,7 @@
 			});
 
 			dotMaterial = new THREE.MeshBasicMaterial( { 
-				color: new THREE.Color( PaintData.colortheme['color-2'] ),
+				color: new THREE.Color( PaintData.palette['color-2'] ),
 				transparent: true,
 				blending: THREE['AdditiveBlending']
 			});
@@ -345,20 +345,20 @@
 			// colors modification -------------------------------
 			// var folder_colors = gui.addFolder('Color Theme');	
 			// folder_colors.open();
-			// folder_colors.addColor( PaintData.colortheme, 'color-0' ).onFinishChange( function (value) {
-			// 	PaintData.colortheme['color-0'] = value;
+			// folder_colors.addColor( PaintData.palette, 'color-0' ).onFinishChange( function (value) {
+			// 	PaintData.palette['color-0'] = value;
 			// 	PaintData.updateColors();
 			// });
-			// folder_colors.addColor( PaintData.colortheme, 'color-1' ).onFinishChange( function (value) {
-			// 	PaintData.colortheme['color-1'] = value;
+			// folder_colors.addColor( PaintData.palette, 'color-1' ).onFinishChange( function (value) {
+			// 	PaintData.palette['color-1'] = value;
 			// 	PaintData.updateColors();
 			// });
-			// folder_colors.addColor( PaintData.colortheme, 'color-2' ).onFinishChange( function (value) {
-			// 	PaintData.colortheme['color-2'] = value;
+			// folder_colors.addColor( PaintData.palette, 'color-2' ).onFinishChange( function (value) {
+			// 	PaintData.palette['color-2'] = value;
 			// 	PaintData.updateColors();
 			// });
-			// folder_colors.addColor( PaintData.colortheme, 'color-3' ).onFinishChange( function (value) {
-			// 	PaintData.colortheme['color-3'] = value;
+			// folder_colors.addColor( PaintData.palette, 'color-3' ).onFinishChange( function (value) {
+			// 	PaintData.palette['color-3'] = value;
 			// 	PaintData.updateColors();
 			// });
 

@@ -3,11 +3,17 @@
 
 		"Fantasy": 
 		[
-			[ "9B50ED", "69D5FF", "FFBD6E", "FF77BC", "ff434b", "5E71FF" ],
-			[ "70e8db", "FF0087", "FFBD6E", "FF3333", "69D5FF", "FF00E1" ]
+			[ "7900ff", "00b7ff", "ff8a00", "ff0081", "ff000a", "ff9b05" ],
+			[ "9B50ED", "69D5FF", "FFBD6E", "ff0081", "ff000a", "001eff" ],
+			[ "ff0000", "FF6400", "FFDE6B", "b7f7d3", "70e8db", "7a07f9" ],
+			[ "70e8db", "FF0087", "FFBD6E", "FF3333", "69D5FF", "FF00E1" ],
+			[ "ff0000", "ff8900", "ff00c6", "ff99e2", "78fff0", "f900b3" ],
+			[ "7900ff", "2ec4ff", "4bff47", "ff0081", "ff000a", "ff9b05" ]
 		],
 
-
+		"Explosion": [
+			[ "9B50ED", "69D5FF", "FFBD6E", "FF77BC", "ff434b", "5E71FF" ]			
+		],
 
 		"Fancy": [
 			["b7f7d3","70e8db","7fa5ed","8259f2"],

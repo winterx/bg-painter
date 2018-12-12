@@ -70,8 +70,8 @@
 
 		var PaintData = {
 			// Colors
-			colorName: 'Fantasy',
-			colortheme: {
+			colorTheme: 'Fantasy',
+			palette: {
 				'color-0': '#ffffff',
 				'color-1': '#ffffff',
 				'color-2': '#ffffff',
@@ -102,11 +102,11 @@
 			},
 
 			updateColors: function () {
-				scene.background.set( PaintData.colortheme['color-0'] );
-				matRTT.uniforms.u_color_0.value.set( PaintData.colortheme['color-0'] );
-				matRTT.uniforms.u_color_1.value.set( PaintData.colortheme['color-1'] );
-				matRTT.uniforms.u_color_2.value.set( PaintData.colortheme['color-2'] );
-				matRTT.uniforms.u_color_3.value.set( PaintData.colortheme['color-3'] );
+				scene.background.set( PaintData.palette['color-0'] );
+				matRTT.uniforms.u_color_0.value.set( PaintData.palette['color-0'] );
+				matRTT.uniforms.u_color_1.value.set( PaintData.palette['color-1'] );
+				matRTT.uniforms.u_color_2.value.set( PaintData.palette['color-2'] );
+				matRTT.uniforms.u_color_3.value.set( PaintData.palette['color-3'] );
 				matRTT.needsUpdate = true;
 			}
 		}
