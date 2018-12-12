@@ -5,6 +5,7 @@
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<meta name=”description” id="description" content="">
 	<meta name=”description” id="serial" content="">
+	<meta name="keywords" id="keywords" content="">
 	<title>Scifidots_01</title>
 
 	<script src="../build/three.js"></script>
@@ -70,9 +71,10 @@
 
 		var PaintData = {
 			// Colors
-			colorTheme: 'Fantasy',
+			colorTheme: 'Scifi_Dark',
+			colorShuffleTheme: 'Scifi_Dark',
 			palette: {
-				'color-0': '#ffffff',
+				'color-0': '#000000',
 				'color-1': '#ffffff',
 				'color-2': '#ffffff',
 				'color-3': '#ffffff'
@@ -91,7 +93,7 @@
 
 			// Controls
 			options: {
-				canColorShuffle: false,
+				canColorShuffle: true,
 				canEffectsToggle: false
 			},
 
@@ -103,11 +105,8 @@
 
 			updateColors: function () {
 				scene.background.set( PaintData.palette['color-0'] );
-				matRTT.uniforms.u_color_0.value.set( PaintData.palette['color-0'] );
-				matRTT.uniforms.u_color_1.value.set( PaintData.palette['color-1'] );
-				matRTT.uniforms.u_color_2.value.set( PaintData.palette['color-2'] );
-				matRTT.uniforms.u_color_3.value.set( PaintData.palette['color-3'] );
-				matRTT.needsUpdate = true;
+				line_mat.color.set( PaintData.palette['color-1']);
+				spriteMaterial.color.set( PaintData.palette['color-2']);
 			}
 		}
 
@@ -139,6 +138,8 @@
 
 			// scene
 			scene = new THREE.Scene();
+			scene.background = new THREE.Color( PaintData.palette['color-0'] );
+			scene.fog = new THREE.Fog( PaintData.palette['color-0'], 100, 200 );
 
 			// renderer
 			renderer = new THREE.WebGLRenderer( { antialias: true, preserveDrawingBuffer: true } );
@@ -161,7 +162,8 @@
 
 		function buildResources() {
 			line_mat = new THREE.LineDashedMaterial( { 
-				color : 0x00aaff,
+				// color : 0x00aaff,
+				color : new THREE.Color( PaintData.palette['color-1'] ),
 				opacity: 0.3,
 				transparent: true,
 				blending: THREE['AdditiveBlending']
@@ -169,7 +171,8 @@
 
 			spriteMaterial = new THREE.SpriteMaterial( { 
 				map: textureloader.load('../textures/lensflare_cyan.png'),
-				color: 0xffffff,
+				// color: 0xffffff,
+				color : new THREE.Color( PaintData.palette['color-2'] ),
 				opacity: 0.7,
 				transparent: true,
 				blending: THREE['AdditiveBlending']
@@ -227,27 +230,48 @@
 		function buildPostEFX() {
 
 			var renderPass = new THREE.RenderPass( scene, camera );
-			var effectFilmPass = new THREE.FilmPass( 6, 0.9, 648, false );
+			var effectFilmPass = new THREE.FilmPass( 0.7, 2.0, 1200, false );
 			var effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
 			effectFXAA.uniforms[ 'resolution' ].value.set( 1 / canvasW, 1 / canvasH );
 			var tiltShiftPass = new THREE.ShaderPass( THREE.VerticalTiltShiftShader );
 			var effect_bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( canvasW, canvasH ), 2.8, 0.67, 0.23 ); 
 
 			// which pass is the final pass
-			effectFXAA.renderToScreen = true;
+			effect_bloomPass.renderToScreen = true;
 
 			composer = new THREE.EffectComposer( renderer );
 			composer.addPass( renderPass );
-			composer.addPass( effectFilmPass );
 			composer.addPass( tiltShiftPass );
-			composer.addPass( effectFXAA );
-			// composer.addPass( effect_bloomPass );
+			composer.addPass( effect_bloomPass );
+			// composer.addPass( effectFilmPass );
+			// composer.addPass( effectFXAA );
 		
 			composer = composer;
 			postprocessing.tilt = tiltShiftPass;
 		}
 
 		function buildControls() {
+			gui = new dat.GUI();
+
+			// colors modification -------------------------------
+			gui.addColor( PaintData.palette, 'color-0' ).onFinishChange( function (value) {
+				PaintData.palette['color-0'] = value;
+				PaintData.updateColors();
+			});
+			gui.addColor( PaintData.palette, 'color-1' ).onFinishChange( function (value) {
+				PaintData.palette['color-1'] = value;
+				PaintData.updateColors();
+			});
+			gui.addColor( PaintData.palette, 'color-2' ).onFinishChange( function (value) {
+				PaintData.palette['color-2'] = value;
+				PaintData.updateColors();
+			});
+			gui.addColor( PaintData.palette, 'color-3' ).onFinishChange( function (value) {
+				PaintData.palette['color-3'] = value;
+				PaintData.updateColors();
+			});
+
+			gui.open();
 
 			onParamsChange();			
 		}
@@ -296,7 +320,7 @@
 			if( !isFrameControlling ) {
 				for( var i=0; i<sphereGroup.children.length; ++i ) {
 					// sphereGroup.children[i].scale.set( Math.sin(factor)*2, Math.sin(factor)*2, Math.sin(factor)*1 );
-					sphereGroup.children[i].scale.addScalar( Math.sin( (frame+i)/50 )/10 );
+					sphereGroup.children[i].scale.addScalar( Math.sin( (frame+i)/50 )/30 );
 				}
 			}
 

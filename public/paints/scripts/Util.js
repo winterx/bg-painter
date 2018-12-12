@@ -79,28 +79,48 @@ function initUIInfoPanel ( ) {
 	var title = document.title.replace('_',' #');
 
 	// 说明信息 -----------------------------------
+
 	// 主标题
 	var infoTitle = document.createElement('H1');
 	infoTitle.setAttribute('class','info-title');
 	infoTitle.setAttribute('id','info_title');
 	infoTitle.textContent = document.title;
+
 	// 作品类别序号
-	var infoSerial = document.createElement('SPAN');
-	infoSerial.setAttribute('class','info-serial');
-	infoSerial.setAttribute('id','info_serial');
-	infoSerial.textContent = document.getElementById('serial').content;
-	infoTitle.appendChild(infoSerial);
+	// var infoSerial = document.createElement('SPAN');
+	// infoSerial.setAttribute('class','info-serial');
+	// infoSerial.setAttribute('id','info_serial');
+	// infoSerial.textContent = document.getElementById('serial').content;
+	// infoTitle.appendChild(infoSerial);
 
 	// 描述
-	var infoDescription = document.createElement('P');
-	infoDescription.setAttribute('class','info-description');
-	infoDescription.setAttribute('id','info_description');
-	infoDescription.textContent = document.getElementById('description').content;
+	// var infoDescription = document.createElement('P');
+	// infoDescription.setAttribute('class','info-description');
+	// infoDescription.setAttribute('id','info_description');
+	// infoDescription.textContent = document.getElementById('description').content;
+
+	// 关键词
+	var infoKeywords = document.createElement('DIV');
+	infoKeywords.setAttribute('id','info_keywords');
+
+	var keywordsString = document.getElementById('keywords').content;
+	var keywordsArray = keywordsString.split(',');
+	keywordsArray.forEach(function(item,index){
+		var keywordSpan = document.createElement('SPAN');
+		keywordSpan.setAttribute('class','keyword');
+		keywordSpan.textContent = item;
+		infoKeywords.appendChild(keywordSpan);
+	});
+
+	
 
 	var infoWrapper = document.createElement('DIV');
 	infoWrapper.setAttribute('class','info-wrapper');
 	infoWrapper.appendChild(infoTitle);
-	infoWrapper.appendChild(infoDescription);
+	infoWrapper.appendChild(infoKeywords);
+
+
+
 
 	// 操作组 -----------------------------------
 	// 下载功能
@@ -260,10 +280,24 @@ function initUIControlPanel() {
 }
 
 function initUITips() {
+
+	// 刷新提示
 	var tipsResetPattern = document.createElement('DIV');
+	tipsResetPattern.setAttribute('class','tip-vertical');
 	tipsResetPattern.setAttribute('id','tip_resetPattern');
-	tipsResetPattern.textContent = 'Refresh pattern'
+	tipsResetPattern.textContent = parent.window.localStorage.lang === 'en' ? 
+									parent.window.words['#tip_resetPattern'].en : 
+									parent.window.words['#tip_resetPattern'].zh;
 	reset_pattern.appendChild(tipsResetPattern);
+
+	// 刷新颜色主题
+	var tipsShuffleTheme = document.createElement('DIV');
+	tipsShuffleTheme.setAttribute('class','tip-vertical');
+	tipsShuffleTheme.setAttribute('id','tip_shuffleTheme');
+	tipsShuffleTheme.textContent = parent.window.localStorage.lang === 'en' ? 
+									parent.window.words['#tip_shuffleTheme'].en : 
+									parent.window.words['#tip_shuffleTheme'].zh;
+	shuffle_color.appendChild(tipsShuffleTheme);
 }
 
 

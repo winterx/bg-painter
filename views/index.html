@@ -2,7 +2,11 @@
 <html>
 	<head>
 		<meta charset="utf-8">
+	    <meta name="format-detection" content="telephone=no"/>
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
      	<script src="./libs/lottie_light.min.js"></script>
+     	<script src="./libs/jquery.min.js"></script>
+		<!-- <script src="https://cdn.bootcss.com/lodash.js/4.17.11/lodash.min.js"></script> -->
 		<title>Bg Painter</title>
 		<style type="text/css">
 			* {
@@ -28,6 +32,7 @@
 				position: relative;
 				margin: 0 auto;
 				width: 900px;
+				font-size: 0;
 			}
 
 
@@ -41,11 +46,16 @@
 				font-family: 'Helvetica Neue';
 				text-align: left;
 			}
+			.header .logo-wrapper {
+				display: inline-block;
+				vertical-align: top;
+				width: 30%
+			}
 			.header .logo {
 				display: inline-block;
 				vertical-align: middle;
-				margin: 14px 6px;
-				margin-right: -4px;
+				margin: 14px 0px;
+				margin-right: 4px;
 				width: 38px;
 				height: 38px;
 				background-image: url(images/logo.png);
@@ -59,6 +69,42 @@
 
 				transition: 800ms ease;
 				opacity: 0.0;
+			}
+			.header .menu-wrapper {
+				display: inline-block;
+				vertical-align: top;
+				width: 70%;
+				text-align: right;
+			}
+			.header .menu-item {
+				display: inline-block;
+				vertical-align: top;
+				width: 100px;
+				height: 66px;
+			}
+			.header .menu-item .lan-btn {
+				display: inline-block;
+				vertical-align: top;
+				margin-top: 16px;
+				width: 40px;
+				height: 32px;
+				background-color: rgba(255,255,255,0.05);
+				opacity: 0.3;
+				cursor: pointer;
+			}
+			.header .menu-item .lan-btn.on {
+				background-color: #2c273a;
+				opacity: 1.0;
+			}
+			.header .menu-item .lan-btn.zh {
+				border-top-left-radius: 6px;
+				border-bottom-left-radius: 6px;
+				background-image: url(images/ui/switch_lan_zh.png);
+			}
+			.header .menu-item .lan-btn.en {
+				border-top-right-radius: 6px;
+				border-bottom-right-radius: 6px;
+				background-image: url(images/ui/switch_lan_en.png);
 			}
 
 
@@ -101,32 +147,6 @@
 				border: none;
 				overflow: hidden;
 			}
-
-			/*info*/
-			.info {
-				display: none;
-				position: relative;
-			}
-			.info .wrapper {
-				position: relative;
-				margin: 0 auto;
-				width: 900px;
-			}
-			.info .wrapper #main_title {
-				margin: 24px 0 12px;
-				color: #112233;
-				font-size: 48px;
-				font-family: 'Helvetica Neue';
-				font-weight: 700;
-				line-height: 64px;
-				letter-spacing: -1.2px;
-			}
-			.info .wrapper .deco-line {
-				width: 100px;
-				height: 4px;
-				background-color: #112233;
-			}
-
 			
 			/* gallery */
 			#gallery {
@@ -137,19 +157,30 @@
 			}
 
 			#gallery h4 {
-				padding: 40px 0 0;
-				color: rgba( 255,255,255, 0.4 );
-				font-size: 16px;
-				font-weight: 400;
-				letter-spacing: 1px;
-				text-align: left;
+				/*padding: 60px 0 0;*/
+				color: rgba( 255,255,255, 0.6 );
+				font-size: 20px;
+				font-weight: 100;
+				line-height: 32px;
+				letter-spacing: 1.4px;
+				text-align: center;
+			}
+			#gallery .deco-line {
+				position: relative;
+				margin: 40px auto 20px;
+				width: 100%;
+				height: 1px;
+				background-color: rgba( 255,255,255,0.1);
 			}
 
 			.link {
 				display: inline-block;
 				vertical-align: top;
-				margin: 12px 8px;
+				margin: 27px 33px 24px 0;
 				width: 200px;
+			}
+			.link:nth-child(4n+0) {
+				margin-right: 0;
 			}
 			.link-img {
 				width: 200px; height: 100px;
@@ -169,8 +200,16 @@
 <body>
 	<div class="header">
 		<div class="wrapper">
-			<div class="logo"></div>
-			<div class="logotype" id="logo_anim"></div>
+			<div class="logo-wrapper">
+				<div class="logo"></div>
+				<div class="logotype" id="logo_anim"></div>
+			</div>
+			<div class="menu-wrapper">
+				<div class="menu-item" id="switch_language">
+					<div class="lan-btn zh" data-lang="zh">中</div>
+					<div class="lan-btn en" data-lang="en">EN</div>
+				</div>
+			</div>
 		</div>
 	</div>
 
@@ -188,17 +227,10 @@
 		</iframe>
 	</section>
 
-	<!-- info view -->
-	<div class="info">
-		<div class="wrapper">
-			<div id="main_title"></div>
-			<div class="deco-line"></div>
-		</div>
-	</div>
-
 	<!-- gallery list -->
 	<section id="gallery">
-		<h4>Find more wonderful paints</h4>
+		<div class="deco-line"></div>
+		<h4></h4>
 		<div id="content"></div>
 	</section>
 
@@ -207,6 +239,80 @@
 
 	<script src="paints.js"></script>
 	<script type="text/javascript">
+
+		// 设定语言显示
+		// ------------------------------------------------------------
+		var words = {
+			'#gallery h4' : {
+				en: 'Find more wonderful paints',
+				zh: '发现更多样式'
+			},
+			"#tip_resetPattern": {
+				en: "Refresh pattern",
+				zh: "刷新样式"
+			},
+			"#tip_shuffleTheme": {
+				en: "Shuffle theme",
+				zh: "切换颜色主题"
+			}
+		}
+
+		if( localStorage.hasOwnProperty('lang') ) {
+
+		}else{
+			var language=null;
+			if (navigator.appName == 'Netscape'){
+				language = navigator.language;
+			}
+			else{
+				language = navigator.browserLanguage;
+			}
+			if (language.indexOf('en') > -1){
+				localStorage.lang = "en"
+			} 
+			else if (language.indexOf('zh') > -1){
+				localStorage.lang = "zh"
+			} 
+			else{
+				localStorage.lang = "en"
+			}
+		}
+
+
+		function switchLanguage( lang ) {
+			localStorage.lang = lang;
+
+			switch( lang ) {
+				case 'en':
+					$('.lan-btn.en').addClass('on');
+					$('.lan-btn.en').siblings().removeClass('on');
+					break;
+				case 'zh':
+					$('.lan-btn.zh').addClass('on');
+					$('.lan-btn.zh').siblings().removeClass('on');
+					break;
+			}
+
+			for( var key in words ) {
+				$(key).html( words[key][lang] );
+			}
+
+			CurrentPaintInfo.title = localStorage.lang === 'zh'? CurrentPaintInfo.nameZh : CurrentPaintInfo.name;
+
+			if( painterview.window.document.getElementById('info_title') ) {
+				painterview.window.document.getElementById('info_title').textContent = CurrentPaintInfo.title;
+			}
+		}
+
+		$('.lan-btn').click(function(e){
+			if( this.dataset.lang === 'zh' ) {
+				switchLanguage('zh');
+			}else{
+				switchLanguage('en');
+			}
+		})
+
+
 
 		// style setting
 		var screenWidth = window.innerWidth;
@@ -217,20 +323,14 @@
 
 
 		// 创建一个对象，用来封装当前选中的paint的信息
+		var paint = paints['LiquidsChromatic'];
 
-		var CurrentPainterInfo = {
-			name: 'Chromatic Liquids',
-			serial: 'No.1',
-			url: 'LiquidsChromatic.html',
-			picurl: '',
-			description: '\"Try to be a rainbow in someone\'s cloud. \"'
-		}
+		var CurrentPaintInfo = {};
+		CurrentPaintInfo.title = localStorage.lang === 'zh'? paint.nameZh : paint.name;
+		CurrentPaintInfo.name = paint.name;
+		CurrentPaintInfo.nameZh = paint.nameZh;
+		CurrentPaintInfo.tags = ['colorful','flowing','chromatic']
 
-
-
-		var selected = 'LiquidsChromatic';
-
-		main_title.textContent = paints[selected].name;
 
 		for ( var key in paints ) {
 
@@ -246,14 +346,11 @@
 				painterview.window.location.reload();
 				var id = event.currentTarget.id;
 				var targetItem = paints[ id ];
-				// main_title.innerHTML = event.currentTarget.name; 
-				CurrentPainterInfo.name = targetItem.name;
-				CurrentPainterInfo.serial = targetItem.serial;
-				CurrentPainterInfo.url = targetItem.url;
-				CurrentPainterInfo.description = targetItem.description;
+				CurrentPaintInfo.title = localStorage.lang === 'zh'? targetItem.nameZh : targetItem.name;
+				CurrentPaintInfo.name = targetItem.name;
+				CurrentPaintInfo.nameZh = targetItem.nameZh;
+				CurrentPaintInfo.tags = targetItem.tags;
 			},false);
-
-
 
 			var img = document.createElement('img');
 			img.src = item.picurl;
@@ -270,13 +367,12 @@
 			linkItem.appendChild(paintName);
 
 			content.appendChild(linkItem);
-
 		}
 
 		function setIframeInfo() {
-			painterview.window.document.title = CurrentPainterInfo.name;
-			painterview.window.document.getElementById('serial').content = CurrentPainterInfo.serial;
-			painterview.window.document.getElementById('description').content = CurrentPainterInfo.description;
+			painterview.window.document.title = CurrentPaintInfo.title;
+			painterview.window.document.getElementById('keywords').content = CurrentPaintInfo.tags;
+			switchLanguage( localStorage.lang );
 		}
 
 		function selectFile(file) {
@@ -290,6 +386,7 @@
 		}
 
 		// Logotype animation
+		// ------------------------------------------------------------
 	    var animData = {
 	        wrapper: document.getElementById('logo_anim'),
 	        renderer: 'svg',
@@ -306,6 +403,11 @@
 	    	anim.play();
 	    	logo_anim.style.opacity = 1.0;
 	    }, 100);
+
+
+
+
+
 	</script>
 </body>
 </html>

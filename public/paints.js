@@ -4,17 +4,21 @@ var paints = {
 
 	'LiquidsChromatic' : {
 		name 		: 'Flowing Chromatic Liquids',
+		nameZh		: '流光 · 溢彩',
 		serial		: 'No.0',
 		url 		: 'LiquidsChromatic.html',
 		picurl 		: 'images/liquids-chromatic.png',
-		description : '\"Try to be a rainbow in someone\'s cloud. \"'
+		description : '\"Try to be a rainbow in someone\'s cloud. \"',
+		tags		: ['colorful','flowing','chromatic']
 	},
 	'LiquidsDual' : {
-		name 		: 'Dual Color Liquids',
+		name 		: 'Melting Dual-Color Liquids',
+		nameZh		: '融合交错的双色',
 		serial		: 'No.0',
 		url 		: 'LiquidsDual.html',
 		picurl 		: 'images/liquids-dual.png',
-		description : 'Try to be water, my friend --Bruce Lee'
+		description : 'Try to be water, my friend --Bruce Lee',
+		tags		: ['flowing','wave']
 	},
 
 	
@@ -23,41 +27,51 @@ var paints = {
 
 	'FloatingObjects' : {
 		name		: 'Floating Objects',
+		nameZh		: '悬浮物',
 		serial		: 'No.0',
 		url 		: 'FloatingObjects.html',
 		picurl 		: 'images/floating-objects.png',
-		description : 'Objects floating on the ground, color theme can be shuffled'
+		description : 'Objects floating on the ground, color theme can be shuffled',
+		tags		: ['floatings','pulsation','pattern']
 	},
 	'MatrixCubes' : {
 		name		: 'Cube Matrix',
+		nameZh		: '阵列方块',
 		serial		: 'No.0',
 		url 		: 'MatrixCubes.html',
 		picurl 		: 'images/matrix-cube.png',
-		description : 'Cubes distributed in the space in a matrix way'
+		description : 'Cubes distributed in the space in a matrix way',
+		tags		: ['cubes','matrix','array']
 	},
 
 	// floating money
 	'FloatingMoney#00' : {
 		name		: 'Floating Money Signs',
+		nameZh		: '散布的美元',
 		serial		: 'No.0',
 		url 		: 'FloatingMoney.html#00',
 		picurl 		: 'images/floating-money-00.png',
-		description : 'Dollar signs are floating in the space'
+		description : 'Dollar signs are floating in the space',
+		tags		: ['dollar','floating','spread']
 	},
 	'FloatingMoney#01' : {
 		name		: 'Floating Money Signs',
+		nameZh		: '散布的人民币',
 		serial		: 'No.1',
 		url 		: 'FloatingMoney.html#01',
 		picurl 		: 'images/floating-money-01.png',
-		description : 'RMB signs are floating in the space'
+		description : 'RMB signs are floating in the space',
+		tags		: ['RMB','floating','spread']
 	},
 
 	'MatrixHearts' : {
 		name		: 'Heart Matrix',
+		nameZh		: '爱心小分队',
 		serial		: 'No.0',
 		url 		: 'MatrixHearts.html',
 		picurl 		: 'images/floating-space-03.png',
-		description : 'It is only with the heart that one can see rightly'
+		description : 'It is only with the heart that one can see rightly',
+		tags		: ['hearts','array','cute']
 	},
 
 
@@ -65,18 +79,22 @@ var paints = {
 	// scifi dots
 
 	'Scifidots_00' : {
-		name 		: 'Sci-fi Dots Nebula',
+		name 		: 'Pulsing Dots',
+		nameZh		: '脉动的点阵',
 		serial		: 'No.1',
 		url 		: 'Scifidots_00.html',
 		picurl 		: 'images/scifi-dots-00.png',
-		description : 'A matrix view of glinting dots'
+		description : 'A matrix view of glinting dots',
+		tags		: ['sci-fi','matrix','pulse']
 	},
 	'Scifidots_01' : {
 		name 		: 'Sci-fi Dots Connections',
+		nameZh		: '科技 · 连接',
 		serial		: 'No.2',
 		url 		: 'Scifidots_01.html',
 		picurl 		: 'images/scifi-dots-01.png',
-		description	: 'This is a sci-fi style dots, you could use it as a background appears in the data visualization'
+		description	: 'This is a sci-fi style dots, you could use it as a background appears in the data visualization',
+		tags		: ['sci-fi','dots','connection']
 	},
 
 
@@ -84,10 +102,12 @@ var paints = {
 
 	'Explosion_00' : {
 		name 		: 'Fireworks Explosion',
+		nameZh		: '绚烂的烟花',
 		serial		: 'No.1',
 		url 		: 'Explosion_00.html',
 		picurl 		: 'images/explosion-00.png',
-		description	: 'An explosion scenery'
+		description	: 'An explosion scenery',
+		tags		: ['explode','blowout','celebrating']
 	},
 
 

@@ -5,6 +5,7 @@
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<meta name=”description” id="description" content="">
 	<meta name=”description” id="serial" content="">
+	<meta name="keywords" id="keywords" content="">
 	<title>Pattern::Explosion</title>
 	
 	<!-- common js -->
@@ -110,10 +111,11 @@
 
 		// Paint Data :: defines the pattern of every paint
 		// -----------------------------------------------------------------------------------
-		var sphereGeo, colorMaterials = [], group;
+		var sphereGeo, colorMaterials = [], group, light;
 		var PaintData = { 
 			// Colors
-			colorTheme: 'Fantasy',
+			colorTheme: 'Explosion',
+			colorShuffleTheme: 'Fantasy',
 			palette: {
 				'color-0': '#ffffff',
 				'color-1': '#ffffff',
@@ -136,7 +138,7 @@
 
 			// Controls
 			options: {
-				canColorShuffle: false,
+				canColorShuffle: true,
 				canEffectsToggle: false
 			},
 
@@ -147,6 +149,12 @@
 			},
 
 			updateColors: function () {
+				light.color.set( PaintData.palette['color-0'] );
+				light.groundColor.set( PaintData.palette['color-1'] );
+
+				colorMaterials.forEach( function( material, index ){
+					material.color.set( PaintData.palette[ 'color-' + index ] )
+				})
 			}
 		}
 
@@ -265,7 +273,7 @@
 		}
 
 		function buildControls() {
-			// gui = new dat.GUI();
+			gui = new dat.GUI();
 
 			// gui.add( PaintData.postEFX, 'bloomStrength', 0.0, 3.0 ).onChange( function (value) {
 			// 	effect_bloomPass.strength = Number(value);
@@ -278,8 +286,32 @@
 			// gui.add( PaintData.postEFX, 'bloomThreshold', 0.0, 1.0 ).onChange( function(value){
 			// 	effect_bloomPass.threshold = Number(value);
 			// });
+			gui.addColor( PaintData.palette, 'color-0' ).onFinishChange( function (value) {
+				PaintData.palette['color-0'] = value;
+				PaintData.updateColors();
+			});
+			gui.addColor( PaintData.palette, 'color-1' ).onFinishChange( function (value) {
+				PaintData.palette['color-1'] = value;
+				PaintData.updateColors();
+			});
+			gui.addColor( PaintData.palette, 'color-2' ).onFinishChange( function (value) {
+				PaintData.palette['color-2'] = value;
+				PaintData.updateColors();
+			});
+			gui.addColor( PaintData.palette, 'color-3' ).onFinishChange( function (value) {
+				PaintData.palette['color-3'] = value;
+				PaintData.updateColors();
+			});
+			gui.addColor( PaintData.palette, 'color-4' ).onFinishChange( function (value) {
+				PaintData.palette['color-4'] = value;
+				PaintData.updateColors();
+			});
+			gui.addColor( PaintData.palette, 'color-5' ).onFinishChange( function (value) {
+				PaintData.palette['color-5'] = value;
+				PaintData.updateColors();
+			});
 
-			// gui.open();
+			gui.open();
 		}
 
 		function onWindowResize() {

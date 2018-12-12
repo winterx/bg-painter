@@ -5,6 +5,7 @@
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<meta name=”description” id="description" content="">
 	<meta name=”description” id="serial" content="">
+	<meta name="keywords" id="keywords" content="">
 	<title>Scifi Dots 00</title>
 	
 	<script src="../build/three.js"></script>
@@ -84,6 +85,7 @@
 		var PaintData = { 
 			// Colors
 			colorTheme: 'Scifi_Dark',
+			colorShuffleTheme: 'Wild',
 			palette: {
 				'color-0': '#00050A',
 				'color-1': '#ffffff',
@@ -105,8 +107,7 @@
 
 			// Controls
 			options: {
-				canColorShuffle: false,
-				canEffectsToggle: false
+				canColorShuffle: true,
 			},
 
 			// Methods
@@ -116,6 +117,12 @@
 			},
 
 			updateColors: function () {
+				PaintData.palette['color-0'] = '#00050A';
+				scene.background.set( PaintData.palette['color-0'] );
+				scene.fog.color.set( PaintData.palette['color-0'] );
+				lineMaterial.color.set( PaintData.palette['color-1'] );
+				dotMaterial_color2.color.set( PaintData.palette['color-2'] );
+				dotMaterial_color3.color.set( PaintData.palette['color-3'] );
 			}
 		}
 
@@ -176,7 +183,6 @@
 			// control and monitor
 			controls = new THREE.OrbitControls( camera, renderer.domElement );
 			controls.enabled = false;
-			// gui = new dat.GUI();
 			stats = new Stats();
 
 			// dom 
@@ -233,8 +239,14 @@
 				gapSize: 1,
 			});
 
-			dotMaterial = new THREE.MeshBasicMaterial( { 
+			dotMaterial_color2 = new THREE.MeshBasicMaterial( { 
 				color: new THREE.Color( PaintData.palette['color-2'] ),
+				transparent: true,
+				blending: THREE['AdditiveBlending']
+			});
+
+			dotMaterial_color3 = new THREE.MeshBasicMaterial( { 
+				color: new THREE.Color( PaintData.palette['color-3'] ),
 				transparent: true,
 				blending: THREE['AdditiveBlending']
 			});
@@ -256,7 +268,11 @@
 
 			for( var i=0; i<=20; ++i ) {
 
-				var dot = new THREE.Mesh( dotGeometry, dotMaterial );
+				if( i % 2 == 0 ) {
+					var dot = new THREE.Mesh( dotGeometry, dotMaterial_color2 );
+				}else{
+					var dot = new THREE.Mesh( dotGeometry, dotMaterial_color3 );
+				}
 
 				var scale = Math.random()*3;
 
@@ -267,7 +283,6 @@
 				this.dots.add( dot );
 
 			}
-
 		}	
 
 		function buildObjects() {
@@ -332,6 +347,8 @@
 		}
 
 		function buildControls() {
+			gui = new dat.GUI();
+
 			// post processing effects -------------------------------
 			// var folder_effects = gui.addFolder('Post effects');	
 			// folder_effects.open();	
@@ -343,26 +360,24 @@
 			// folder_effects.add( PaintData.postEFX, "tiltBrightness", 0, 1, 0.5 ).onChange( onParamsChange ).step(0.02);
 
 			// colors modification -------------------------------
-			// var folder_colors = gui.addFolder('Color Theme');	
-			// folder_colors.open();
-			// folder_colors.addColor( PaintData.palette, 'color-0' ).onFinishChange( function (value) {
-			// 	PaintData.palette['color-0'] = value;
-			// 	PaintData.updateColors();
-			// });
-			// folder_colors.addColor( PaintData.palette, 'color-1' ).onFinishChange( function (value) {
-			// 	PaintData.palette['color-1'] = value;
-			// 	PaintData.updateColors();
-			// });
-			// folder_colors.addColor( PaintData.palette, 'color-2' ).onFinishChange( function (value) {
-			// 	PaintData.palette['color-2'] = value;
-			// 	PaintData.updateColors();
-			// });
-			// folder_colors.addColor( PaintData.palette, 'color-3' ).onFinishChange( function (value) {
-			// 	PaintData.palette['color-3'] = value;
-			// 	PaintData.updateColors();
-			// });
+			gui.addColor( PaintData.palette, 'color-0' ).onFinishChange( function (value) {
+				PaintData.palette['color-0'] = value;
+				PaintData.updateColors();
+			});
+			gui.addColor( PaintData.palette, 'color-1' ).onFinishChange( function (value) {
+				PaintData.palette['color-1'] = value;
+				PaintData.updateColors();
+			});
+			gui.addColor( PaintData.palette, 'color-2' ).onFinishChange( function (value) {
+				PaintData.palette['color-2'] = value;
+				PaintData.updateColors();
+			});
+			gui.addColor( PaintData.palette, 'color-3' ).onFinishChange( function (value) {
+				PaintData.palette['color-3'] = value;
+				PaintData.updateColors();
+			});
 
-			// gui.open();
+			gui.open();
 		}
 
 
