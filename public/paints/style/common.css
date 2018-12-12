@@ -119,8 +119,13 @@ body {
     background-image: url( ../../images/ui/btn_download.png);
 	border-radius: 6px;
 	text-align: center;
+	cursor: pointer;
+	opacity: 0.95;
 }
-
+#panel .btn-wrapper .btn-download:hover {
+	opacity: 1;
+	box-shadow: 0px 1px 14px rgba( 255, 255, 255, 0.3);
+}
 
 
 

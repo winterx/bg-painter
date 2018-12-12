@@ -9,6 +9,7 @@
 	<title>Pattern::Explosion</title>
 	
 	<!-- common js -->
+    <script src="../libs/jquery.min.js"></script>
 	<script src="../build/three.js"></script>
 	<script src="../js/Detector.js"></script>
 	<script src="../js/libs/stats.min.js"></script>
@@ -188,7 +189,7 @@
 
 			
 			// Renderer -----------------------------------------------------------------------------------
-			renderer = new THREE.WebGLRenderer( { antialias: true } );
+			renderer = new THREE.WebGLRenderer( { antialias: true, preserveDrawingBuffer: true } );
 			renderer.setPixelRatio( window.devicePixelRatio );
 			renderer.setSize( canvasW, canvasH );
 			// renderer.gammaInput = true

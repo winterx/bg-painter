@@ -45,7 +45,7 @@ var paints = {
 	},
 
 	// floating money
-	'FloatingMoney#00' : {
+	'FloatingMoney_00' : {
 		name		: 'Floating Money Signs',
 		nameZh		: '散布的美元',
 		serial		: 'No.0',
@@ -54,7 +54,7 @@ var paints = {
 		description : 'Dollar signs are floating in the space',
 		tags		: ['dollar','floating','spread']
 	},
-	'FloatingMoney#01' : {
+	'FloatingMoney_01' : {
 		name		: 'Floating Money Signs',
 		nameZh		: '散布的人民币',
 		serial		: 'No.1',

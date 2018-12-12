@@ -188,12 +188,13 @@
 				overflow: hidden;
 			}
 			.link-name {
-				color: rgba(255,255,255,0.6);
+				color: rgba(220,220,220,0.97);
 				font-size: 10px;
 				font-weight: 200;
 				font-style: italic;
 				letter-spacing: 1px;
 				line-height: 32px;
+				text-align: center;
 			}
 		</style>
 	</head>
@@ -286,19 +287,26 @@
 				case 'en':
 					$('.lan-btn.en').addClass('on');
 					$('.lan-btn.en').siblings().removeClass('on');
+					for( var key in paints ) {
+						$( '#' + key + ' .link-name' ).html( paints[key].name );
+					}
 					break;
 				case 'zh':
 					$('.lan-btn.zh').addClass('on');
 					$('.lan-btn.zh').siblings().removeClass('on');
+					for( var key in paints ) {
+						$( '#' + key + ' .link-name' ).html( paints[key].nameZh );
+					}
 					break;
 			}
 
+			// UI话术 区分中英文
 			for( var key in words ) {
 				$(key).html( words[key][lang] );
 			}
 
+			// 当前的paint，标题区分中英文
 			CurrentPaintInfo.title = localStorage.lang === 'zh'? CurrentPaintInfo.nameZh : CurrentPaintInfo.name;
-
 			if( painterview.window.document.getElementById('info_title') ) {
 				painterview.window.document.getElementById('info_title').textContent = CurrentPaintInfo.title;
 			}
