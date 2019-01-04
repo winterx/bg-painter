@@ -159,28 +159,23 @@ function initUIInfoPanel ( ) {
 	btn_download.addEventListener('click', function(e){
 	    // 基本数据
 	    var _id = new Date().getTime();
-		var imageData = canvas_painter.toDataURL("image/png").replace("image/png", "image/octet-stream"); 
 
-		// 下载
-	    var save_link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
-	    save_link.href = imageData;
-	    save_link.download = _id + '.png'; 
-	    var event = document.createEvent('MouseEvents');
-	    event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-	    save_link.dispatchEvent(event);
+	    var imageData = canvas_painter.toDataURL("image/png"); 
+	    var link = document.createElement("a");
+		var imgData = canvas_painter.toDataURL({ format: 'png' });
+		var strDataURI = imgData.substr(22, imgData.length);
+		var blob = dataURLtoBlob(imgData);
+		var objurl = URL.createObjectURL(blob);
+
+		link.download = _id + ".png";
+
+		link.href = objurl;
+
+	    link.click();
 
 	    // 上传
-	    var arr     = imageData.split(','),
-            mime    = arr[0].match(/:(.*?);/)[1],
-            bstr    = atob(arr[1]),
-            n       = bstr.length,
-            u8arr   = new Uint8Array(n);
-        while(n--){
-            u8arr[n] = bstr.charCodeAt(n);
-        }
-        var obj     = new Blob([u8arr],{type:mime});
-        var fd      = new FormData();
-        fd.append('file', obj, _id + '.png');
+        var fd = new FormData();
+        fd.append('file', blob, _id + '.png');
 
         $.ajax({
         	url: "/upload_image",
@@ -192,9 +187,18 @@ function initUIInfoPanel ( ) {
                 console.log(data);
             }
         });
-
 	}, false );
 
+	function dataURLtoBlob(dataurl) {
+	    var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+	        bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+	    while(n--){
+	        u8arr[n] = bstr.charCodeAt(n);
+	    }
+	    return new Blob([u8arr], {type:mime});
+	}
+
+	
 
 	// 刷新功能
 	// var btn_refresh = document.createElement('DIV');
