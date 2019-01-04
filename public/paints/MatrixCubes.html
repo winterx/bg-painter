@@ -8,27 +8,15 @@
 	<meta name="keywords" id="keywords" content="">
 	<title>Pattern::Color Gradients</title>
 	
-    <script src="../libs/jquery.min.js"></script>
-    
-	<script src="../build/three.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/100/three.min.js"></script>
 
 	<script src="../js/shaders/CopyShader.js"></script>
-	<script src="../js/shaders/BokehShader.js"></script>
-	<script src="../js/shaders/FXAAShader.js"></script>
-	<script src="../js/shaders/SMAAShader.js"></script>
 	<script src="../js/shaders/TiltShiftShader.js"></script>
-	<script src="../js/shaders/FilmShader.js"></script>
-	<script src="../js/shaders/ConvolutionShader.js"></script>
-	<script src="../js/shaders/LuminosityHighPassShader.js"></script>
 
 	<script src="../js/postprocessing/EffectComposer.js"></script>
 	<script src="../js/postprocessing/RenderPass.js"></script>
 	<script src="../js/postprocessing/ShaderPass.js"></script>
-	<script src="../js/postprocessing/MaskPass.js"></script>
-	<script src="../js/postprocessing/BokehPass.js"></script>
-	<script src="../js/postprocessing/SMAAPass.js"></script>
-	<script src="../js/postprocessing/FilmPass.js"></script>
-	<script src="../js/postprocessing/UnrealBloomPass.js"></script>
 
 	<script src="../js/Detector.js"></script>
 	<script src="../js/libs/stats.min.js"></script>
@@ -377,7 +365,6 @@
 		function buildPostEFX() {
 			var renderPass = new THREE.RenderPass( scene, camera );
 			var tiltShiftPass = new THREE.ShaderPass( THREE.VerticalTiltShiftShader );
-			var effectFilmPass = new THREE.FilmPass( 0.2, 0.2, 1000, false );
 
 			// define which pass is the final pass
 			tiltShiftPass.renderToScreen = true;
@@ -385,7 +372,6 @@
 			composer = new THREE.EffectComposer( renderer );
 			composer.addPass( renderPass );
 			composer.addPass( tiltShiftPass );
-			composer.addPass( effectFilmPass );
 
 			postprocessing.tilt = tiltShiftPass;
 		}

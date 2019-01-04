@@ -312,22 +312,22 @@ function initUIControlPanel() {
 function initUITips() {
 
 	// 刷新提示
-	var tipsResetPattern = document.createElement('DIV');
-	tipsResetPattern.setAttribute('class','tip-vertical');
-	tipsResetPattern.setAttribute('id','tip_resetPattern');
-	tipsResetPattern.textContent = parent.window.localStorage.lang === 'en' ? 
-									parent.window.words['#tip_resetPattern'].en : 
-									parent.window.words['#tip_resetPattern'].zh;
-	reset_pattern.appendChild(tipsResetPattern);
+	// var tipsResetPattern = document.createElement('DIV');
+	// tipsResetPattern.setAttribute('class','tip-vertical');
+	// tipsResetPattern.setAttribute('id','tip_resetPattern');
+	// tipsResetPattern.textContent = parent.window.localStorage.lang === 'en' ? 
+	// 								parent.window.words['#tip_resetPattern'].en : 
+	// 								parent.window.words['#tip_resetPattern'].zh;
+	// reset_pattern.appendChild(tipsResetPattern);
 
 	// 刷新颜色主题
-	var tipsShuffleTheme = document.createElement('DIV');
-	tipsShuffleTheme.setAttribute('class','tip-vertical');
-	tipsShuffleTheme.setAttribute('id','tip_shuffleTheme');
-	tipsShuffleTheme.textContent = parent.window.localStorage.lang === 'en' ? 
-									parent.window.words['#tip_shuffleTheme'].en : 
-									parent.window.words['#tip_shuffleTheme'].zh;
-	shuffle_color.appendChild(tipsShuffleTheme);
+	// var tipsShuffleTheme = document.createElement('DIV');
+	// tipsShuffleTheme.setAttribute('class','tip-vertical');
+	// tipsShuffleTheme.setAttribute('id','tip_shuffleTheme');
+	// tipsShuffleTheme.textContent = parent.window.localStorage.lang === 'en' ? 
+	// 								parent.window.words['#tip_shuffleTheme'].en : 
+	// 								parent.window.words['#tip_shuffleTheme'].zh;
+	// shuffle_color.appendChild(tipsShuffleTheme);
 }
 
 

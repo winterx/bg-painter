@@ -7,30 +7,10 @@
 	<meta name=”description” id="serial" content="">
 	<meta name="keywords" id="keywords" content="">
 	<title>Floating Hearts</title>
-	
-    <script src="../libs/jquery.min.js"></script>
 
-	<script src="../build/three.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/100/three.min.js"></script>
 
     <script src="../js/loaders/ColladaLoader.js"></script>
-
-	<script src="../js/shaders/CopyShader.js"></script>
-	<script src="../js/shaders/BokehShader.js"></script>
-	<script src="../js/shaders/FXAAShader.js"></script>
-	<script src="../js/shaders/SMAAShader.js"></script>
-	<script src="../js/shaders/TiltShiftShader.js"></script>
-	<script src="../js/shaders/FilmShader.js"></script>
-	<script src="../js/shaders/ConvolutionShader.js"></script>
-	<script src="../js/shaders/LuminosityHighPassShader.js"></script>
-
-	<script src="../js/postprocessing/EffectComposer.js"></script>
-	<script src="../js/postprocessing/RenderPass.js"></script>
-	<script src="../js/postprocessing/ShaderPass.js"></script>
-	<script src="../js/postprocessing/MaskPass.js"></script>
-	<script src="../js/postprocessing/BokehPass.js"></script>
-	<script src="../js/postprocessing/SMAAPass.js"></script>
-	<script src="../js/postprocessing/FilmPass.js"></script>
-	<script src="../js/postprocessing/UnrealBloomPass.js"></script>
 
 	<script src="../js/controls/OrbitControls.js"></script>
 	<script src="../js/Detector.js"></script>
@@ -42,7 +22,17 @@
 	<link rel="stylesheet" type="text/css" href="./style/common.css">
 </head>
 <body>
-	<div id="container"></div>
+	<div id="container">
+		<div id="loading_cover">
+			<div id="loading">
+				<div id="indicator">20%</div>
+				<div id="progressbar">
+					<div id="progress"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
 
 	<div id="monitor_panel"></div>
 
@@ -190,7 +180,7 @@
 
 			buildResouces();
 			buildObjects(); // Meshes | Sprites | Lights | Shaders
-			buildPostEFX(); // Post processings
+			// buildPostEFX(); // Post processings
 			buildControls(); // Dat.gui
 		};
 
@@ -287,8 +277,6 @@
 			shader_sprite.position.set( -canvasW/2 + 100, -canvasH/2 + 100, 340 );
 			// scene.add( shader_sprite );
 
-			// Main Object
-			loader = new THREE.ColladaLoader();
 
 			rawshaderMat = new THREE.RawShaderMaterial( {
 				uniforms: { 
@@ -301,6 +289,32 @@
 		}
 
 		function buildObjects() {
+
+			var manager = new THREE.LoadingManager();
+			manager.onProgress = function ( item, loaded, total ) {
+
+				console.log( item, loaded, total );
+
+				if ( loaded === total ) {
+					loading_cover.style.display = 'none';
+				}
+			};
+
+			var onProgress = function ( xhr ) {
+				if ( xhr.lengthComputable ) {
+					var percentComplete = xhr.loaded / xhr.total * 100;
+					var percentNumber = Math.round(percentComplete, 2) + '%';
+					console.log( percentNumber );
+
+					indicator.innerHTML = percentNumber;
+					progress.style.width = Math.round(percentComplete, 2) + 'px';
+				}
+			};
+
+
+			// Main Object
+			loader = new THREE.ColladaLoader( manager );
+
 			loader.load( '../geometries/heart_full.dae', function ( collada ) {
 
 				var dae = collada.scene;
@@ -336,7 +350,7 @@
 						scene.add( mesh );
 					}
 				});
-			});
+			}, onProgress );
 		}
 
 		function buildPostEFX() {
