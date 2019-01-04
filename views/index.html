@@ -6,7 +6,7 @@
 	    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
      	<script src="./libs/lottie_light.min.js"></script>
      	<script src="./libs/jquery.min.js"></script>
-		<!-- <script src="https://cdn.bootcss.com/lodash.js/4.17.11/lodash.min.js"></script> -->
+
 		<title>Bg Painter</title>
 		<style type="text/css">
 			* {
@@ -197,6 +197,15 @@
 				text-align: center;
 			}
 		</style>
+		<script>
+			var _hmt = _hmt || [];
+			(function() {
+			  var hm = document.createElement("script");
+			  hm.src = "https://hm.baidu.com/hm.js?d84d162ea3122a700428736747a85ce0";
+			  var s = document.getElementsByTagName("script")[0]; 
+			  s.parentNode.insertBefore(hm, s);
+			})();
+		</script>
 	</head>
 <body>
 	<div class="header">
@@ -374,7 +383,7 @@
 			linkItem.appendChild(imgwrapper);
 			linkItem.appendChild(paintName);
 
-			content.appendChild(linkItem);
+			$('#content').append(linkItem);
 		}
 
 		function setIframeInfo() {

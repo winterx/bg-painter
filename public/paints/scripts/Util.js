@@ -12,23 +12,21 @@ function randomWithinScreen ( width, height, depth ) {
 // 加载颜色和样式数据: color | paint data
 function loadPaintData ( dataPath, init, animate ) {
 	// 首先获取颜色数据
-	fetch( './data/Color.json' ).then( res => {
-		return res.json().then( json => {
-			globalColors = json['Colors'];
-		});
-	}).then( function(){
-		fetch( dataPath ).then( res => {
-			return res.json().then( json => {
-				// set paint data 
-				PaintData.pattern = json.standard.pattern;
-				// set model path if it exists
-				if( json.hasOwnProperty('instances') ) {
-					var key = window.location.href.split( '#' )[1];
-					PaintData.modelPath = json.instances[ key ].model;
-					PaintData.colorTheme = json.instances[ key ].theme;
-				}
-			})
-		}).then( () => {
+	$.get('./data/Color.json', function( data ){
+
+		globalColors = data['Colors'];
+
+		$.get( dataPath, function( data ){
+
+			// set paint data 
+			PaintData.pattern = data.standard.pattern;
+
+			// set model path if it exists
+			if( data.hasOwnProperty('instances') ) {
+				var key = window.location.href.split( '#' )[1];
+				PaintData.modelPath = data.instances[ key ].model;
+				PaintData.colorTheme = data.instances[ key ].theme;
+			}
 
 			var colorList = globalColors[ PaintData.colorTheme ];
 
@@ -41,8 +39,40 @@ function loadPaintData ( dataPath, init, animate ) {
 
 			init();
 			animate();
-		});
-	});
+		})
+	})
+
+	// fetch( './data/Color.json' ).then( function( res ) {
+	// 	return res.json().then( function( json ) {
+	// 		globalColors = json['Colors'];
+	// 	});
+	// }).then( function(){
+	// 	fetch( dataPath ).then( function( res ) {
+	// 		return res.json().then( function( json ) {
+	// 			// set paint data 
+	// 			PaintData.pattern = json.standard.pattern;
+	// 			// set model path if it exists
+	// 			if( json.hasOwnProperty('instances') ) {
+	// 				var key = window.location.href.split( '#' )[1];
+	// 				PaintData.modelPath = json.instances[ key ].model;
+	// 				PaintData.colorTheme = json.instances[ key ].theme;
+	// 			}
+	// 		})
+	// 	}).then( function() {
+
+	// 		var colorList = globalColors[ PaintData.colorTheme ];
+
+	// 		var random = Math.floor( Math.random() * colorList.length );
+
+	// 		for( var i in colorList[random] ) {
+	// 			// set color theme
+	// 			PaintData.palette[ 'color-' + i ] = '#' + colorList[random][i];
+	// 		}
+
+	// 		init();
+	// 		animate();
+	// 	});
+	// });
 }
 
 
@@ -338,3 +368,29 @@ Grid.prototype.make = function() {
 		}
 	}
 };
+
+
+/* 16进制颜色转为RGB格式 */  
+var reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;  
+String.prototype.colorRgb = function( alpha ){  
+    var sColor = this.toLowerCase();  
+    if(sColor && reg.test(sColor)){  
+        if(sColor.length === 4){  
+            var sColorNew = "#";  
+            for(var i=1; i<4; i+=1){  
+                sColorNew += sColor.slice(i,i+1).concat(sColor.slice(i,i+1));     
+            }  
+            sColor = sColorNew;  
+        }  
+        //处理六位的颜色值  
+        var sColorChange = [];  
+        for(var i=1; i<7; i+=2){  
+            sColorChange.push(parseInt("0x"+sColor.slice(i,i+2)));    
+        }  
+        return "rgba(" + sColorChange.join(",") + "," + alpha + ")"; 
+//或 
+//return "rgba(" + sColorChange.join(",") + ",0.8)"; 
+    }else{  
+        return sColor;    
+    }  
+};  

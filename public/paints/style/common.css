@@ -201,18 +201,16 @@ body {
     -webkit-transition: ease 0.4s;
 } 
 #frame_control input[type="range"]::-moz-range-thumb {
-    cursor: default;
-    top: 1px;
-    height: 12px;
-    width: 12px;
-    border: none;
-    outline: none;
-    background: none repeat scroll 0 0 #09e8bb;
-    border-radius: 12px;
-    cursor: pointer;
-    appearance: none;
     -moz-appearance: none;
     -moz-transition: ease 0.4s;
+
+    top: 1px;
+    height: 27px;
+    width: 1px;
+    background: none repeat scroll 0 0 #fff;
+    border-radius: 12px;
+    outline: none;
+    border: none;
 }
 #frame_control input[type="range"]::-moz-range-track {  
     appearance: none;

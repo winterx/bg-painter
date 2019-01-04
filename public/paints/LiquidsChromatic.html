@@ -207,10 +207,10 @@
 				// 先绘制出背景底色
 				ctx = drawingcanvas.getContext( '2d' );
 				var grd = ctx.createLinearGradient( 0, 0, 0, 512 );
-				grd.addColorStop( 0.0, this.palette['color-'+0] + 'ff' );
-				grd.addColorStop( 0.3, this.palette['color-'+1] + 'ff' );
-				grd.addColorStop( 0.7, this.palette['color-'+2] + 'ff' );
-				grd.addColorStop( 1.0, this.palette['color-'+3] + 'ff' );
+				grd.addColorStop( 0.0, this.palette['color-'+0].colorRgb(1.0) );
+				grd.addColorStop( 0.3, this.palette['color-'+1].colorRgb(1.0) );
+				grd.addColorStop( 0.7, this.palette['color-'+2].colorRgb(1.0) );
+				grd.addColorStop( 1.0, this.palette['color-'+3].colorRgb(1.0) );
 				ctx.fillStyle = grd;
 				ctx.fillRect( 0, 0, 1024, 512 );
 
@@ -221,7 +221,7 @@
 
 					grd.addColorStop( 0.0, this.palette[ 'color-' + spray.color_indices[0] ] );
 					grd.addColorStop( 0.2, this.palette[ 'color-' + spray.color_indices[1] ] );
-					grd.addColorStop( 1.0,  this.palette[ 'color-' + spray.color_indices[2] ] + '00' );
+					grd.addColorStop( 1.0,  this.palette[ 'color-' + spray.color_indices[2] ].colorRgb(0.0) );
 
 					ctx.fillStyle = grd;
 					ctx.fillRect( 0, 0, 1024, 512 );
