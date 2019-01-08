@@ -2,11 +2,11 @@
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
+	font-family: 'Microsoft Yahei', 'SF UI Display', 'Helvetica Neue', sans-serif;
 }
 
 body {
 	color: #eee;
-	font-family: sans-serif;
 	font-size: 0px;
 
 	background-color: #000009;
@@ -79,11 +79,9 @@ body {
 	margin: 22px 0 0px;
 	color: #fff;
 	font-size: 32px;
-	font-style: italic;
-	font-family: 'Helvetica Neue', sans-serif;
-	font-weight: 100;
+	font-weight: 200;
 	line-height: 52px;
-	letter-spacing: 3.2px;
+	letter-spacing: 1px;
 }
 #panel .info-wrapper .info-title:after {
 	content: '';
@@ -104,7 +102,6 @@ body {
 	color: #000;
 	font-size: 12px;
 	font-weight: 700;
-	font-family: 'Menlo', sans-serif;
 	line-height: 20px;
 	background-color: #f7ad09;
 	border-radius: 3px;
@@ -114,7 +111,6 @@ body {
 	font-size: 14px;
 	font-style: italic;
 	font-weight: 100;
-	font-family: 'Helvetica Neue', sans-serif;
 	letter-spacing: 2.4px;
 }*/
 #panel #info_keywords {
@@ -314,7 +310,6 @@ body {
 	width: 100px;
 	color: #fff;
 	font-size: 10px;
-	font-family: sans-serif;
 	font-style: italic;
 	text-align: center;
 	line-height: 20px;
