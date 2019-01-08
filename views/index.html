@@ -140,7 +140,7 @@
 				width: 100%;
 				overflow: auto;
 			}
-			#painterview {
+			#painterviewIframe {
 				/*display: none;*/
 				position: relative;
 				width: 100%;
@@ -236,7 +236,7 @@
 	<!-- main view -->
 	<section id="viewer">
 		<div class="loading-gif"></div>
-		<iframe id="painterview" 
+		<iframe id="painterviewIframe" 
 				src="./paints/LiquidsChromatic.html" 
 				name="painterview" 
 				onload="setIframeInfo()" 
@@ -345,7 +345,7 @@
 		// style setting
 		var screenWidth = window.innerWidth;
 		var iframeHeight = screenWidth > 1400 ? 720 : 600;
-		var pview = document.getElementById('painterview');
+		var pview = document.getElementById('painterviewIframe');
 		pview.style.height = iframeHeight + 'px';
 
 
@@ -403,15 +403,15 @@
 			switchLanguage( localStorage.lang );
 		}
 
-		function selectFile(file) {
+		// function selectFile(file) {
 
-			window.location.hash = file;
-			painterview.focus();
-			painterview.src = file + '.html';
+		// 	window.location.hash = file;
+		// 	painterview.focus();
+		// 	painterview.src = file + '.html';
 
-			selected = file;
+		// 	selected = file;
 
-		}
+		// }
 
 		// Logotype animation
 		// ------------------------------------------------------------
