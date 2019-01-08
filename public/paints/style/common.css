@@ -142,6 +142,7 @@ body {
 	text-align: right;
 }
 #panel .btn-wrapper .btn-download {
+	position: relative;
 	display: inline-block;
 	vertical-align: top;
 	margin-top: 36px;
@@ -160,7 +161,17 @@ body {
 	opacity: 1;
 	box-shadow: 0px 1px 14px rgba( 255, 255, 255, 0.3);
 }
-
+#panel .btn-wrapper .btn-download .warning {
+	display: none;
+	position: absolute;
+	top: 54px;
+	left: 0;
+	width: 100%;
+	color: #789;
+	font-size: 12px;
+	/*text-align: left;*/
+	/*letter-spacing: 1px;*/
+}
 
 
 
@@ -170,7 +181,7 @@ body {
 #control_wrapper {
 	position: absolute;
 	bottom: 24px;
-	left: calc( 50% - 130px );
+	left: calc( 50% - 80px );
 	/*width: 260px;*/
 	height: 40px;
 	border-radius: 20px;	
@@ -180,7 +191,7 @@ body {
 	display: inline-block;
 	vertical-align: top;
 	position: relative;
-	width: 200px;
+	width: 40px;
 	height: 40px;
 	background-color: rgba( 0, 0, 10, 0.9 );
 	border-radius: 20px;
@@ -191,7 +202,7 @@ body {
 	display: block;
 	position: absolute;
 	top: 4px;
-	left: 8px;
+	left: 4px;
 	width: 32px;
 	height: 32px;
 	background-color: rgba( 0, 0, 0, 0.1 );

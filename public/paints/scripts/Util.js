@@ -157,6 +157,11 @@ function initUIInfoPanel ( ) {
 	var btn_download = document.createElement('DIV');
 	btn_download.setAttribute('class','btn btn-download');
 	btn_download.addEventListener('click', function(e){
+
+		if( isChromeRecommend ) {
+			$('.btn-download .warning').show();
+		}
+
 	    // 基本数据
 	    var _id = new Date().getTime();
 
@@ -198,7 +203,12 @@ function initUIInfoPanel ( ) {
 	    return new Blob([u8arr], {type:mime});
 	}
 
-	
+	// 下载时候的提示信息
+	btn_download_warning = document.createElement('DIV');
+	btn_download_warning.setAttribute('class','warning');
+	var browserWarningText = localStorage.lang === 'en' ? 'Problem with downloading ? Please try in Chrome' : '下载遇到问题？试试Chrome浏览器吧';
+	btn_download_warning.textContent = browserWarningText;
+	btn_download.appendChild( btn_download_warning );
 
 	// 刷新功能
 	// var btn_refresh = document.createElement('DIV');
@@ -277,14 +287,6 @@ function initUIControlPanel() {
 	frameControlSwitch.setAttribute('id','frame_control_switch');
 	frameControlSwitch.addEventListener('click',function(){
 		frameControlSwitch.classList.toggle('pause');
-	},false);
-
-	var frameControlSlider = document.createElement('INPUT');
-	frameControlSlider.setAttribute('type','range');
-	frameControlSlider.setAttribute('id','frame_control_slider');
-	frameControlSlider.min = 0;
-	frameControlSlider.max = 100;
-	frameControlSwitch.addEventListener('click',function(){
 		if( isFrameControlling ) {
 			isFrameControlling = false;
 		}else{
@@ -292,10 +294,16 @@ function initUIControlPanel() {
 		}
 	},false);
 
+	// var frameControlSlider = document.createElement('INPUT');
+	// frameControlSlider.setAttribute('type','range');
+	// frameControlSlider.setAttribute('id','frame_control_slider');
+	// frameControlSlider.min = 0;
+	// frameControlSlider.max = 100;
+
 	var frameControl = document.createElement('DIV');
 	frameControl.setAttribute('id','frame_control');
 	frameControl.appendChild(frameControlSwitch);
-	frameControl.appendChild(frameControlSlider);
+	// frameControl.appendChild(frameControlSlider);
 
 
 	// control panel
