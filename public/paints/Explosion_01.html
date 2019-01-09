@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<meta name=”description” id="description" content="">
+	<meta name=”description” id="serial" content="">
+	<meta name="keywords" id="keywords" content="">
+	<title>Pattern::Explosion</title>
+	
+	<!-- common -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/100/three.min.js"></script>
+	<script src="../js/Detector.js"></script>
+	<script src="../js/libs/stats.min.js"></script>
+	<script src="../js/libs/dat.gui.min.js"></script>
+	<script src="../js/controls/OrbitControls.js"></script>
+
+	<!-- post processing EFX -->
+	<script src="../js/shaders/CopyShader.js"></script>
+	<script src="../js/shaders/FXAAShader.js"></script>
+	<script src="../js/shaders/ConvolutionShader.js"></script>
+	<script src="../js/shaders/LuminosityHighPassShader.js"></script>
+
+	<script src="../js/postprocessing/EffectComposer.js"></script>
+	<script src="../js/postprocessing/RenderPass.js"></script>
+	<script src="../js/postprocessing/ShaderPass.js"></script>
+	<script src="../js/postprocessing/UnrealBloomPass.js"></script>
+
+	<script src="./scripts/Util.js"></script>
+	<script src="./scripts/Explosion/Explosion.js"></script>
+
+	<link rel="stylesheet" type="text/css" href="./style/common.css">
+</head>
+<body>
+	<div id="container"></div>
+
+	<div id="monitor_panel"></div>
+
+	<script type="x-shader/x-vertex" id="vertexShader">
+		precision highp float;
+
+		uniform float sineTime;
+
+		uniform mat4 modelViewMatrix;
+		uniform mat4 projectionMatrix;
+
+		attribute vec3 position;
+		attribute vec3 offset;
+		attribute vec4 color;
+		attribute vec4 orientationStart;
+		attribute vec4 orientationEnd;
+
+		varying vec3 vPosition;
+		varying vec4 vColor;
+
+		void main(){
+
+			// float sineTime = 1.0;
+
+			// vPosition = offset * max( abs( sineTime * 2.0 + 1.0 ), 0.5 ) + position;
+			vPosition = offset + position;
+			vec4 orientation = normalize( mix( orientationStart, orientationEnd, sineTime ) ); // 面片朝向
+			vec3 vcV = cross( orientation.xyz, vPosition ); // 面片法向
+			// vec3 vcV = vec3( 1.0, 1.0, 1.0 ); // 面片法向
+			vPosition = vcV * ( 2.0 * orientation.w ) + ( cross( orientation.xyz, vcV ) * 2.0 + vPosition );
+
+			vColor = color;
+
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( vPosition, 1.0 );
+		}
+	</script>
+
+	<script id="fragmentShader" type="x-shader/x-fragment">
+		precision highp float;
+
+		uniform float time;
+
+		varying vec3 vPosition;
+		varying vec4 vColor;
+
+		void main() {
+
+			vec4 color = vec4( vColor );
+			// color.r += sin( vPosition.x * 100.0 + time ) * 0.5;
+
+			gl_FragColor = color;
+		}
+	</script>
+
+	<script>
+		// Common Template :: 
+		// -----------------------------------------------------------------------------------
+			
+		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+		var camera, scene, renderer, composer, stats, controls, globalColors=[];
+		var cameraRTT, sceneRTT, rtTexture, quadRTT, matRTT, quad_geo, quad_mat, quad;
+		var	postprocessing = {};
+		var ctx;
+
+		var canvasW = window.innerWidth;
+		var canvasH = canvasW > 1400 ? 600 : 480;
+		var canvasD = 500;
+		var GLOBAL_SIZE_FACTOR = canvasW/1400;
+		var GLOBAL_SIZE_BOUNDING = canvasW/2;
+
+		var frame = 0;
+		var isFrameControlling = false;
+
+
+		// Paint Data :: defines the pattern of every paint
+		// -----------------------------------------------------------------------------------
+		var sphereGeo, colorMaterials = [], group, light;
+		var PaintData = { 
+			// Colors
+			colorTheme: 'Explosion',
+			colorShuffleTheme: 'Fantasy',
+			palette: {
+				'color-0': '#ffffff',
+				'color-1': '#ffffff',
+				'color-2': '#ffffff',
+				'color-3': '#ffffff',
+				'color-4': '#ffffff',
+				'color-5': '#ffffff',
+			},
+
+			// Pattern
+			pattern: {},
+
+			// PostEFX
+			postEFX: {
+				effects: false,
+				bloomStrength: 0.9,
+				bloomRadius: 0.67,
+				bloomThreshold: 0.2
+			},
+
+			// Controls
+			options: {
+				canColorShuffle: true,
+				canEffectsToggle: false
+			},
+
+			// Methods
+			reset: function() {
+			 	deleteObjects();
+			 	buildObjects();
+			},
+
+			updateColors: function () {
+				light.color.set( PaintData.palette['color-0'] );
+				light.groundColor.set( PaintData.palette['color-1'] );
+
+				colorMaterials.forEach( function( material, index ){
+					material.color.set( PaintData.palette[ 'color-' + index ] )
+				})
+			}
+		}
+
+
+		// Color Data and Start initPaint
+		// -----------------------------------------------------------------------------------
+		loadPaintData( './data/MatrixHearts/data.json', initPaint, animate );
+		
+
+		function initPaint() {
+			initRenderer(); // Scene | Camera | Renderer
+
+			initUI( renderer ); 
+
+			buildResources(); 
+			buildObjects(); // Meshes | Sprites | Lights | Shaders
+			buildPostEFX(); // Post processings
+			buildControls(); // Dat.gui
+		};
+
+		function initRenderer() {
+			// Camera and Scene 
+			// -----------------------------------------------------------------------------------
+			camera = new THREE.OrthographicCamera( canvasW / - 2, canvasW / 2, canvasH / 2, canvasH / - 2, 0.01, 2000 );
+			// camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
+			camera.position.z = 800;
+
+			scene = new THREE.Scene();
+			scene.background = new THREE.Color( 0xffffff );
+			// scene.fog = new THREE.Fog( 0x000000, 900, 1200 );
+
+			
+			// Renderer -----------------------------------------------------------------------------------
+			renderer = new THREE.WebGLRenderer( { antialias: true, preserveDrawingBuffer: true } );
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( canvasW, canvasH );
+			// renderer.gammaInput = true
+			// renderer.gammaOutput = true;
+
+			// Stats / Gui / Controls -----------------------------------------------------------------------------------
+			controls = new THREE.OrbitControls( camera, renderer.domElement );
+			controls.enabled = false;
+			stats = new Stats();
+
+
+			// Dom Manipulation -----------------------------------------------------------------------------------
+			monitor_panel.appendChild( stats.dom );
+			container.appendChild( renderer.domElement );
+
+			window.addEventListener( 'resize', onWindowResize, false ); 
+		}
+
+		function buildResources() {
+			// Spheres -----------------------------------------------
+			light = new THREE.HemisphereLight( PaintData.palette['color-0'], PaintData.palette['color-1'], 2.0 );
+			light.position.set( 0, 100, 0 );
+			scene.add( light );	
+
+			sphereGeo = new THREE.SphereBufferGeometry( 20, 32, 32 );
+
+			colorMaterials = [];
+
+			for( var i=0,il=6; i<il; i++ ) {
+				var sphereMat = new THREE.MeshPhongMaterial({
+					color: PaintData.palette['color-'+i],
+					// blending: THREE.AdditiveBlending,
+					transparent: true,
+					// opacity: 0.7
+				});
+
+				colorMaterials.push(sphereMat);
+			}
+		}
+
+		function buildObjects() {
+			group = new THREE.Object3D();
+
+			var explosion_0 = new Explosion( 14 * GLOBAL_SIZE_FACTOR, 40, GLOBAL_SIZE_BOUNDING, PaintData.palette ).make();
+			group.add( explosion_0 );
+
+			var explosion_1 = new Explosion( 8 * GLOBAL_SIZE_FACTOR, 200, GLOBAL_SIZE_BOUNDING, PaintData.palette ).make();
+			group.add( explosion_1 );
+
+			var explosion_2 = new Explosion( 3 * GLOBAL_SIZE_FACTOR, 800, GLOBAL_SIZE_BOUNDING, PaintData.palette ).make();
+			group.add( explosion_2 );
+
+
+			for( var i=0; i<30; ++i ) {		
+				var sphere = new THREE.Mesh( sphereGeo, colorMaterials[i%6] );
+
+				sphere.position.copy( randomWithinScreen( canvasW, canvasH, canvasD ) );
+
+				var scaleFactor = Math.random()*2.0;
+				sphere.scale.set( scaleFactor, scaleFactor, scaleFactor );
+				group.add( sphere );
+			}
+
+			scene.add( group );
+		}
+
+		function deleteObjects() {
+			scene.remove( group );
+		}
+
+		function buildPostEFX() {
+			effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
+			effectFXAA.uniforms[ 'resolution' ].value.set( 1 / canvasW, 1 / canvasH );
+
+			effect_bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( canvasW, canvasH ), 0.9, 0.67, 0.2 ); 
+			effect_bloomPass.renderToScreen = true;
+
+			composer = new THREE.EffectComposer( renderer );
+			composer.addPass( new THREE.RenderPass( scene, camera ) );
+			composer.addPass( effectFXAA );
+			composer.addPass( effect_bloomPass );
+		}
+
+		function buildControls() {
+			gui = new dat.GUI();
+
+			// gui.add( PaintData.postEFX, 'bloomStrength', 0.0, 3.0 ).onChange( function (value) {
+			// 	effect_bloomPass.strength = Number(value);
+			// });
+
+			// gui.add( PaintData.postEFX, 'bloomRadius', 0.0, 1.0 ).onChange( function (value) {
+			// 	effect_bloomPass.radius = Number(value);
+			// });
+
+			// gui.add( PaintData.postEFX, 'bloomThreshold', 0.0, 1.0 ).onChange( function(value){
+			// 	effect_bloomPass.threshold = Number(value);
+			// });
+			gui.addColor( PaintData.palette, 'color-0' ).onFinishChange( function (value) {
+				PaintData.palette['color-0'] = value;
+				PaintData.updateColors();
+			});
+			gui.addColor( PaintData.palette, 'color-1' ).onFinishChange( function (value) {
+				PaintData.palette['color-1'] = value;
+				PaintData.updateColors();
+			});
+			gui.addColor( PaintData.palette, 'color-2' ).onFinishChange( function (value) {
+				PaintData.palette['color-2'] = value;
+				PaintData.updateColors();
+			});
+			gui.addColor( PaintData.palette, 'color-3' ).onFinishChange( function (value) {
+				PaintData.palette['color-3'] = value;
+				PaintData.updateColors();
+			});
+			gui.addColor( PaintData.palette, 'color-4' ).onFinishChange( function (value) {
+				PaintData.palette['color-4'] = value;
+				PaintData.updateColors();
+			});
+			gui.addColor( PaintData.palette, 'color-5' ).onFinishChange( function (value) {
+				PaintData.palette['color-5'] = value;
+				PaintData.updateColors();
+			});
+
+			gui.open();
+		}
+
+		function onWindowResize() {
+
+			camera.aspect = canvasW / canvasH;
+			camera.updateProjectionMatrix();
+
+			renderer.setSize( canvasW, canvasH );
+		}
+
+		function animate() {
+
+			requestAnimationFrame( animate );
+
+			render();
+			stats.update();
+		}
+
+		function render() {
+			// frame control 
+			// ------------------------------------------------------------
+			if( !isFrameControlling ) {
+				// frame: 0 ~ 314
+				frame++;
+				// frame_slider: 0 ~ 100
+				// frame_control_slider.value = frame*100/3140;
+				// sin frame: 0 ~ 1 ~ 0 ~ -1 ~ 0
+				sinframe = frame/500;
+
+				if( frame == 3140 ) frame = 0;
+			}
+
+			group.rotation.y = sinframe/10;
+			group.rotation.x = sinframe /10;
+			group.rotation.z = -sinframe /10;
+
+			if( PaintData.postEFX.effects ) {
+				composer.render();
+			}else{
+				renderer.render( scene, camera );
+			}
+
+		}
+	</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

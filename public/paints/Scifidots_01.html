@@ -135,7 +135,7 @@
 			// scene
 			scene = new THREE.Scene();
 			scene.background = new THREE.Color( PaintData.palette['color-0'] );
-			scene.fog = new THREE.Fog( PaintData.palette['color-0'], 100, 200 );
+			scene.fog = new THREE.Fog( PaintData.palette['color-0'], 100, 240 );
 
 			// renderer
 			renderer = new THREE.WebGLRenderer( { antialias: true, preserveDrawingBuffer: true } );
@@ -238,8 +238,8 @@
 			composer = new THREE.EffectComposer( renderer );
 			composer.addPass( renderPass );
 			composer.addPass( tiltShiftPass );
+			composer.addPass( effectFilmPass );
 			composer.addPass( effect_bloomPass );
-			// composer.addPass( effectFilmPass );
 			// composer.addPass( effectFXAA );
 		
 			composer = composer;
@@ -316,7 +316,7 @@
 			if( !isFrameControlling ) {
 				for( var i=0; i<sphereGroup.children.length; ++i ) {
 					// sphereGroup.children[i].scale.set( Math.sin(factor)*2, Math.sin(factor)*2, Math.sin(factor)*1 );
-					sphereGroup.children[i].scale.addScalar( Math.sin( (frame+i)/50 )/30 );
+					sphereGroup.children[i].scale.addScalar( Math.sin( ( frame + i )/50 )/10 );
 				}
 			}
 

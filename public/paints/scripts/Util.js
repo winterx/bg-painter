@@ -101,7 +101,7 @@ function initUI( renderer ) {
 
 	initUIInfoPanel();
 	initUIControlPanel();
-	initUITips();
+	// initUITips();
 }
 
 // 初始化主信息面板，功能包括显示标题、简介，控制下载和刷新
