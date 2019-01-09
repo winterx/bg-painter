@@ -4,8 +4,7 @@
 		<meta charset="utf-8">
 	    <meta name="format-detection" content="telephone=no"/>
 	    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-     	<script src="./libs/lottie_light.min.js"></script>
-     	<script src="./libs/jquery.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
 		<title>Bg Painter</title>
 		<style type="text/css">
@@ -75,9 +74,11 @@
 				vertical-align: middle;
 				width: 110px;
 				height: 55px;
+				background-image: url(images/logotype.gif);
+				background-size: cover;
 
-				transition: 800ms ease;
-				opacity: 0.0;
+				/*transition: 800ms ease;*/
+				/*opacity: 0.0;*/
 			}
 			.header .menu-wrapper {
 				display: inline-block;
@@ -469,7 +470,7 @@
 		// ------------------------------------------------------------
 		var words = {
 			'#gallery h4' : {
-				en: 'Find more wonderful paints',
+				en: 'Free to use all these paints',
 				zh: '发现更多样式'
 			},
 			"#tip_resetPattern": {
@@ -631,22 +632,22 @@
 
 		// Logotype animation
 		// ------------------------------------------------------------
-	    var animData = {
-	        wrapper: document.getElementById('logo_anim'),
-	        renderer: 'svg',
-	        // animType: 'html',
-	        loop: false,
-	        prerender: true,
-	        autoplay: false,
-	        path: './images/logotype.json'
+	    // var animData = {
+	    //     wrapper: document.getElementById('logo_anim'),
+	    //     renderer: 'svg',
+	    //     // animType: 'html',
+	    //     loop: false,
+	    //     prerender: true,
+	    //     autoplay: false,
+	    //     path: './images/logotype.json'
 
-	    };
-	    var anim = bodymovin.loadAnimation(animData);
-	    anim.setSpeed(2.0);
-	    var t = setTimeout(function(){
-	    	anim.play();
-	    	logo_anim.style.opacity = 1.0;
-	    }, 700);
+	    // };
+	    // var anim = bodymovin.loadAnimation(animData);
+	    // anim.setSpeed(2.0);
+	    // var t = setTimeout(function(){
+	    // 	anim.play();
+	    // 	logo_anim.style.opacity = 1.0;
+	    // }, 700);
 
 
 

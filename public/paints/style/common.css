@@ -1,8 +1,20 @@
+
+			@font-face {
+			    font-family: 'DIN';
+			    src: url('../../font/DIN-Regular.eot');
+			    src: url('../../font/DIN-Regular.eot?#iefix') format('embedded-opentype'),
+			        url('../../font/DIN-Regular.woff2') format('woff2'),
+			        url('../../font/DIN-Regular.woff') format('woff'),
+			        url('../../font/DIN-Regular.ttf') format('truetype');
+			    font-weight: normal;
+			    font-style: normal;
+			}
+
 * {
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
-	font-family: 'Microsoft Yahei', 'SF UI Display', 'Helvetica Neue', sans-serif;
+	font-family: 'DIN','Microsoft Yahei', 'SF UI Display', 'Helvetica Neue', sans-serif;
 }
 
 body {
@@ -194,6 +206,7 @@ body {
 	width: 40px;
 	height: 40px;
 	background-color: rgba( 0, 0, 10, 0.9 );
+	opacity: 0.8;
 	border-radius: 20px;
 }
 #frame_control input[type="button"] {
@@ -211,13 +224,12 @@ body {
 	border-radius: 50%;
 	border: none;
 	outline: none;
-	opacity: 0.9;
 	cursor: pointer;
 }
 #frame_control input[type="button"].pause {
     background-image: url( ../../images/ui/btn_play.png);
 }
-#frame_control input[type="button"]:hover {
+#frame_control:hover {
 	opacity: 1.0;
 }
 #frame_control input[type="range"] {   
@@ -273,7 +285,7 @@ body {
 	background-color: rgba( 0, 0, 10, 1.0 );
     background-size: cover;
 	border-radius: 50%;
-	opacity: 0.9;
+	opacity: 0.8;
 	cursor: pointer;
 }
 .dot-btn:hover {
@@ -321,7 +333,6 @@ body {
 	width: 100px;
 	color: #fff;
 	font-size: 10px;
-	font-style: italic;
 	text-align: center;
 	line-height: 20px;
 	border-radius: 6px;
