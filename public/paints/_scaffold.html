@@ -5,6 +5,7 @@
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<meta name=”description” id="description" content="">
 	<meta name=”description” id="serial" content="">
+	<meta name="keywords" id="keywords" content="">
 	<title>Scaffold</title>
 	
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -79,9 +80,10 @@
 		// -----------------------------------------------------------------------------------
 		var PaintData = { 
 			// Colors
-			colorName: 'Fantasy',
-			colortheme: {
-				'color-0': '#ffffff',
+			colorTheme: 'Scifi_Dark',
+			colorShuffleTheme: 'Wild',
+			palette: {
+				'color-0': '#00050A',
 				'color-1': '#ffffff',
 				'color-2': '#ffffff',
 				'color-3': '#ffffff'
@@ -93,9 +95,14 @@
 			// PostEFX
 			postEFX: {
 				effects: true,
+
 				tiltFocus: 0.5,
 				tiltAmount: 0.006,
 				tiltBrightness: 0.65,
+
+				bloomStrength: 0.8,
+				bloomRadius: 0.37,
+				bloomThreshold: 0.31,
 			},
 
 			// Controls
@@ -111,11 +118,11 @@
 			},
 
 			updateColors: function () {
-				scene.background.set( PaintData.colortheme['color-0'] );
-				matRTT.uniforms.u_color_0.value.set( PaintData.colortheme['color-0'] );
-				matRTT.uniforms.u_color_1.value.set( PaintData.colortheme['color-1'] );
-				matRTT.uniforms.u_color_2.value.set( PaintData.colortheme['color-2'] );
-				matRTT.uniforms.u_color_3.value.set( PaintData.colortheme['color-3'] );
+				scene.background.set( PaintData.palette['color-0'] );
+				matRTT.uniforms.u_color_0.value.set( PaintData.palette['color-0'] );
+				matRTT.uniforms.u_color_1.value.set( PaintData.palette['color-1'] );
+				matRTT.uniforms.u_color_2.value.set( PaintData.palette['color-2'] );
+				matRTT.uniforms.u_color_3.value.set( PaintData.palette['color-3'] );
 				matRTT.needsUpdate = true;
 			}
 		}
@@ -124,17 +131,7 @@
 
 		// Color Data and Start initPaint
 		// -----------------------------------------------------------------------------------
-		fetch( './data/Color.json' ).then( res => {
-			return res.json().then( json => {
-				colorlist = json['Colors']["Fancy"][0];
-				for( var i in colorlist ) {
-					PaintData.colortheme[ 'color-' + i ] = '#' + colorlist[i];
-				}
-			});
-		}).then( () => {
-			initPaint();
-			animate();
-		});
+		loadPaintData( './data/Scifidots_00/data.json', initPaint, animate );
 
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
@@ -150,8 +147,8 @@
 			buildControls(); // Dat.gui
 
 			loadShaderFromFile( './scripts/shaping_01.glsl', function(text) {
-				texture_mat.fragmentShader = text;
-				texture_mat.needsUpdate = true;
+				matRTT.fragmentShader = text;
+				matRTT.needsUpdate = true;
 			});
 		};
 
@@ -218,21 +215,22 @@
 				format: THREE.RGBFormat 
 			} ); // render target texture
 
-			// things on the texture
-			// canvasMaterial = new THREE.MeshBasicMaterial( {
-			// 	map: new THREE.Texture( drawingcanvas ),
-			// } ); 
-			texture_mat = new THREE.ShaderMaterial( {
+			matRTT = new THREE.ShaderMaterial( {
 				uniforms: { 
 					u_time: { value: 0.0 },
 					u_resolution: { value: new THREE.Vector2( texture_size, texture_size ) }, 
+					u_color_0: { value: new THREE.Color( PaintData.palette['color-'+0] ) },
+					u_color_1: { value: new THREE.Color( PaintData.palette['color-'+1] ) },
+					u_color_2: { value: new THREE.Color( PaintData.palette['color-'+2] ) },
+					u_color_3: { value: new THREE.Color( PaintData.palette['color-'+3] ) },
 				},
 				vertexShader: document.getElementById( 'init_vertex_shader' ).textContent,
 				fragmentShader: document.getElementById( 'init_fragment_shader' ).textContent
 			} );
-			var texture_quad = new THREE.Mesh( new THREE.PlaneBufferGeometry( texture_size, texture_size ), texture_mat );
+			quadRTT = new THREE.Mesh( new THREE.PlaneBufferGeometry( texture_size, texture_size ), matRTT );
 
-			sceneRTT.add( texture_quad );
+
+			sceneRTT.add( quadRTT );
 		}
 
 		function buildResources() {
@@ -263,20 +261,20 @@
 		function buildControls() {
 			var folder_colors = gui.addFolder('Color Theme');	
 			folder_colors.open();
-			folder_colors.addColor( PaintData.colortheme, 'color-0' ).onFinishChange( function (value) {
-				PaintData.colortheme['color-0'] = value;
+			folder_colors.addColor( PaintData.palette, 'color-0' ).onFinishChange( function (value) {
+				PaintData.palette['color-0'] = value;
 				PaintData.updateColors();
 			});
-			folder_colors.addColor( PaintData.colortheme, 'color-1' ).onFinishChange( function (value) {
-				PaintData.colortheme['color-1'] = value;
+			folder_colors.addColor( PaintData.palette, 'color-1' ).onFinishChange( function (value) {
+				PaintData.palette['color-1'] = value;
 				PaintData.updateColors();
 			});
-			folder_colors.addColor( PaintData.colortheme, 'color-2' ).onFinishChange( function (value) {
-				PaintData.colortheme['color-2'] = value;
+			folder_colors.addColor( PaintData.palette, 'color-2' ).onFinishChange( function (value) {
+				PaintData.palette['color-2'] = value;
 				PaintData.updateColors();
 			});
-			folder_colors.addColor( PaintData.colortheme, 'color-3' ).onFinishChange( function (value) {
-				PaintData.colortheme['color-3'] = value;
+			folder_colors.addColor( PaintData.palette, 'color-3' ).onFinishChange( function (value) {
+				PaintData.palette['color-3'] = value;
 				PaintData.updateColors();
 			});
 
@@ -314,7 +312,7 @@
 				// frame: 0 ~ 314
 				frame++;
 				// frame_slider: 0 ~ 100
-				frame_control_slider.value = frame*100/314;
+				// frame_control_slider.value = frame*100/314;
 				// sin frame: 0 ~ 1 ~ 0 ~ -1 ~ 0
 				// sinframe = Math.sin( frame/50 );
 

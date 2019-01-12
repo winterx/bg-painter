@@ -11,6 +11,17 @@ var paints = {
 		description : '\"Try to be a rainbow in someone\'s cloud. \"',
 		tags		: ['colorful','flowing','chromatic']
 	},
+
+	'DataSplines' : {
+		name 		: 'Abstract Data Style Splines',
+		nameZh		: '数据的流动',
+		serial		: 'No.0',
+		url 		: 'DataSplines.html',
+		picurl 		: 'images/data-splines.jpg',
+		description : '\"Try to be a rainbow in someone\'s cloud. \"',
+		tags		: ['dataviz','streamlines','splines']
+	},
+
 	'LiquidsDual' : {
 		name 		: 'Melting Dual-Color Liquids',
 		nameZh		: '融合交错的双色',
