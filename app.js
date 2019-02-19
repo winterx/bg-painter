@@ -71,3 +71,4 @@ var server = app.listen(3000,function(req,res){
 	console.log("应用实例，访问地址为 http://%s:%s", host, port);
 });
 
+module.exports = app;
