@@ -1,0 +1,674 @@
+<html><head>
+  <meta charset="utf-8">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  <title>Bg Painter</title>
+  <style type="text/css">
+    @font-face {
+        font-family: 'DIN';
+        src: url('./font/DIN-Regular.eot');
+        src: url('./font/DIN-Regular.eot?#iefix') format('embedded-opentype'),
+            url('./font/DIN-Regular.woff2') format('woff2'),
+            url('./font/DIN-Regular.woff') format('woff'),
+            url('./font/DIN-Regular.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      font-family: 'DIN','Microsoft Yahei', 'SF UI Display', 'Helvetica Neue', sans-serif;
+      box-sizing: border-box;
+    }
+
+    html {
+      height: 100%;
+    }
+
+    body {
+      background-color: #000009;
+      margin: 0px;
+      height: 100%;
+      color: #555;
+      /*overflow: hidden;*/
+    }
+
+    .wrapper {
+      position: relative;
+      margin: 0 auto;
+      width: 900px;
+      font-size: 0;
+    }
+
+
+    .header {
+      position: relative;
+      width: 100%;
+      color: #fff;
+      background-color: #000009;
+      font-size: 32px;
+      font-weight: 100;
+      text-align: left;
+    }
+    .header .logo-wrapper {
+      display: inline-block;
+      vertical-align: top;
+      width: 30%
+    }
+    .header .logo {
+      display: inline-block;
+      vertical-align: middle;
+      margin: 14px 0px;
+      margin-right: 4px;
+      width: 38px;
+      height: 38px;
+      background-image: url(images/logo.png);
+      background-size: cover;
+    }
+    .header .logotype {
+      display: inline-block;
+      vertical-align: middle;
+      width: 110px;
+      height: 55px;
+      background-image: url(images/logotype.gif);
+      background-size: cover;
+
+    }
+    .header .logotype .logo-zh {
+      position: absolute;
+      top: 14px;
+      left: 156px;
+      width: 80px;
+      height: 32px;
+      background-image: url(images/logo-zh.jpg);
+      background-size: cover;
+
+      transition: 200ms ease;
+      transform: translateX( -20px );
+      opacity: 0.0;
+    }
+    .header .logotype .logo-zh.show {
+      transform: translateX( 0px );
+      opacity: 1.0;				
+    }
+
+    .header .menu-wrapper {
+      display: inline-block;
+      vertical-align: top;
+      width: 70%;
+      text-align: right;
+    }
+    .header .menu-item {
+      display: inline-block;
+      vertical-align: top;
+      width: 100px;
+      height: 66px;
+    }
+    .header .menu-item .lan-btn {
+      display: inline-block;
+      vertical-align: top;
+      margin-top: 16px;
+      width: 40px;
+      height: 32px;
+      background-color: rgba(255,255,255,0.05);
+      opacity: 0.3;
+      cursor: pointer;
+    }
+    .header .menu-item .lan-btn.on {
+      background-color: #2c273a;
+      opacity: 1.0;
+    }
+    .header .menu-item .lan-btn.zh {
+      border-top-left-radius: 6px;
+      border-bottom-left-radius: 6px;
+      background-image: url(images/ui/switch_lan_zh.png);
+    }
+    .header .menu-item .lan-btn.en {
+      border-top-right-radius: 6px;
+      border-bottom-right-radius: 6px;
+      background-image: url(images/ui/switch_lan_en.png);
+    }
+
+
+    h2 {
+      font-size: 20px;
+      font-weight: normal;
+    }
+
+    a {
+      color: #000;
+      text-decoration: none;
+    }
+
+    /* view */
+    #viewer {
+      position: relative;
+      margin: 0 auto;
+      width: 100%;
+      overflow: auto;
+    }
+    #painterviewIframe {
+      /*display: none;*/
+      position: relative;
+      width: 100%;
+      height: 0;
+      border: none;
+      overflow: hidden;
+    }
+    
+    /* gallery */
+    #gallery {
+      position: relative;
+      margin: 0 auto;
+      width: 900px;
+      text-align: left;
+    }
+
+    #gallery h4 {
+      /*padding: 60px 0 0;*/
+      color: rgba( 255,255,255, 0.6 );
+      font-size: 20px;
+      font-weight: 100;
+      line-height: 32px;
+      text-align: center;
+    }
+    .deco-line {
+      position: relative;
+      margin: 40px auto 20px;
+      width: 100%;
+      height: 1px;
+      background-color: rgba( 255,255,255,0.1);
+    }
+
+    .link {
+      display: inline-block;
+      vertical-align: top;
+      margin: 27px 33px 24px 0;
+      width: 200px;
+    }
+    .link:nth-child(4n+0) {
+      margin-right: 0;
+    }
+    .link-img {
+      width: 200px; height: 100px;
+      border-radius: 7px;
+      overflow: hidden;
+    }
+    .link-name {
+      color: rgba(220,220,220,0.97);
+      font-size: 13px;
+      /*font-weight: 200;*/
+      /*letter-spacing: 1px;*/
+      line-height: 32px;
+      text-align: center;
+    }
+
+    .loading-gif {
+      position: absolute;
+      left: calc( 50% - 50px );
+      top: calc( 50% - 40px );
+      width: 100px;
+      height: 20px;
+      background-image: url(images/ui/loading.gif);
+      background-size: cover;
+    }
+
+
+
+
+    /* 全局遮罩 */
+    #global_cover {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba( 0, 0, 0, 0.85 );
+      z-index: 9999;
+    }
+    #global_cover .dialog-box {
+      position: absolute;
+      top: calc( 50% - 300px );
+      left: calc( 50% - 400px );
+      width: 800px;
+      height: 480px;
+      background-color: #000;
+      border-radius: 5px;
+    }
+    #global_cover .dialog-box .dialog-left {
+      display: inline-block;
+      vertical-align: middle;
+      margin-top: 100px;
+      padding-left: 50px;
+      width: 60%;
+      /*background-color: #050505;*/
+    }
+    #global_cover .dialog-box .dialog-left .main-title {
+      color: #fff;
+      font-size: 40px;
+      font-weight: 100;
+    }
+    #global_cover .dialog-box .dialog-left .sub-title {
+      margin-top: 20px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 100;
+      letter-spacing: 0.5px;
+      line-height: 1.4;
+    }
+    #global_cover .dialog-box .dialog-right {
+      display: inline-block;
+      vertical-align: middle;
+      margin-top: 100px;
+      width: 33%;
+    }
+
+
+
+
+    .footer {
+      position: relative;
+      margin: 0 auto;
+      padding-bottom: 100px;
+      width: 900px;
+      text-align: left;
+      z-index: 999;
+    }
+    .footer h2 {
+      margin-top: 40px;
+      color: rgba( 255, 255, 255, 0.6 );
+    }
+    .footer a {
+      color: #777;
+      text-decoration: underline;
+    }
+
+  </style>
+<style type="text/css">@font-face { font-family: 'ibm-grid-checker-plex'; src: url('https://1.www.s81c.com/common/fonts/plex/v1/ibmplexsans-light.woff2'); }</style></head>
+<body>
+<div class="header">
+  <div class="wrapper">
+    <div class="logo-wrapper">
+      <div class="logo"></div>
+      <div class="logotype" id="logo_anim"><div class="logo-zh show"></div></div>
+    </div>
+    <div class="menu-wrapper">
+      <div class="menu-item" id="switch_language">
+        <div class="lan-btn zh on" data-lang="zh">中</div>
+        <div class="lan-btn en" data-lang="en">EN</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- main view -->
+<section id="viewer">
+  <div class="loading-gif"></div>
+  <iframe id="painterviewIframe" src="./paints/LiquidsChromatic.html" name="painterview" onload="setIframeInfo()" frameborder="0" scrolling="no" allowfullscreen="" allowvr="" onmousewheel="" style="height: 600px;">
+  </iframe>
+</section>
+
+<!-- gallery list -->
+<section id="gallery">
+  <div class="deco-line"></div>
+  <h4>发现更多样式</h4>
+  <div id="content">
+  <a class="link" href="./paints/LiquidsChromatic.html" target="painterview" name="Flowing Chromatic Liquids" id="LiquidsChromatic"><div class="link-img"><img src="images/liquids-chromatic.jpg" width="100%"></div><div class="link-name">流光 · 溢彩</div></a><a class="link" href="./paints/DataSplines.html" target="painterview" name="Abstract Data Style Splines" id="DataSplines"><div class="link-img"><img src="images/data-splines.jpg" width="100%"></div><div class="link-name">数据的流动</div></a><a class="link" href="./paints/LiquidsDual.html" target="painterview" name="Melting Dual-Color Liquids" id="LiquidsDual"><div class="link-img"><img src="images/liquids-dual.jpg" width="100%"></div><div class="link-name">融合交错的双色</div></a><a class="link" href="./paints/FloatingObjects.html" target="painterview" name="Floating Objects" id="FloatingObjects"><div class="link-img"><img src="images/floating-objects.jpg" width="100%"></div><div class="link-name">悬浮物</div></a><a class="link" href="./paints/MatrixCubes.html" target="painterview" name="Cube Matrix" id="MatrixCubes"><div class="link-img"><img src="images/matrix-cube.jpg" width="100%"></div><div class="link-name">阵列方块</div></a><a class="link" href="./paints/FloatingMoney.html#00" target="painterview" name="Floating Money Signs" id="FloatingMoney_00"><div class="link-img"><img src="images/floating-money-00.jpg" width="100%"></div><div class="link-name">散布的美元</div></a><a class="link" href="./paints/FloatingMoney.html#01" target="painterview" name="Floating Money Signs" id="FloatingMoney_01"><div class="link-img"><img src="images/floating-money-01.jpg" width="100%"></div><div class="link-name">散布的人民币</div></a><a class="link" href="./paints/MatrixHearts.html" target="painterview" name="Heart Matrix" id="MatrixHearts"><div class="link-img"><img src="images/matrix-heart.jpg" width="100%"></div><div class="link-name">爱心小分队</div></a><a class="link" href="./paints/Scifidots_00.html" target="painterview" name="Pulsing Dots" id="Scifidots_00"><div class="link-img"><img src="images/scifi-dots-00.jpg" width="100%"></div><div class="link-name">脉动的点阵</div></a><a class="link" href="./paints/Scifidots_01.html" target="painterview" name="Sci-fi Dots Connections" id="Scifidots_01"><div class="link-img"><img src="images/scifi-dots-01.jpg" width="100%"></div><div class="link-name">科技 · 连接</div></a><a class="link" href="./paints/Explosion_00.html" target="painterview" name="Fireworks Explosion" id="Explosion_00"><div class="link-img"><img src="images/explosion-00.jpg" width="100%"></div><div class="link-name">绚烂的烟花</div></a><a class="link" href="./paints/Explosion_01.html" target="painterview" name="Celebration" id="Explosion_01"><div class="link-img"><img src="images/explosion-01.jpg" width="100%"></div><div class="link-name">庆祝时刻</div></a></div>
+</section>
+
+<!-- footer -->
+<div class="footer">
+  <div class="deco-line"></div>
+  <h2>Credits</h2>
+  <p>Bg Painter is made by <a href="http://www.fangyexu.com" target="blank">Frank Hsu</a>, built with the Three.js and download.js</p>
+
+  <h2>Term of use</h2>
+  <p>Images generated with Bg Painter are free to use anywhere with no restrictions.</p>
+</div>
+
+<!-- global cover -->
+<div id="global_cover">
+  <div class="dialog-box" id="change_browser">
+    <div class="dialog-left">
+      <div class="main-title">可否使用现代浏览器</div>
+      <div class="sub-title">亲爱的用户，Bg painter似乎运行在chrome浏览器浏览器中，我们非常不想您改变习惯，但是这个浏览器对WebGL技术支持不够好，我们建议您使用Chrome、Firefox、Safari这样的现代浏览器来体验Bg painter~</div>
+    </div>
+    <div class="dialog-right">
+      <img src="./images/ui/browser.jpg" width="100%">
+    </div>
+  </div>
+</div>
+
+<script src="paints.js"></script>
+<script type="text/javascript">
+
+
+    // 浏览器检测
+  // ------------------------------------------------------------
+  function checkBrowserType() {
+      var ua = navigator.userAgent.toLocaleLowerCase();
+      // 判断是否为IE(第一个是正常的IE，第二个是Edge，第三个是IE11)
+      var isIE = (ua.indexOf("compatible") > -1 && ua.indexOf("msie") > -1) || (ua.indexOf("edge") > -1) || (ua.indexOf(
+          'trident') > -1 && ua.indexOf("rv:11.0") > -1);
+      // 判断是否为IE5678，!+[1,] 在IE5678返回true，在IE9、IE10、IE11返回false
+      var isLteIE8 = isIE && !+[1, ];
+      // 用于防止因通过IE8+的文档兼容性模式设置文档模式，导致版本判断失效
+      var dm = document.documentMode,
+               isIE5,
+               isIE6,
+               isIE7,
+               isIE8,
+               isIE9,
+               isIE10,
+               isIE11;
+      if (dm) {
+          isIE5 = dm === 5;
+          isIE6 = dm === 6;
+          isIE7 = dm === 7;
+          isIE8 = dm === 8;
+          isIE9 = dm === 9;
+          isIE10 = dm === 10;
+          isIE11 = dm === 11;
+      } else {
+          // 判断是否为IE5，IE5的文本模式为怪异模式(quirks),真实的IE5.5浏览器中没有document.compatMode属性  
+          isIE5 = (isLteIE8 && (!document.compatMode || document.compatMode === 'BackCompat'));
+
+          // 判断是否为IE6，IE7开始有XMLHttpRequest对象  
+          isIE6 = isLteIE8 && !isIE5 && !XMLHttpRequest;
+
+          // 判断是否为IE7，IE8开始有document.documentMode属性  
+          isIE7 = isLteIE8 && !isIE6 && !document.documentMode;
+
+          // 判断是否IE8  
+          isIE8 = isLteIE8 && document.documentMode;
+
+          // 判断IE9，IE9严格模式中函数内部this不为undefined  
+          isIE9 = !isLteIE8 && (function () {
+              "use strict";
+              return !!this;
+          }());
+
+          // 判断IE10，IE10开始支持严格模式，严格模式中函数内部this为undefined   
+          isIE10 = isIE && !!document.attachEvent && (function () {
+              "use strict";
+              return !this;
+          }());
+
+          // 判断IE11，IE11开始移除了attachEvent属性  
+          isIE11 = isIE && !document.attachEvent;
+      };
+
+      var result = '';
+      // 因为字符串存在覆盖重复原因，判断顺序不可随意修改
+      isIE5 ? recommondChrome( 'IE5' ) :
+      isIE6 ? recommondChrome( 'IE6' ) :
+      isIE7 ? recommondChrome( 'IE7' ) :
+      isIE8 ? recommondChrome( 'IE8' ) :
+      isIE9 ? recommondChrome( 'IE9' ) :
+      isIE10 ? recommondChrome( 'IE10' ) : 
+      (ua.indexOf('green') > -1) 		? recommondChrome('绿色浏览器') : 
+      isIE11 							? result ='IE11' :
+      (ua.indexOf('qq') > -1) 		? result ='QQ' : 
+      (ua.indexOf('bidu') > -1) 		? recommondChrome('百度浏览器') : 
+      (ua.indexOf('lb') > -1) 		? result ='猎豹浏览器' : 
+      (ua.indexOf('world') > -1) 		? recommondChrome('世界之窗浏览器') : 
+      (ua.indexOf('2345') > -1) 		? recommondChrome('2345浏览器') : 
+      (ua.indexOf('maxthon') > -1) 	? recommondChrome('傲游浏览器') : 
+      (ua.indexOf('tao') > -1) 		? recommondChrome('淘宝浏览器') :  
+      (ua.indexOf('ubrowser') > -1) 	? recommondChrome('UC浏览器') :  
+      (ua.indexOf('coolnovo') > -1) 	? recommondChrome('枫叶浏览器') :  
+      (ua.indexOf('opr') > -1) 		? result ='Opera' :  
+      (ua.indexOf('se') > -1) 		? result ='搜狗浏览器' : 
+      (ua.indexOf('firefox') > -1) 	? result ='Firefox' :  
+      (ua.indexOf('safari') > -1 && ua.indexOf("version") > -1) ? result ='Safari' :  
+      (window.navigator.mimeTypes[40] || !window.navigator.mimeTypes.length) ? result ='360' : 
+      (ua.indexOf("chrome") > -1 && window.chrome) ? result ='chrome浏览器' : result ='其他'; 
+
+      return result;
+  }
+  var userbrowser = checkBrowserType();
+
+  function recommondChrome( browser ) {
+      console.log( browser );
+    global_cover.style.display = 'block';
+  }
+
+  navigator.sayswho = function(){
+      var ua= navigator.userAgent, tem, 
+      M= ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+      if(/trident/i.test(M[1])){
+          tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
+          return 'IE '+(tem[1] || '');
+      }
+      if(M[1]=== 'Chrome'){
+          tem= ua.match(/\b(OPR|Edge)\/(\d+)/);
+          if(tem!= null) return tem.slice(1).join(' ').replace('OPR', 'Opera');
+      }
+      M= M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+      if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
+      // return M.join(' ');
+      return M;
+  };
+
+  var weAdviceChrome = false;
+
+  switch( userbrowser ) {
+    case 'IE11':
+      weAdviceChrome = true;
+      break;
+    case 'QQ':
+        if ( (navigator.platform == "Mac68K") || (navigator.platform == "MacPPC") || (navigator.platform == "Macintosh") || (navigator.platform == "MacIntel") ) {
+          weAdviceChrome = true;
+        }
+        break;
+      case 'Safari':
+        if( navigator.sayswho()[1] === '9' ) {
+          weAdviceChrome = true;
+        }
+        break;
+      case '360':
+        break;
+  }
+
+
+
+  // 设定语言显示
+  // ------------------------------------------------------------
+  var words = {
+    '#gallery h4' : {
+      en: 'Free to use all these paints',
+      zh: '发现更多样式'
+    },
+    "#tip_resetPattern": {
+      en: "Refresh pattern",
+      zh: "刷新样式"
+    },
+    "#tip_shuffleTheme": {
+      en: "Shuffle theme",
+      zh: "切换颜色主题"
+    },
+    "#change_browser .main-title": {
+      en: "Better using modern browser",
+      zh: "可否使用现代浏览器"
+    },
+    "#change_browser .sub-title": {
+      en: "Dear, Bg painter seems to be running in " + userbrowser + "now, but this browser is not supporting webgl very well. You can change to Chrome/Firefox/Safari to have a better effects.",
+      zh: "亲爱的用户，Bg painter似乎运行在" + userbrowser + "浏览器中，我们非常不想您改变习惯，但是这个浏览器对WebGL技术支持不够好，我们建议您使用Chrome、Firefox、Safari这样的现代浏览器来体验Bg painter~"
+    }			
+  }
+
+  if( localStorage.hasOwnProperty('lang') ) {
+
+  }else{
+    var language=null;
+    if (navigator.appName == 'Netscape'){
+      language = navigator.language;
+    }
+    else{
+      language = navigator.browserLanguage;
+    }
+    if (language.indexOf('en') > -1){
+      localStorage.lang = "en"
+    } 
+    else if (language.indexOf('zh') > -1){
+      localStorage.lang = "zh"
+    } 
+    else{
+      localStorage.lang = "en"
+    }
+  }
+
+
+  function switchLanguage( lang ) {
+    localStorage.lang = lang;
+
+    switch( lang ) {
+      case 'en':
+        $('.lan-btn.en').addClass('on');
+        $('.lan-btn.en').siblings().removeClass('on');
+        for( var key in paints ) {
+          $( '#' + key + ' .link-name' ).html( paints[key].name );
+        }
+        $('.logo-zh').removeClass('show');
+        break;
+      case 'zh':
+        $('.lan-btn.zh').addClass('on');
+        $('.lan-btn.zh').siblings().removeClass('on');
+        for( var key in paints ) {
+          $( '#' + key + ' .link-name' ).html( paints[key].nameZh );
+        }
+        $('.logo-zh').addClass('show');
+        break;
+    }
+
+    // UI话术 区分中英文
+    for( var key in words ) {
+      $(key).html( words[key][lang] );
+    }
+
+    // 当前的paint，标题区分中英文
+    CurrentPaintInfo.title = localStorage.lang === 'zh'? CurrentPaintInfo.nameZh : CurrentPaintInfo.name;
+    if( painterview.window.document.getElementById('info_title') ) {
+      painterview.window.document.getElementById('info_title').textContent = CurrentPaintInfo.title;
+    }
+  }
+
+  $('.lan-btn').click(function(e){
+    if( this.dataset.lang === 'zh' ) {
+      switchLanguage('zh');
+    }else{
+      switchLanguage('en');
+    }
+  })
+
+
+
+  // style setting
+  var screenWidth = window.innerWidth;
+  var iframeHeight = screenWidth > 1400 ? 720 : 600;
+  var pview = document.getElementById('painterviewIframe');
+  pview.style.height = iframeHeight + 'px';
+
+
+
+  // 创建一个对象，用来封装当前选中的paint的信息
+  var paint = paints['LiquidsChromatic'];
+
+  var CurrentPaintInfo = {};
+  CurrentPaintInfo.title = localStorage.lang === 'zh'? paint.nameZh : paint.name;
+  CurrentPaintInfo.name = paint.name;
+  CurrentPaintInfo.nameZh = paint.nameZh;
+  CurrentPaintInfo.tags = ['colorful','flowing','chromatic']
+
+
+  for ( var key in paints ) {
+
+    var item = paints[key];
+
+    var linkItem = document.createElement('a');
+    linkItem.className = 'link';
+    linkItem.href = './paints/' + item.url;
+    linkItem.setAttribute( 'target', 'painterview' ); // 点击后切换至对应的iframe
+    linkItem.setAttribute( 'name', item.name );
+    linkItem.setAttribute( 'id', key );
+    linkItem.addEventListener( 'click', function(event){
+      var id = event.currentTarget.id;
+      var targetItem = paints[ id ];
+      CurrentPaintInfo.title = localStorage.lang === 'zh'? targetItem.nameZh : targetItem.name;
+      if( CurrentPaintInfo.name === targetItem.name ) {
+        console.log('same')
+        painterview.window.location.reload();
+      }
+      CurrentPaintInfo.name = targetItem.name;
+      CurrentPaintInfo.nameZh = targetItem.nameZh;
+      CurrentPaintInfo.tags = targetItem.tags;
+    },false);
+
+    var img = document.createElement('img');
+    img.src = item.picurl;
+    img.setAttribute('width','100%');
+    var imgwrapper = document.createElement('div');
+    imgwrapper.className = 'link-img';
+    imgwrapper.appendChild(img);
+
+    var paintName = document.createElement('div');
+    paintName.textContent = item.name;
+    paintName.className = 'link-name';
+
+    linkItem.appendChild(imgwrapper);
+    linkItem.appendChild(paintName);
+
+    $('#content').append(linkItem);
+  }
+
+  function setIframeInfo() {
+    painterview.window.document.title = CurrentPaintInfo.title;
+    painterview.window.document.getElementById('keywords').content = CurrentPaintInfo.tags;
+    painterview.window.isChromeRecommend = weAdviceChrome;
+    switchLanguage( localStorage.lang );
+  }
+
+  // function selectFile(file) {
+
+  // 	window.location.hash = file;
+  // 	painterview.focus();
+  // 	painterview.src = file + '.html';
+
+  // 	selected = file;
+
+  // }
+
+  // Logotype animation
+  // ------------------------------------------------------------
+    // var animData = {
+    //     wrapper: document.getElementById('logo_anim'),
+    //     renderer: 'svg',
+    //     // animType: 'html',
+    //     loop: false,
+    //     prerender: true,
+    //     autoplay: false,
+    //     path: './images/logotype.json'
+
+    // };
+    // var anim = bodymovin.loadAnimation(animData);
+    // anim.setSpeed(2.0);
+    // var t = setTimeout(function(){
+    // 	anim.play();
+    // 	logo_anim.style.opacity = 1.0;
+    // }, 700);
+
+
+
+
+</script>
+
+<div id="voblet"><div data-reactroot=""><div><div class="custom-dialog" style="display: none; position: fixed;"><div class="dialog-title">Add Tags ?</div><div class="dialog-content"><div class="select-tags"></div></div><div class="tags-wrapper"><div class="ReactTags__tags"><div class="ReactTags__selected"><div class="ReactTags__tagInput"><input type="text" placeholder="Add new tag and press enter" aria-label="Add new tag and press enter"><!-- react-empty: 12 --></div></div></div></div><div class="dialog-footer"><button class="mdl-button">Add</button><button class="mdl-button" style="display: none;">Delete</button><button class="mdl-button">No</button></div></div><div action="close" style="position: fixed; left: 50%; display: flex; bottom: 0px; z-index: 2900; visibility: hidden; transform: translate(-50%, 48px); transition: transform 400ms cubic-bezier(0.23, 1, 0.32, 1) 0ms, visibility 400ms cubic-bezier(0.23, 1, 0.32, 1) 0ms;"><div width="3" style="font-family: Roboto, sans-serif; background-color: rgba(0, 0, 0, 0.87); padding: 0px 24px; height: 48px; line-height: 48px; border-radius: 2px; max-width: 568px; min-width: 288px; width: auto; flex-grow: 0;"><div style="font-size: 14px; color: rgb(255, 255, 255); opacity: 0; transition: opacity 400ms cubic-bezier(0.23, 1, 0.32, 1) 0ms;"><span></span><button tabindex="0" type="button" style="border: 10px; box-sizing: border-box; display: inline-block; font-family: Roboto, sans-serif; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); cursor: pointer; text-decoration: none; margin: 6px -16px 0px 24px; padding: 0px; outline: none; font-size: inherit; font-weight: inherit; position: relative; z-index: 1; height: 36px; line-height: 36px; min-width: 88px; color: rgb(29, 233, 182); transition: all 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms; border-radius: 2px; user-select: none; overflow: hidden; background-color: transparent; text-align: center; float: right;"><div><span style="position: relative; padding-left: 16px; padding-right: 16px; vertical-align: middle; letter-spacing: 0px; text-transform: uppercase; font-weight: 500; font-size: 14px;">close</span></div></button></div></div></div></div><div action="close" style="position: fixed; left: 50%; display: flex; bottom: 20px; z-index: 2900; visibility: hidden; transform: translate(-50%, 48px); transition: transform 400ms cubic-bezier(0.23, 1, 0.32, 1) 0ms, visibility 400ms cubic-bezier(0.23, 1, 0.32, 1) 0ms;"><div width="3" style="font-family: Roboto, sans-serif; background-color: rgba(0, 0, 0, 0.87); padding: 0px 24px; height: 48px; line-height: 48px; border-radius: 2px; max-width: 568px; min-width: 288px; width: auto; flex-grow: 0;"><div style="font-size: 14px; color: rgb(255, 255, 255); opacity: 0; transition: opacity 400ms cubic-bezier(0.23, 1, 0.32, 1) 0ms;"><span></span><button tabindex="0" type="button" style="border: 10px; box-sizing: border-box; display: inline-block; font-family: Roboto, sans-serif; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); cursor: pointer; text-decoration: none; margin: 6px -16px 0px 24px; padding: 0px; outline: none; font-size: inherit; font-weight: inherit; position: relative; z-index: 1; height: 36px; line-height: 36px; min-width: 88px; color: rgb(29, 233, 182); transition: all 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms; border-radius: 2px; user-select: none; overflow: hidden; background-color: transparent; text-align: center; float: right;"><div><span style="position: relative; padding-left: 16px; padding-right: 16px; vertical-align: middle; letter-spacing: 0px; text-transform: uppercase; font-weight: 500; font-size: 14px;">close</span></div></button></div></div></div></div></div><style>
+    button::-moz-focus-inner,
+    input::-moz-focus-inner {
+      border: 0;
+      padding: 0;
+    }
+  </style></body></html>
