@@ -11,6 +11,25 @@
 			[ "7900ff", "2ec4ff", "4bff47", "ff0081", "ff000a", "ff9b05" ]
 		],
 
+		"Ecstasy":
+		[
+			[ "ffde6b", "6d00ff", "ff3152", "e61992" ],
+			[ "08d9d6", "0055ff", "ff0f4c", "ffffff" ],
+			[ "00ffef", "7000ff", "ff4b40", "ff9440" ],
+			[ "f5ff00", "00efff", "c05fef", "ff004b" ]
+		],
+
+		"Fresh": 
+		[
+			[ "b7f7d3", "70e8db", "7fa5ed", "8259f2" ],
+			[ "88bef5", "ba53de", "f469a9", "f4fa9c" ],
+			[ "ffaae5", "c6f4ff", "f4fcad", "d89eff" ],
+			[ "f79287", "f9f784", "fcffc9", "8ef4d0" ],  
+			[ "5ba8ff", "fcff8e", "ffdd68", "7c70ff" ],
+			[ "a8ede5", "fff9ed", "f9a0bc", "b085ff" ]
+		],
+
+
 		"Explosion": [
 			[ "9B50ED", "69D5FF", "FFBD6E", "FF77BC", "ff434b", "5E71FF" ]			
 		],
@@ -24,7 +43,6 @@
 			["f291f2","ffd18e","f4f29e","af60ea"],
 			["ea2ba3","f99696","f4c996","bf0caa"],
 			["ea2ba3","FF4F4F","f4c996","bf0caa"],
-			["FFDE6B","6D00FF","FF3152","E61992"],
 			["FFDE6B","FF6400","FF3152","FC3F1E"],
 			["FFDE6B","8E3CFF","FF3152","F8463F"]
 		],
@@ -67,12 +85,6 @@
 			[ "00050A", "0075ff", "2380F8", "22c8fb" ],
 			[ "00050A", "2636f7", "c9eff9", "452DEF" ],
 			[ "00050A", "00ffff", "6effb9", "a82dfc" ]
-		],
-
-		"Fresh": [
-			["f79287","f9f784","fcffc9","8ef4d0"],  
-			["5ba8ff","fcff8e","ffdd68","7c70ff"],
-			["a8ede5","fff9ed","f9a0bc","b085ff"]
 		],
 
 		"Luxury_Golden": [

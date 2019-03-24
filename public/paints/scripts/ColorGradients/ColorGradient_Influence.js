@@ -1,4 +1,3 @@
-
 function Influence ( x, y, z, radius ) {
 
 	this.anchor = new THREE.Vector3( x, y, z );
@@ -12,7 +11,7 @@ function Influence ( x, y, z, radius ) {
 
 		var distance;
 
-		for( var i=0; i<geometry.vertices.length ; i++ ) {
+		for( var i=0, length=geometry.vertices.length; i<length ; i++ ) {
 
 			if( i%100==0 || i%100==99 || i<100 || ( i>5900 && i<6000 ) ) {
 				continue;
@@ -24,6 +23,7 @@ function Influence ( x, y, z, radius ) {
 
 				var factor = distance/this.effectradius;
 
+				// var weight = 1 - factor * factor * ( 3 - 2*factor );
 				var weight = (( 1 / ( Math.sqrt( 2 * 3.14 ) * 0.25 ) ) *Math.exp ( - (factor) * (factor) / (2* 0.25 * 0.25 ) )) / 1.6;
 
 				this.map.set( i, weight );
@@ -44,7 +44,7 @@ function Influence ( x, y, z, radius ) {
 		var dy = target_y - this.anchor.y;
 		var dz = target_z - this.anchor.z;
 
-		this.map.forEach( function( value, index, mapObj ) {
+		this.map.forEach( function( value, index, mapObj ) { 
 
 			geometry.vertices[index].x += dx*value;
 			geometry.vertices[index].y += dy*value;

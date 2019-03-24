@@ -1,0 +1,59 @@
+{
+	"standard": {
+		"colorName": "Fantasy",
+		"colortheme": [],
+		"pattern": {
+			"sprays" : [
+				{ 
+					"x": 244, 
+					"y": 279, 
+					"radius_inner": 63, 
+					"radius_outer": 419, 
+					"color_indices": [1,3,0]
+				},
+				{ 
+					"x": 285, 
+					"y": 60, 
+					"radius_inner": 93, 
+					"radius_outer": 405, 
+					"color_indices": [0,3,2]
+				},
+				{ 
+					"x": 436, 
+					"y": 3, 
+					"radius_inner": 89, 
+					"radius_outer": 422, 
+					"color_indices": [3,1,0]
+				},
+				{ 
+					"x": 227, 
+					"y": 127, 
+					"radius_inner": 78, 
+					"radius_outer": 496, 
+					"color_indices": [2,3,0]
+				}				
+			],
+			"morphdata": {
+				"1": {
+					"anchorX": -320,
+					"anchorY": -200,
+					"anchorZ": 0,
+					"anchorRadius": 900,
+					"moveToX": -360,
+					"moveToY": 160,
+					"moveToZ": -400
+				},
+				"2": {
+					"anchorX": 320,
+					"anchorY": 200,
+					"anchorZ": 0,
+					"anchorRadius": 900,
+					"moveToX": 360,
+					"moveToY": -160,
+					"moveToZ": -400
+				}
+			}
+		}
+	}
+}
+
