@@ -735,12 +735,12 @@ vec3 getAmbientLightIrradiance( const in vec3 ambientLightColor ) {
     #endif
     return irradiance;
 }
-#if 0 > 0
+#if 1 > 0
     struct DirectionalLight {
         vec3 direction;
         vec3 color;
     };
-    uniform DirectionalLight directionalLights[ 0 ];
+    uniform DirectionalLight directionalLights[ 1 ];
     void getDirectionalDirectLightIrradiance( const in DirectionalLight directionalLight, const in GeometricContext geometry, out IncidentLight directLight ) {
         directLight.color = directionalLight.color;
         directLight.direction = directionalLight.direction;
@@ -764,7 +764,7 @@ vec3 getAmbientLightIrradiance( const in vec3 ambientLightColor ) {
         directLight.visible = ( directLight.color ! = vec3( 0.0 ) );
     }
 #endif
-#if 0 > 0
+#if 1 > 0
     struct SpotLight {
         vec3 position;
         vec3 direction;
@@ -774,7 +774,7 @@ vec3 getAmbientLightIrradiance( const in vec3 ambientLightColor ) {
         float coneCos;
         float penumbraCos;
     };
-    uniform SpotLight spotLights[ 0 ];
+    uniform SpotLight spotLights[ 1 ];
     void getSpotDirectLightIrradiance( const in SpotLight spotLight, const in GeometricContext geometry, out IncidentLight directLight ) {
         vec3 lVector = spotLight.position - geometry.position;
         directLight.direction = normalize( lVector );
@@ -1304,19 +1304,33 @@ void main() {
         #endif
         
     #endif
-    #if ( 0 > 0 ) && defined( RE_Direct )
+    #if ( 1 > 0 ) && defined( RE_Direct )
         SpotLight spotLight;
         #if defined( USE_SHADOWMAP ) && 0 > 0
             SpotLightShadow spotLightShadow;
         #endif
         
+        spotLight = spotLights[ 0 ];
+        getSpotDirectLightIrradiance( spotLight, geometry, directLight );
+        #if defined( USE_SHADOWMAP ) && ( 0 < 0 )
+            spotLightShadow = spotLightShadows[ 0 ];
+            directLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( spotShadowMap[ 0 ], spotLightShadow.shadowMapSize, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotShadowCoord[ 0 ] ) : 1.0;
+        #endif
+        RE_Direct( directLight, geometry, material, reflectedLight );
     #endif
-    #if ( 0 > 0 ) && defined( RE_Direct )
+    #if ( 1 > 0 ) && defined( RE_Direct )
         DirectionalLight directionalLight;
         #if defined( USE_SHADOWMAP ) && 0 > 0
             DirectionalLightShadow directionalLightShadow;
         #endif
         
+        directionalLight = directionalLights[ 0 ];
+        getDirectionalDirectLightIrradiance( directionalLight, geometry, directLight );
+        #if defined( USE_SHADOWMAP ) && ( 0 < 0 )
+            directionalLightShadow = directionalLightShadows[ 0 ];
+            directLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( directionalShadowMap[ 0 ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ 0 ] ) : 1.0;
+        #endif
+        RE_Direct( directLight, geometry, material, reflectedLight );
     #endif
     #if ( 0 > 0 ) && defined( RE_Direct_RectArea )
         RectAreaLight rectAreaLight;
@@ -1368,19 +1382,14 @@ void main() {
         #endif
     #endif
     vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + reflectedLight.directSpecular + reflectedLight.indirectSpecular + totalEmissiveRadiance;
-    
     #ifdef TRANSMISSION
         diffuseColor.a *= mix( saturate( 1. - totalTransmission + linearToRelativeLuminance( reflectedLight.directSpecular + reflectedLight.indirectSpecular ) ), 1.0, metalness );
     #endif
-
     gl_FragColor = vec4( outgoingLight, diffuseColor.a );
-
     #if defined( TONE_MAPPING )
         gl_FragColor.rgb = toneMapping( gl_FragColor.rgb );
     #endif
-
     gl_FragColor = linearToOutputTexel( gl_FragColor );
-
     #ifdef USE_FOG
         #ifdef FOG_EXP2
             float fogFactor = 1.0 - exp( - fogDensity * fogDensity * fogDepth * fogDepth );
@@ -1389,11 +1398,9 @@ void main() {
         #endif
         gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
     #endif
-
     #ifdef PREMULTIPLIED_ALPHA
         gl_FragColor.rgb *= gl_FragColor.a;
     #endif
-
     #ifdef DITHERING
         gl_FragColor.rgb = dithering( gl_FragColor.rgb );
     #endif
